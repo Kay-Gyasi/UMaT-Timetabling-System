@@ -1,0 +1,38 @@
+[
+	{
+		"prof": {
+			"id": 1,
+			"name": "Prof Sabi"
+		}
+	},
+	{
+		"course": {
+			"id": 1,
+			"name": "Programming"
+		}
+	},
+	{
+		"room": {
+			"name": "LH1",
+			"lab": true,
+			"size": 20
+		}
+	},
+	{
+		"group": {
+			"id": 1,
+			"name": "CE 1",
+			"size": 12
+		}
+	},
+	{
+		"class": {
+			"id": 1,
+			"professor": 1,
+			"course": 1,
+			"duration": 2,
+			"groups": [ 1 ],
+			"lab": true
+		}
+	}
+]

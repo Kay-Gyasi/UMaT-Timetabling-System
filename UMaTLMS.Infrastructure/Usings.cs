@@ -1,0 +1,13 @@
+﻿global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using UMaTLMS.Core.Entities;
+global using UMaTLMS.Infrastructure.Persistence.Configurations.Base;
+global using Microsoft.EntityFrameworkCore.Storage;
+global using Microsoft.Extensions.Logging;
+global using UMaTLMS.SharedKernel;
+global using UMaTLMS.Infrastructure.Persistence.Repositories.Base;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using UMaTLMS.Infrastructure.Persistence;
+global using UMaTLMS.Core.Repositories;
+global using UMaTLMS.Infrastructure.Persistence.Interceptors;
