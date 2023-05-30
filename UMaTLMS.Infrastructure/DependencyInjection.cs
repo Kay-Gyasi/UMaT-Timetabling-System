@@ -1,4 +1,4 @@
-﻿using UMaTLMS.Core.Authentication;
+﻿using Microsoft.AspNetCore.Builder;
 using UMaTLMS.Core.Services;
 using UMaTLMS.Infrastructure.Persistence.Repositories;
 
@@ -6,15 +6,27 @@ namespace UMaTLMS.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddPersistence(this IServiceCollection services,
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
         IConfiguration configuration)
     {
         services.RegisterDbContext(configuration)
-            .RegisterRepositories();
-
-        services.AddScoped<ITokenService, TokenService>()
+            .RegisterRepositories()
+            .AddHttpClient("UMaT", opts =>
+            {
+                opts.BaseAddress = new Uri("https://sys.umat.edu.gh/dev/api/");
+                opts.Timeout = TimeSpan.FromMinutes(5);
+            });
+            services.AddScoped<IUMaTApiService, UMaTApiService>()
             .AddScoped<IExcelReader, ExcelReader>();
         return services;
+    }
+
+    public static void AddMigrations(this WebApplication app)
+    {
+        using var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+        var context = serviceScope.ServiceProvider.GetService<AppDbContext>();
+        if (Environment.CommandLine.Contains("migrations add")) return;
+        context?.Database.Migrate();
     }
 
     private static IServiceCollection RegisterDbContext(this IServiceCollection services,
@@ -27,7 +39,10 @@ public static class DependencyInjection
         {
             var interceptor = sp.GetService<ConvertDomainEventsToOutboxMessagesInterceptor>();
             var saveChangesInterceptor = sp.GetService<AuditEntitiesInterceptor>();
-            options.UseSqlServer(configuration.GetConnectionString("Default"))
+            options.UseSqlServer(configuration.GetConnectionString("Default"), o =>
+                {
+                    o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                })
                 .AddInterceptors(interceptor!, saveChangesInterceptor!);
             options.EnableSensitiveDataLogging();
         });
@@ -37,15 +52,13 @@ public static class DependencyInjection
 
     private static IServiceCollection RegisterRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IStudentRepository, StudentRepository>()
-            .AddScoped<ISemesterRepository, SemesterRepository>()
-            .AddScoped<IRoomRepository, RoomRepository>()
-            .AddScoped<ILecturerRepository, LecturerRepository>()
-            .AddScoped<IDepartmentRepository, DepartmentRepository>()
+        services.AddScoped<IRoomRepository, RoomRepository>()
             .AddScoped<ICourseRepository, CourseRepository>()
-            .AddScoped<IUserRepository, UserRepository>()
-            .AddScoped<IClassRepository, ClassRepository>();
-
+            .AddScoped<IClassGroupRepository, ClassGroupRepository>()
+            .AddScoped<ISubClassGroupRepository,SubClassGroupRepository>()
+            .AddScoped<ILectureRepository, LectureRepository>()
+            .AddScoped<ILecturerRepository, LecturerRepository>()
+            .AddScoped<ILectureScheduleRepository, LectureScheduleRepository>();
         return services;
     }
 }

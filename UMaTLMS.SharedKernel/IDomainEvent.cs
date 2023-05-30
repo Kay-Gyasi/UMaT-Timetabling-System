@@ -10,12 +10,14 @@ public interface IDomainEvent : INotification
 
 public abstract class DomainEvent : IDomainEvent
 {
-    protected DomainEvent(Guid id)
+    protected DomainEvent(int? id)
     {
-        Id = id;
+        Id = Guid.NewGuid();
+        EntityId = id;
         OccurredOn = DateTime.UtcNow;
     }
 
     public Guid Id { get; }
+    public int? EntityId { get; }
     public DateTime OccurredOn { get; }
 }

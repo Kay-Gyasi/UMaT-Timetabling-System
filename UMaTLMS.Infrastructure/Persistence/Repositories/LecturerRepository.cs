@@ -1,15 +1,20 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
-public class LecturerRepository : Repository<Lecturer, int>, ILecturerRepository
+namespace UMaTLMS.Infrastructure.Persistence.Repositories
 {
-    public LecturerRepository(AppDbContext context, ILogger<Repository<Lecturer, int>> logger)
-        : base(context, logger)
+    public class LecturerRepository : Repository<Lecturer, int>, ILecturerRepository
     {
-    }
+        public LecturerRepository(AppDbContext context, ILogger<LecturerRepository> logger) : base(context, logger)
+        {
+        }
 
-    protected override IQueryable<Lecturer> GetBaseQuery()
-    {
-        return base.GetBaseQuery()
-            .Include(x => x.User);
+        public async Task<bool> Exists(int umatId)
+        {
+            return await GetBaseQuery().AnyAsync(x => x.UmatId == umatId);
+        }
+
+        public async Task<List<Lecturer>> GetAll()
+        {
+            return await GetBaseQuery().ToListAsync();
+        }
     }
 }

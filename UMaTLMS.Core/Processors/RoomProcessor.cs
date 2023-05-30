@@ -16,12 +16,12 @@ public class RoomProcessor
 
     public async Task<OneOf<int, Exception>> UpsertAsync(RoomCommand command)
     {
-        var isNew = command.Id is null;
-        Room? room;
+        var isNew = command.Id == 0;
+        ClassRoom? room;
 
         if (isNew)
         {
-            room = Room.Create(command.Name, command.Capacity);
+            room = ClassRoom.Create(command.Name, command.Capacity);
             if (command.IsLab) room.IsLabRoom();
             if (command.IsWorkshop) room.IsWorkshopRoom();
             try
@@ -89,6 +89,11 @@ public class RoomProcessor
         if (room is null) return;
 
         await _roomRepository.DeleteAsync(room);
+    }
+
+    public async Task<IEnumerable<ClassRoom>> GetAllAsync()
+    {
+        return await _roomRepository.GetAllAsync();
     }
 }
 

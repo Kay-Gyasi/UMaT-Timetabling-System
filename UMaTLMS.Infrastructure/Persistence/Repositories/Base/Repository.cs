@@ -1,4 +1,6 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
+﻿using UMaTLMS.Core.Repositories.Base;
+
+namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
 
 public class Repository<T, TKey> : IRepository<T, TKey>
     where T : Entity

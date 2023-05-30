@@ -1,5 +1,8 @@
-﻿using UMaTLMS.Infrastructure.Persistence.Repositories.Base;
+﻿using UMaTLMS.Core.Repositories.Base;
 
 namespace UMaTLMS.Core.Repositories;
 
-public interface ICourseRepository : IRepository<Course, int> { }
+public interface ICourseRepository : IRepository<IncomingCourse, int>
+{
+    Task<List<IncomingCourse>> GetAll();
+}

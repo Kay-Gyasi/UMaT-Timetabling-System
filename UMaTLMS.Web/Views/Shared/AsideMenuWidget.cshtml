@@ -1,0 +1,87 @@
+﻿<div class="aside-menu flex-column-fluid">
+  <!--begin::Aside Menu-->
+  <div class="hover-scroll-overlay-y px-2 my-5 my-lg-5" id="kt_aside_menu_wrapper" data-kt-scroll="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="{default: '#kt_aside_toolbar, #kt_aside_footer', lg: '#kt_header, #kt_aside_toolbar, #kt_aside_footer'}" data-kt-scroll-wrappers="#kt_aside_menu" data-kt-scroll-offset="5px">
+    <!--begin::Menu-->
+    <div class="menu menu-column menu-title-gray-800 menu-state-title-primary menu-state-icon-primary menu-state-bullet-primary menu-arrow-gray-500" id="#kt_aside_menu" data-kt-menu="true">
+      <div class="menu-item">
+        <div class="menu-content pb-2">
+          <span class="menu-section text-muted text-uppercase fs-8 ls-1">Default</span>
+        </div>
+      </div>
+      <div class="menu-item kt_aside_mobile_toggle">
+        <a class="menu-link">
+          <span class="menu-icon">
+            <!--begin::Svg Icon | path: icons/duotune/general/gen025.svg-->
+            <span class="svg-icon svg-icon-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="2" width="9" height="9" rx="2" fill="black" />
+                <rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="black" />
+                <rect opacity="0.3" x="13" y="13" width="9" height="9" rxS="2" fill="black" />
+                <rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="black" />
+              </svg>
+            </span>
+            <!--end::Svg Icon-->
+          </span>
+          <span class="menu-title">Dashboard</span>
+        </a>
+      </div>
+
+      <!-- Customers -->
+      <div class="menu-item">
+        <div class="menu-content pt-8 pb-2">
+          <span class="menu-section text-muted text-uppercase fs-8 ls-1">Courses</span>
+        </div>
+      </div>
+
+      <!-- Manage courses -->
+      <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+
+        <div class="menu-item kt_aside_mobile_toggle">
+          <a asp-controller="Courses" asp-action="Index" class="menu-link">
+            <span class="menu-bullet">
+              <span class="bullet bullet-dot"></span>
+            </span>
+            <span class="menu-title">View Courses</span>
+          </a>
+        </div>
+        
+        <div class="menu-item kt_aside_mobile_toggle">
+          <a asp-controller="Courses" asp-action="Add" class="menu-link">
+            <span class="menu-bullet">
+              <span class="bullet bullet-dot"></span>
+            </span>
+            <span class="menu-title">Add Course</span>
+          </a>
+        </div>
+        
+        <div class="menu-item kt_aside_mobile_toggle">
+          <a asp-controller="Courses" asp-action="Assign" class="menu-link">
+            <span class="menu-bullet">
+              <span class="bullet bullet-dot"></span>
+            </span>
+            <span class="menu-title">Assign Lecturers</span>
+          </a>
+        </div>
+
+      </div>
+      <!--end::Menu-->
+    </div>
+  </div>
+
+  <!--begin::Footer-->
+  <div class="aside-footer flex-column-auto py-5" id="kt_aside_footer">
+    <a class="btn btn-custom btn-primary w-100 kt_aside_mobile_toggle" data-bs-toggle="tooltip" data-bs-trigger="hover" data-bs-dismiss-="click" title="200+ in-house components and 3rd-party plugins">
+      <span class="btn-label">Logout</span>
+      <!--begin::Svg Icon | path: icons/duotune/general/gen005.svg-->
+      <span class="svg-icon btn-icon svg-icon-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path opacity="0.3" d="M19 22H5C4.4 22 4 21.6 4 21V3C4 2.4 4.4 2 5 2H14L20 8V21C20 21.6 19.6 22 19 22ZM15 17C15 16.4 14.6 16 14 16H8C7.4 16 7 16.4 7 17C7 17.6 7.4 18 8 18H14C14.6 18 15 17.6 15 17ZM17 12C17 11.4 16.6 11 16 11H8C7.4 11 7 11.4 7 12C7 12.6 7.4 13 8 13H16C16.6 13 17 12.6 17 12ZM17 7C17 6.4 16.6 6 16 6H8C7.4 6 7 6.4 7 7C7 7.6 7.4 8 8 8H16C16.6 8 17 7.6 17 7Z" fill="black" />
+          <path d="M15 8H20L14 2V7C14 7.6 14.4 8 15 8Z" fill="black" />
+        </svg>
+      </span>
+      <!--end::Svg Icon-->
+    </a>
+  </div>
+  <!--end::Footer-->
+  <!--end::Aside Menu-->
+</div>

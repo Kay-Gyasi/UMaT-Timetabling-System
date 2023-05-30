@@ -103,6 +103,10 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "dependencies": {
+            "LinqKit.Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[7.1.4, )"
+            },
             "Mapster": {
               "target": "Package",
               "version": "[7.3.0, )"

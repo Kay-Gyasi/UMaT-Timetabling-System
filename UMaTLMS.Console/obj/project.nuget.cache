@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "jg6Pe8PcekgxHJTQwYtdtgHiSJi90o8+OHtS0BuSsvl6ZK6yZr1dWjDH7dQSxJp2yz+vpHTGikL1IhYFXg9MEQ==",
+  "dgSpecHash": "mB66gDY94rVxzCfb8UjZUG2E+Vn6DVdHMTT2HyBuNG162jgalgp5IgZX7aq8euZ9P7MmpvbioSJHrkD16kRFLQ==",
   "success": true,
   "projectFilePath": "C:\\Users\\admin\\source\\repos\\UMaTLMS\\UMaTLMS.Console\\UMaTLMS.Console.csproj",
   "expectedPackageFiles": [
@@ -10,6 +10,8 @@
     "C:\\Users\\admin\\.nuget\\packages\\epplus.interfaces\\6.1.1\\epplus.interfaces.6.1.1.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\epplus.system.drawing\\6.1.1\\epplus.system.drawing.6.1.1.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\linqkit.core\\1.2.4\\linqkit.core.1.2.4.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\linqkit.microsoft.entityframeworkcore\\7.1.4\\linqkit.microsoft.entityframeworkcore.7.1.4.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\mapster\\7.3.0\\mapster.7.3.0.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\mapster.core\\1.2.0\\mapster.core.1.2.0.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\mediatr\\12.0.1\\mediatr.12.0.1.nupkg.sha512",

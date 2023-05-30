@@ -1,14 +1,13 @@
 ﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
-public class CourseRepository : Repository<Course, int>, ICourseRepository
+public class CourseRepository : Repository<IncomingCourse, int>, ICourseRepository
 {
-    public CourseRepository(AppDbContext context, ILogger<Repository<Course, int>> logger) : base(context, logger)
+    public CourseRepository(AppDbContext context, ILogger<CourseRepository> logger) : base(context, logger)
     {
     }
 
-    protected override IQueryable<Course> GetBaseQuery()
+    public async Task<List<IncomingCourse>> GetAll()
     {
-        return base.GetBaseQuery()
-            .Include(x => x.Department);
+        return await GetBaseQuery().ToListAsync();
     }
 }

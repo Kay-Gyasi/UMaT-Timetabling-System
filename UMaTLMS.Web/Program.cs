@@ -1,11 +1,19 @@
+using UMaTLMS.Web.Helpers;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient("default", options =>
+{
+    options.BaseAddress = new Uri(Routes.ApiBase);
+});
+builder.Services.AddHttpClient("UMaT", opts =>
+{
+    opts.BaseAddress = new Uri(Routes.UMatApi);
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -18,6 +26,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+//app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

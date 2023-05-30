@@ -1,4 +1,6 @@
-﻿namespace UMaTLMS.Core.Processors;
+﻿using UMaTLMS.Core.Contracts;
+
+namespace UMaTLMS.Core.Processors;
 
 [Processor]
 public class CourseProcessor
@@ -12,29 +14,39 @@ public class CourseProcessor
 
     public async Task<OneOf<int, Exception>> UpsertAsync(CourseCommand command)
     {
-        var isNew = command.Id is null;
-        Course? course;
+        var isNew = command.Id == 0;
+        IncomingCourse? course;
 
         if (isNew)
         {
-            course = Course.Create(command.Name, command.Code);
-            course.WithDescription(command.Description)
-                .BelongsTo(command.DepartmentId)
-                .HasCreditHours(command.CreditHours)
-                .ForSemester(command.SemesterId);
+            course = IncomingCourse.Create(command.Name, command.Credit, command.YearGroup);
+            course.HasCode(command.Code)
+                .ForAcademicPeriod(command.AcademicPeriod)
+                .ForYear(command.Year)
+                .HasGroup(command.CourseGroup)
+                .HasCategory(command.CourseCategory)
+                .HasCategory(command.CourseCategory)
+                .HasCourseId(command.CourseId)
+                //.ForProgramme(command.ProgrammeId)
+                .HasExaminers(command.FirstExaminerStaffId, command.SecondExaminerStaffId)
+                .HasType(command.CourseType);
             await _courseRepository.AddAsync(course);
             return course.Id;
         }
 
-        course = await _courseRepository.FindByIdAsync(command.Id!.Value);
+        course = await _courseRepository.FindByIdAsync(command.Id);
         if (course is null) return new NullReferenceException();
 
-        course.WithName(command.Name)
-            .WithCode(command.Code)
-            .WithDescription(command.Description)
-            .BelongsTo(command.DepartmentId)
-            .HasCreditHours(command.CreditHours)
-            .ForSemester(command.SemesterId);
+        course.HasCode(command.Code)
+            .ForAcademicPeriod(command.AcademicPeriod)
+            .ForYear(command.Year)
+            .HasGroup(command.CourseGroup)
+            .HasCategory(command.CourseCategory)
+            .HasCategory(command.CourseCategory)
+            .HasCourseId(command.CourseId)
+            //.ForProgramme(command.ProgrammeId)
+            .HasExaminers(command.FirstExaminerStaffId, command.SecondExaminerStaffId)
+            .HasType(command.CourseType);
         await _courseRepository.UpdateAsync(course);
         return course.Id;
     }
@@ -47,10 +59,10 @@ public class CourseProcessor
         return course.Adapt<CourseDto>();
     }
 
-    public async Task<PaginatedList<CoursePageDto>> GetPageAsync(PaginatedCommand command)
+    public async Task<PaginatedList<CourseDto>> GetPageAsync(PaginatedCommand command)
     {
         var page = await _courseRepository.GetPageAsync(command);
-        return page.Adapt<PaginatedList<CoursePageDto>>();
+        return page.Adapt<PaginatedList<CourseDto>>();
     }
 
     public async Task DeleteAsync(int id)
@@ -70,11 +82,10 @@ public class CourseProcessor
     }
 }
 
-public record CourseCommand(int? Id, int DepartmentId, int SemesterId, int CreditHours, string Name, string Code,
-    string? Description);
+public record CourseCommand(int Id,  int YearGroup, string? Code, string Name, int Credit, int? Year, int CourseGroup,
+    int CourseCategory, int CourseType, string? CourseId, int? ProgrammeId, int? FirstExaminerStaffId, 
+    int? SecondExaminerStaffId, AcademicPeriodResponse AcademicPeriod);
 
-public record CourseDto(int Id, int DepartmentId, int CreditHours, int SemesterId, string Name, string Code,
-    string? Description, DepartmentDto? Department, IEnumerable<ClassDto> Classes);
-
-public record CoursePageDto(int Id, int DepartmentId, int SemesterId, int CreditHours, string Name, string Code,
-    string? Description, DepartmentDto? Department);
+public record CourseDto(int Id,  int? YearGroup, string? Code, string Name, int Credit, int? Year, int CourseGroup,
+    int CourseCategory, int CourseType, string? CourseId, int? ProgrammeId, int? FirstExaminerStaffId, 
+    int? SecondExaminerStaffId, AcademicPeriodResponse AcademicPeriod);

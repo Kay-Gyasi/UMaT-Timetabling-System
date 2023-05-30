@@ -1,10 +1,6 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Configurations;
-
-public class LecturerConfiguration : DatabaseConfiguration<Lecturer, int>
+namespace UMaTLMS.Infrastructure.Persistence.Configurations
 {
-    public override void Configure(EntityTypeBuilder<Lecturer> builder)
+    public class LecturerConfiguration : DatabaseConfiguration<Lecturer, int>
     {
-        base.Configure(builder);
-        builder.ToTable(DomainEntities.Lecturer);
     }
 }

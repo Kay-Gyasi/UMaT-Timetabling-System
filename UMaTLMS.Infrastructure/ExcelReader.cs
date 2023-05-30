@@ -5,7 +5,11 @@ namespace UMaTLMS.Infrastructure;
 
 public sealed class ExcelReader : IExcelReader
 {
-    private ExcelPackage _package = new();
+    private ExcelPackage _package;
+    public ExcelReader()
+    {
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+    }
 
     public ExcelWorksheet GetWorkSheet(string filePath, string worksheet)
     {

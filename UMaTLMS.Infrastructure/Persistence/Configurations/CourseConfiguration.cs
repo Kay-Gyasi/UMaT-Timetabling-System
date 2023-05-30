@@ -1,10 +1,10 @@
-﻿namespace LMSData.Courses;
+﻿namespace UMaTLMS.Infrastructure.Persistence.Configurations;
 
-public class CourseConfiguration : DatabaseConfiguration<Course, int>
+public class CourseConfiguration : DatabaseConfiguration<IncomingCourse, int>
 {
-    public override void Configure(EntityTypeBuilder<Course> builder)
+    public override void Configure(EntityTypeBuilder<IncomingCourse> builder)
     {
         base.Configure(builder);
-        builder.ToTable(DomainEntities.Course);
+        builder.OwnsOne(x => x.AcademicPeriod);
     }
 }

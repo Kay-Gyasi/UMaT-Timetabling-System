@@ -2,40 +2,14 @@
 
 public class Lecturer : Entity
 {
-    private Lecturer(int userId)
+    private Lecturer(int umatId, string? name)
     {
-        UserId = userId;
+        UmatId = umatId;
+        Name = name;
     }
 
-    private Lecturer(User user)
-    {
-        UserId = user.Id;
-        User = user;
-    }
+    public int UmatId { get; private set; }
+    public string? Name { get; private set; }
 
-    public int? DepartmentId { get; private set; }
-    public int UserId { get; private set; }
-    public bool IsExamOfficer { get; private set; }
-    public User User { get; private set; }
-
-    private readonly List<Course> _courses = new();
-    public IEnumerable<Course> Courses => _courses.AsReadOnly();
-
-    public static Lecturer Create(int userId)
-        => new Lecturer(userId);
-
-    public static Lecturer Create(User user)
-        => new Lecturer(user);
-
-    public Lecturer BelongsTo(int? departmentId)
-    {
-        DepartmentId = departmentId;
-        return this;
-    }
-
-    public Lecturer IsUser(User user)
-    {
-        User = user;
-        return this;
-    }
+    public static Lecturer Create(int umatId, string? name) => new(umatId, name);
 }

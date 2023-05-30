@@ -24,8 +24,7 @@ public sealed class AuditEntitiesInterceptor : SaveChangesInterceptor
             .FindFirst(JwtRegisteredClaimNames.NameId)?.Value;
         var role = _httpContextAccessor.HttpContext?.User?
             .FindFirst(ClaimTypes.Role)?.Value;
-        var username = string.Join(" - ", role, userId);
-        if (string.IsNullOrEmpty(username)) username = "admin";
+        var username = userId is not null ? string.Join(" - ", role, userId) : "sysadmin";
 
         foreach (var entry in dbContext.ChangeTracker.Entries()
                      .Where(x => x.State is EntityState.Added or EntityState.Modified))

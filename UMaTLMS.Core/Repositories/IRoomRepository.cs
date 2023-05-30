@@ -1,8 +1,10 @@
-﻿using UMaTLMS.Infrastructure.Persistence.Repositories.Base;
+﻿using UMaTLMS.Core.Repositories.Base;
 
 namespace UMaTLMS.Core.Repositories;
 
-public interface IRoomRepository : IRepository<Room, int>
+public interface IRoomRepository : IRepository<ClassRoom, int>
 {
     Task<bool> Exists(string name);
+    Task<IEnumerable<ClassRoom>> GetAllAsync();
+    Task<bool> IsInitialized();
 }

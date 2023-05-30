@@ -12,7 +12,10 @@ public class CoursesController : Controller
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(int id)
     {
-        return Ok(await _processor.GetAsync(id));
+        var result = await _processor.GetAsync(id);
+        return result.IsT0
+            ? new ObjectResult(SuccessResponse(result.AsT0))
+            : new ObjectResult(ErrorResponse(result.AsT1));
     }
 
     [HttpGet]
@@ -25,13 +28,15 @@ public class CoursesController : Controller
     public async Task<IActionResult> Save([FromBody] CourseCommand command)
     {
         var result = await _processor.UpsertAsync(command);
-        return CreatedAtRoute(nameof(Get), result);
+        return result.IsT0
+            ? new ObjectResult(SuccessResponse(result.AsT0))
+            : new ObjectResult(ErrorResponse(result.AsT1));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         await _processor.DeleteAsync(id);
-        return NoContent();
+        return new ObjectResult(SuccessResponse<object>(null));
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 
-namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
+namespace UMaTLMS.Core.Repositories.Base;
 
 public interface IRepository<T, TKey> where T : Entity
 {

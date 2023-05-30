@@ -13,7 +13,7 @@ namespace UMaTLMS.API
                 .AddHttpContextAccessor()
                 .InstallSwagger(configuration)
                 .AddCore(configuration)
-                .AddPersistence(configuration);
+                .AddInfrastructure(configuration);
         }
 
         private static IServiceCollection InstallDefaults(this IServiceCollection services)

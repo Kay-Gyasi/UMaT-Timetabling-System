@@ -2,7 +2,7 @@
 
 public abstract class Entity
 {
-    public int Id { get; protected set; }
+    public int Id { get; }
     public Audit? Audit { get; set; }
 
     public Entity AuditAs(Audit audit)
