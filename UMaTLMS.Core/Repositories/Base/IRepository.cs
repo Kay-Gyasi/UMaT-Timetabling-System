@@ -11,4 +11,5 @@ public interface IRepository<T, TKey> where T : Entity
     Task<T?> FindByIdAsync(int id);
     Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command);
     Task<IDbContextTransaction> BeginTransaction();
+    Task<bool> SaveChanges();
 }

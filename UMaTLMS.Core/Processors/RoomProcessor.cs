@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Mapster;
+using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -16,7 +17,10 @@ public class RoomProcessor
 
     public async Task<OneOf<int, Exception>> UpsertAsync(RoomCommand command)
     {
-        var isNew = command.Id == 0;
+        var roomExists = await _roomRepository.Exists(command.Name);
+        if (roomExists) return new EntityExistsException("Room already exists");
+
+		var isNew = command.Id == 0;
         ClassRoom? room;
 
         if (isNew)
@@ -72,7 +76,7 @@ public class RoomProcessor
     public async Task<PaginatedList<RoomPageDto>> GetPageAsync(PaginatedCommand command)
     {
         var page = await _roomRepository.GetPageAsync(command);
-        return page.Adapt<PaginatedList<RoomPageDto>>();
+        return page.Adapt<PaginatedList<RoomPageDto>>(Mapping.GetTypeAdapterConfig());
     }
 
     public async Task DeleteAsync(int id)

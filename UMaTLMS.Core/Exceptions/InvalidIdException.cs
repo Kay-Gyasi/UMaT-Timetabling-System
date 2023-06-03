@@ -11,35 +11,3 @@ public class InvalidIdException : Exception
 
     }
 }
-
-public class InvalidLoginException : Exception
-{
-    public InvalidLoginException(string message = "Invalid login details") : base(message)
-    {
-
-    }
-}
-
-public class EntityExistsException : Exception
-{
-    public EntityExistsException()
-    {
-    }
-
-    public EntityExistsException(string message) : base(message)
-    {
-
-    }
-}
-
-public class RepositoryNotFoundException : Exception
-{
-    public RepositoryNotFoundException()
-    {
-    }
-
-    public RepositoryNotFoundException(string message) : base(message)
-    {
-
-    }
-}

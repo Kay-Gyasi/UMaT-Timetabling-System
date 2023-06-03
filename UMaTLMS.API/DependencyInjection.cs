@@ -19,7 +19,22 @@ namespace UMaTLMS.API
         private static IServiceCollection InstallDefaults(this IServiceCollection services)
         {
             services.AddControllers();
-            services.AddEndpointsApiExplorer();
+            services.AddEndpointsApiExplorer()
+                .InstallCors();
+            return services;
+        }
+
+        private static IServiceCollection InstallCors(this IServiceCollection services)
+        {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(opts =>
+                {
+                    opts.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
+            });
             return services;
         }
 

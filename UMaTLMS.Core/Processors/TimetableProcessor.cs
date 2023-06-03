@@ -1,8 +1,7 @@
-﻿using System.Text.Json;
-using LinqKit;
-using UMaTLMS.Core.Contracts;
+﻿using UMaTLMS.Core.Contracts;
+using UMaTLMS.Core.Entities;
+using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
-using UMaTLMS.SharedKernel.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -10,7 +9,6 @@ namespace UMaTLMS.Core.Processors;
 public class TimetableProcessor
 {
     private readonly ILogger<TimetableProcessor> _logger;
-    private readonly RoomProcessor _roomProcessor;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
     private readonly ILectureRepository _lectureRepository;
     private readonly ILecturerRepository _lecturerRepository;
@@ -19,13 +17,11 @@ public class TimetableProcessor
     private readonly ISubClassGroupRepository _subClassGroupRepository;
     private readonly IUMaTApiService _umatApiService;
 
-    public TimetableProcessor(ILogger<TimetableProcessor> logger, RoomProcessor roomProcessor,
-        ILectureScheduleRepository timetableRepository, ILectureRepository lectureRepository, 
-        ILecturerRepository lecturerRepository, IClassGroupRepository classGroupRepository, 
+    public TimetableProcessor(ILogger<TimetableProcessor> logger, ILectureScheduleRepository timetableRepository, 
+        ILectureRepository lectureRepository, ILecturerRepository lecturerRepository, IClassGroupRepository classGroupRepository, 
         ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService uMaTApiService)
     {
         _logger = logger;
-        _roomProcessor = roomProcessor;
         _lectureScheduleRepository = timetableRepository;
         _lectureRepository = lectureRepository;
         _lecturerRepository = lecturerRepository;
@@ -39,32 +35,14 @@ public class TimetableProcessor
     {
         var lectures = await _lectureRepository.GetAll();
         var schedules = await _lectureScheduleRepository.GetAll();
-        // TODO:: Go to where lectures are created and use duration or credit hours to properly create (teaching & practical sessions)
 
-        Shuffle(schedules);
-        foreach (var lecture in lectures)
-        {
-            var builder = PredicateBuilder.New<LectureSchedule>(x => true);
-            
-            for (var i = 0; i < 5; i++)
-            {
-                var numOfLecturesForLecturer =
-                    await _lectureScheduleRepository.GetNumberOfLecturesForLecturerInADay(lecture.LecturerId, i);
-                if (numOfLecturesForLecturer < 4) continue;
-
-                var i1 = i;
-                builder.And(x => x.DayOfWeek != AppHelper.GetDayOfWeek(i1));
-            }
-            
-            var eligibleSchedules = schedules.Where(builder);
-            var room = eligibleSchedules.FirstOrDefault(x => x.LectureId == null);
-            room?.HasLecture(lecture.Id);
-        }
-
+        schedules = TimetableGenerator.Generate(schedules, lectures);
         foreach (var schedule in schedules)
         {
-            await _lectureScheduleRepository.UpdateAsync(schedule).ConfigureAwait(false);
+            await _lectureScheduleRepository.UpdateAsync(schedule, false).ConfigureAwait(false);
         }
+
+        await _lectureScheduleRepository.SaveChanges();
     }
 
     public async Task<IEnumerable<TimetableDto>> GetClassSchedule(int classId)
@@ -73,47 +51,70 @@ public class TimetableProcessor
         return new List<TimetableDto>();
     }
 
+    public async Task ChangeRoom(int roomId)
+    {
+        await Task.CompletedTask;
+    }
+
     public async Task SeedDbForTimetable()
     {
-        var lecturers = await _umatApiService.GetLecturers();
-        var groups = await _umatApiService.GetClasses();
-        var courses = await _umatApiService.GetCourses();
+        var lecturersTask = _umatApiService.GetLecturers();
+        var groupsTask = _umatApiService.GetClasses();
+        var coursesTask = _umatApiService.GetCourses();
+
+        try
+        {
+			await Task.WhenAll(lecturersTask, groupsTask, coursesTask);
+		}
+		catch (Exception e)
+        {
+            _logger.LogError("Error while pulling data from UMaT API. Message: {Message}", e.Message);
+            return;
+        }
+        
+        var lecturers = lecturersTask.Result;
+        var groups = groupsTask.Result;
+        var courses = coursesTask.Result;
 
         await AddLecturers(lecturers);
         await AddGroups(groups);
         await AddSubClassGroups();
         await AddCoursesFromUmatDb(courses);
-        
-        //TODO:: Get actual duration of classes from course distribution
-        //TODO:: Check how to indicate if course is a lab course or not
-        //TODO:: Check values for courses types, categories from lookup
         await AddLectures();
     }
 
     private async Task AddLecturers(List<Staff>? lecturers)
     {
+        var addedStaff = new List<Staff>();
         if (lecturers is not null)
         {
             foreach (var lecturer in lecturers)
             {
-                var lecturerExists = await _lecturerRepository.Exists(lecturer.Id);
+                var lecturerExists = addedStaff.Any(x => x.Id == lecturer.Id);
                 if (lecturerExists) continue;
-                await _lecturerRepository.AddAsync(Lecturer.Create(lecturer.Id, lecturer.Party?.Name?.FullName));
+                await _lecturerRepository.AddAsync(Lecturer.Create(lecturer.Id, lecturer.Party?.Name?.FullName), false);
+                addedStaff.Add(lecturer);
             }
         }
+
+        await _lecturerRepository.SaveChanges();
     }
 
     private async Task AddGroups(List<Group>? groups)
     {
+        var addedGroups = new List<Group>();
         if (groups is not null)
         {
             foreach (var group in groups)
             {
-                var groupExists = await _classGroupRepository.Exists(group.name);
+                var groupExists = addedGroups.Any(x => x.name == group.name);
                 if (groupExists) continue;
-                await _classGroupRepository.AddAsync(ClassGroup.Create(group.id, group.size, group.name));
+                await _classGroupRepository.AddAsync(ClassGroup.Create(group.id, group.size, group.name), false);
+                addedGroups.Add(group);
             }
         }
+
+        await _classGroupRepository.SaveChanges();
     }
 
     private async Task AddSubClassGroups()
@@ -127,11 +128,13 @@ public class TimetableProcessor
             {
                 var number = group.Size - (60 * count) > 0 ? 60 : size;
                 await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, number,
-                    $"{group.Name}{GetSubClassSuffix(count)}"));
+                    $"{group.Name}{GetSubClassSuffix(count)}"), false);
                 count += 1;
                 size -= number;
             }
         }
+
+        await _subClassGroupRepository.SaveChanges();
     }
 
     private static string GetSubClassSuffix(int count)
@@ -181,10 +184,13 @@ public class TimetableProcessor
                     .HasType(course.CourseType)
                     .HasCourseId(course.CourseId)
                     .ForProgramme(course.Programme?.Id, course.Programme?.Code)
-                    .HasExaminers(course.FirstExaminerStaff?.Id, course.SecondExaminerStaff?.Id);
-                await _courseRepository.AddAsync(c);
+                    .HasExaminers(course.FirstExaminerStaff?.Id, course.SecondExaminerStaff?.Id)
+                    .WithHours(null, null);
+                await _courseRepository.AddAsync(c, false);
             }
         }
+
+        await _courseRepository.SaveChanges();
     }
 
     private async Task AddLectures()
@@ -203,23 +209,23 @@ public class TimetableProcessor
             
             foreach (var subClassGroup in groups)
             {
-                var lecture = Lecture.Create(professor ?? 0, 
-                    course.UmatId ?? 0, 2, courseNumber, false);
-                lecture.AddGroup(subClassGroup);
-                await _lectureRepository.AddAsync(lecture);
+                if(course.TeachingHours != 0)
+                {
+					var teachingLecture = Lecture.Create(professor ?? 0, course.UmatId ?? 0, course.TeachingHours, courseNumber, false);
+					teachingLecture.AddGroup(subClassGroup);
+					await _lectureRepository.AddAsync(teachingLecture, false);
+				}
+                
+                if(course.PracticalHours != 0)
+                {
+					var practicalLecture = Lecture.Create(professor ?? 0, course.UmatId ?? 0, course.PracticalHours, courseNumber, true);
+					practicalLecture.AddGroup(subClassGroup);
+					await _lectureRepository.AddAsync(practicalLecture, false);
+				}
             }
         }
-    }
 
-    private static void Shuffle<T>(List<T> list)
-    {
-        var random = new Random();
-
-        for (var i = list.Count - 1; i > 0; i--)
-        {
-            var j = random.Next(i + 1);
-            (list[i], list[j]) = (list[j], list[i]);
-        }
+        await _lectureRepository.SaveChanges();
     }
 }
 

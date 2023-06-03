@@ -1,0 +1,17 @@
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.Infrastructure.deps.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.Infrastructure.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.Infrastructure.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.Core.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.SharedKernel.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.Core.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\bin\Debug\net7.0\UMaTLMS.SharedKernel.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.AssemblyInfo.cs
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.csproj.CopyComplete
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\refint\UMaTLMS.Infrastructure.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\UMaTLMS.Infrastructure.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.Infrastructure\obj\Debug\net7.0\ref\UMaTLMS.Infrastructure.dll

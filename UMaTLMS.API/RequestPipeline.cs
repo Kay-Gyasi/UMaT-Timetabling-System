@@ -31,6 +31,7 @@ public static class RequestPipeline
             options.RoutePrefix = string.Empty;
         });
 
+        app.UseCors();
         app.UseHttpsRedirection();
 
         app.UseDefaultFiles();

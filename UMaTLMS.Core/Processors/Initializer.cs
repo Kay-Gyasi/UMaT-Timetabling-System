@@ -8,17 +8,15 @@ namespace UMaTLMS.Core.Processors;
 public class Initializer
 {
     private readonly IExcelReader _reader;
-    private readonly RoomProcessor _roomProcessor;
     private readonly IRoomRepository _roomRepository;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
 
-    public Initializer(IExcelReader reader, RoomProcessor roomProcessor,
-        IRoomRepository roomRepository, ILectureScheduleRepository lectureScheduleRepository)
+    public Initializer(IExcelReader reader, IRoomRepository roomRepository, 
+        ILectureScheduleRepository lectureScheduleRepository)
     {
         _reader = reader;
-        _roomProcessor = roomProcessor;
         _roomRepository = roomRepository;
         _lectureScheduleRepository = lectureScheduleRepository;
     }
@@ -57,7 +55,7 @@ public class Initializer
             var name = split is not null ? split[0].Trim() : cellValue;
             name = SetNames(name);
             if(name is null) continue;
-            if (await _roomProcessor.Exists(name)) continue;
+            if (await _roomRepository.Exists(name)) continue;
 
             var isLab = split is not null ? split[0].Contains("LAB") || split[0].Contains("MEDIA ROOM")
                 : cellValue.Contains("LAB") || cellValue.Contains("MEDIA ROOM");
@@ -65,9 +63,13 @@ public class Initializer
                 : cellValue.Contains("WORKSHOP");
             
             capacity ??= SetCapacities(name);
-            var command = new RoomCommand(0, name, capacity, isLab, isWorkshop);
-            _ = await _roomProcessor.UpsertAsync(command);
+            var command = ClassRoom.Create(name, capacity);
+            if (isLab) command.IsLabRoom();
+            if (isWorkshop) command.IsWorkshopRoom();
+            await _roomRepository.AddAsync(command, false);
         }
+
+        await _roomRepository.SaveChanges();
     }
 
     private async Task InitializeLectureSchedule()
@@ -83,10 +85,12 @@ public class Initializer
                 {
                     var schedule = LectureSchedule.Create(AppHelper.GetDayOfWeek(i), timeSlot, room.Id);
                     if (i == 4 && timeSlot is "4:30pm" or "6:30pm") continue;
-                    await _lectureScheduleRepository.AddAsync(schedule);
+                    await _lectureScheduleRepository.AddAsync(schedule, false);
                 }
             }
         }
+
+        await _lectureScheduleRepository.SaveChanges();
     }
 
     private static int SetCapacities(string name)

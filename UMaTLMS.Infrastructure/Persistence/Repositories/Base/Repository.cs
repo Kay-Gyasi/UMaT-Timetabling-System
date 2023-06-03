@@ -108,4 +108,9 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     {
         return await Context.Database.BeginTransactionAsync();
     }
+
+    public async Task<bool> SaveChanges()
+    {
+        return await Context.SaveChangesAsync() > 0;
+    }
 }

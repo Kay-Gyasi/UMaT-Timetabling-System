@@ -28,7 +28,9 @@ public class IncomingCourse : Entity
     public string? Code { get; private set; }
     public string? Name { get; private set; }
     public int Credit { get; private set; }
-    public int? Year { get; private set; }
+	public int TeachingHours { get; private set; }
+	public int PracticalHours { get; private set; }
+	public int? Year { get; private set; }
     public int CourseGroup { get; private set; }
     public int CourseCategory { get; private set; }
     public int CourseType { get; private set; }
@@ -94,6 +96,36 @@ public class IncomingCourse : Entity
     {
         FirstExaminerStaffId = first;
         SecondExaminerStaffId = second;
+        return this;
+    }
+
+    public IncomingCourse WithHours(int? teachingHours, int? practicalHours)
+    {
+        if(teachingHours is null || practicalHours is null)
+        {
+            switch (Credit) {
+                case 3:
+					teachingHours = 2;
+					practicalHours = 2;
+                    break;
+                case 2:
+					teachingHours = 2;
+					practicalHours = 1;
+                    break;
+                case 1:
+					teachingHours = 1;
+					practicalHours = 1;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (teachingHours > 2) teachingHours = 2;
+        if (practicalHours > 2) practicalHours = 2;
+
+        TeachingHours = teachingHours ?? 0;
+        PracticalHours = practicalHours ?? 0;
         return this;
     }
 }

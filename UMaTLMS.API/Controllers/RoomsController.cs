@@ -18,10 +18,12 @@ public class RoomsController : Controller
             : new ObjectResult(ErrorResponse(result.AsT1));
     }
 
-    [HttpGet]
+    [HttpPost]
+    [ProducesDefaultResponseType(typeof(PaginatedList<RoomPageDto>))]
     public async Task<IActionResult> GetPage(PaginatedCommand command)
     {
-        return Ok(await _processor.GetPageAsync(command));
+        var page = await _processor.GetPageAsync(command);
+        return new ObjectResult(SuccessResponse(page));
     }
 
     [HttpPost]
@@ -29,8 +31,8 @@ public class RoomsController : Controller
     {
         var result = await _processor.UpsertAsync(command);
         return result.IsT0
-            ? new ObjectResult(SuccessResponse(result.AsT0))
-            : new ObjectResult(ErrorResponse(result.AsT1));
+            ? CreatedAtAction(nameof(Get), result.AsT0)
+            : BadRequest();
     }
 
     [HttpDelete("{id}")]
