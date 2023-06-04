@@ -1,3 +1,5 @@
+import {Injectable} from "@angular/core";
+
 declare var KTToggle:any;
 declare var KTUtil:any;
 declare var KTApp:any;
@@ -13,16 +15,14 @@ declare var KTLayoutAside:any;
 declare var KTMenu:any;
 declare var KTImageInput:any;
 
+@Injectable({
+  providedIn: 'root'
+})
 export class MetronicJs{
-  isJsLoaded = false;
-
-  isChatJsLoaded = false;
-  constructor(){}
-
+  isJsLoaded = true;
   init(){
     if(!this.isJsLoaded){
-      this.isJsLoaded = true;
-
+      console.log("Loading metronic js...")
       KTToggle.init();
       KTUtil.init();
       KTSwapper.init();
@@ -37,6 +37,7 @@ export class MetronicJs{
       KTMenu.init();
       KTApp.init();
       KTImageInput.init();
+      this.isJsLoaded = false;
     }
   }
 }

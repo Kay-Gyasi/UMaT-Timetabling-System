@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import {APP_INITIALIZER, NgModule} from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -21,6 +21,8 @@ import {ToastrModule} from "ngx-toastr";
 import {NotificationService} from "./services/notification.service";
 import { RoomService } from './services/http/room-service';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import { ViewClassesComponent } from './components/classes/view-classes/view-classes.component';
+import {ClassService} from "./services/http/class-service";
 
 @NgModule({
   declarations: [
@@ -32,7 +34,8 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
     DashboardComponent,
     AddRoomComponent,
     EditRoomComponent,
-    ViewRoomsComponent
+    ViewRoomsComponent,
+    ViewClassesComponent
   ],
   imports: [
     BrowserModule,
@@ -46,12 +49,13 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
   ],
   providers: [
     {provide:IHttpRequest, useClass: HttpRequest},
-    MetronicJs, RoomService, NotificationService],
+    MetronicJs,
+    RoomService, ClassService, NotificationService],
   bootstrap: [AppComponent]
 })
 export class AppModule {
-  // Important. DON'T DELETE
-  constructor(private metronicjs:MetronicJs){
-    metronicjs.init()
+  constructor(private metronicJs: MetronicJs) {
+    this.metronicJs.init();
   }
+
 }

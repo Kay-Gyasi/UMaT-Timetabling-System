@@ -1,4 +1,5 @@
-﻿using UMaTLMS.Core.Repositories.Base;
+﻿using System.Drawing.Printing;
+using UMaTLMS.Core.Repositories.Base;
 
 namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
 
@@ -93,10 +94,17 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         }
     }
 
-    public async Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command)
+    public virtual async Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, IQueryable<T>? source = null)
     {
-        return await Task.Run(() => PaginatedList<T>
-            .Create(GetBaseQuery(), command.PageNumber, command.PageSize));
+        return await Task.Run(() =>
+        {
+            var data = source is not null ? source.AsSingleQuery() : GetBaseQuery().AsSingleQuery();
+            var count = data.Count();
+            var items = data.Skip((command.PageNumber - 1) * command.PageSize)
+                .Take(command.PageSize)
+                .ToList();
+            return new PaginatedList<T>(items, count, command.PageNumber, command.PageSize);
+        });
     }
 
     public async Task<bool> SaveChangesAsync()

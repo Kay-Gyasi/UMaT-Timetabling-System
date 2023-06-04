@@ -16,6 +16,7 @@
         public int Duration { get; private set; }
         public string CourseNo { get; private set; }
         public bool IsPractical { get; private set; }
+        public bool IsConfirmed { get; private set; }
         private List<SubClassGroup> _subClassGroups = new();
         public IReadOnlyList<SubClassGroup> SubClassGroups => _subClassGroups.AsReadOnly();
 
@@ -26,6 +27,12 @@
         {
             if (group is null) return this;
             _subClassGroups.Add(group);
+            return this;
+        }
+
+        public Lecture Confirm()
+        {
+            IsConfirmed = true;
             return this;
         }
     }

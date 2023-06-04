@@ -2,7 +2,7 @@
 
 public class SubClassGroup : Entity
 {
-    private SubClassGroup(int groupId, int size, string name)
+    private SubClassGroup(int groupId, int? size, string name)
     {
         Size = size;
         GroupId = groupId;
@@ -11,11 +11,11 @@ public class SubClassGroup : Entity
 
     public int GroupId { get; private set; }
     public ClassGroup Group { get; private set; }
-    public int Size { get; private set; }
+    public int? Size { get; private set; }
     public string Name { get; private set; }
     private List<Lecture> _lectures = new();
     public IReadOnlyList<Lecture> Lectures => _lectures.AsReadOnly();
 
-    public static SubClassGroup Create(int groupId, int size, string name) 
+    public static SubClassGroup Create(int groupId, int? size, string name) 
         => new(groupId, size, name);
 }

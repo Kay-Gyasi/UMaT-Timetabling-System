@@ -3,18 +3,18 @@
 public class ClassRoom : Entity
 {
     private ClassRoom() { }
-    private ClassRoom(string name, int? capacity)
+    private ClassRoom(string name, int capacity)
     {
         Name = name;
         Capacity = capacity;
     }
 
     public string Name { get; private set; }
-    public int? Capacity { get; private set; }
+    public int Capacity { get; private set; }
     public bool IsLab { get; private set; }
     public bool IsWorkshop { get; private set; }
 
-    public static ClassRoom Create(string name, int? capacity)
+    public static ClassRoom Create(string name, int capacity)
         => new ClassRoom(name, capacity);
 
     public ClassRoom WithName(string name)
@@ -23,21 +23,15 @@ public class ClassRoom : Entity
         return this;
     }
 
-    public ClassRoom HasCapacity(int? capacity)
+    public ClassRoom HasCapacity(int capacity)
     {
         Capacity = capacity;
         return this;
     }
 
-    public ClassRoom IsLabRoom()
+    public ClassRoom IsLabRoom(bool isLab)
     {
-        IsLab = true;
-        return this;
-    }
-
-    public ClassRoom IsWorkshopRoom()
-    {
-        IsWorkshop = true;
+        IsLab = isLab;
         return this;
     }
 }

@@ -34,7 +34,7 @@
         <!--end::Menu separator-->
         <!--begin::Menu item-->
         <div class="menu-item px-3">
-          <a href="#" class="menu-link px-3">New Room</a>
+          <a [routerLink]="navigator.addRoom" class="menu-link px-3">New Room</a>
         </div>
         <!--end::Menu item-->
 
@@ -129,7 +129,7 @@
 <!--              </span-->
 <!--              &lt;!&ndash;end::Svg Icon&ndash;&gt;-->
 <!--            </a> -->
-            <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+            <a [routerLink]="navigator.editRoom(x.id)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
               <!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
               <span class="svg-icon svg-icon-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -139,7 +139,7 @@
               </span>
               <!--end::Svg Icon-->
             </a>
-            <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+            <button (click)="deleteRoom(x)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
               <!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
               <span class="svg-icon svg-icon-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -149,7 +149,7 @@
                 </svg>
               </span>
               <!--end::Svg Icon-->
-            </a>
+            </button>
           </td>
         </tr>
 

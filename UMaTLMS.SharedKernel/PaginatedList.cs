@@ -4,7 +4,7 @@ namespace UMaTLMS.SharedKernel;
 
 public class PaginatedList<T>
 {
-    public List<T> Data { get; }
+    public List<T> Data { get; private set; }
     public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
     public int PageSize { get; }
     public int TotalCount { get; }
@@ -25,11 +25,10 @@ public class PaginatedList<T>
         TotalCount = totalCount;
     }
 
-    public static PaginatedList<T> Create(IQueryable<T> source, int pageIndex, int pageSize)
+    public PaginatedList<T> HasData(List<T> data)
     {
-        var count = source.Count();
-        var items = source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
-        return new PaginatedList<T>(items, count, pageIndex, pageSize);
+        Data = data;
+        return this;
     }
 }
 

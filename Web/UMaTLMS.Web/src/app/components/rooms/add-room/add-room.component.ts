@@ -7,6 +7,9 @@ import {
   UntypedFormGroup,
   Validators
 } from "@angular/forms";
+import {RoomService} from "../../../services/http/room-service";
+import {RoomRequest} from "../../../models/requests/room-request";
+import {NotificationService} from "../../../services/notification.service";
 
 @Component({
   selector: 'app-add-room',
@@ -16,12 +19,24 @@ import {
 export class AddRoomComponent {
   roomForm:UntypedFormGroup;
 
-  constructor(private fb:FormBuilder) {
+  constructor(private fb:FormBuilder, private roomService:RoomService,
+              private toast:NotificationService) {
     this.initForm()
   }
 
   addRoom(){
-    //
+    return this.roomService.save(this.roomForm.value as RoomRequest).subscribe({
+      next: _ => {
+        this.roomForm.setValue({
+          name: "",
+          capacity: 0,
+          isLab: false
+        });
+      },
+      error: _ => {
+        this.toast.showError("Unable to add room", "Failed");
+      }
+    })
   }
 
   getControl(name: string){

@@ -12,7 +12,7 @@ internal class Mapping
 				x.TotalCount, x.CurrentPage, x.PageSize));
 
 		config.NewConfig<ClassGroup, ClassGroupDto>()
-			.MapWith(x => new ClassGroupDto(x.Id, x.UmatId, x.Size, x.Name, 
+			.MapWith(x => new ClassGroupDto(x.Id, x.UmatId, x.Size, x.NumOfSubClasses, x.Name, 
 				x.SubClassGroups.Adapt<List<SubClassGroupDto>>()));
 
 		config.NewConfig<SubClassGroup, SubClassGroupDto>()

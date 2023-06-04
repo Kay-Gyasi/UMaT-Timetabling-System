@@ -1,5 +1,4 @@
-﻿using Mapster;
-using UMaTLMS.Core.Helpers;
+﻿using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -17,17 +16,16 @@ public class RoomProcessor
 
     public async Task<OneOf<int, Exception>> UpsertAsync(RoomCommand command)
     {
-        var roomExists = await _roomRepository.Exists(command.Name);
-        if (roomExists) return new EntityExistsException("Room already exists");
-
 		var isNew = command.Id == 0;
         ClassRoom? room;
 
         if (isNew)
         {
+            var roomExists = await _roomRepository.Exists(command.Name);
+            if (roomExists) return new EntityExistsException();
+
             room = ClassRoom.Create(command.Name, command.Capacity);
-            if (command.IsLab) room.IsLabRoom();
-            if (command.IsWorkshop) room.IsWorkshopRoom();
+            room.IsLabRoom(command.IsLab);
             try
             {
                 await _roomRepository.AddAsync(room);
@@ -40,13 +38,12 @@ public class RoomProcessor
             }
         }
 
-        room = await _roomRepository.FindByIdAsync(command.Id!.Value);
+        room = await _roomRepository.FindByIdAsync(command.Id);
         if (room is null) return new NullReferenceException();
 
         room.WithName(command.Name)
-            .HasCapacity(command.Capacity);
-        if (command.IsLab) room.IsLabRoom();
-        if (command.IsWorkshop) room.IsWorkshopRoom();
+            .HasCapacity(command.Capacity)
+            .IsLabRoom(command.IsLab);
 
         try
         {
@@ -101,6 +98,6 @@ public class RoomProcessor
     }
 }
 
-public record RoomCommand(int? Id, string Name, int? Capacity, bool IsLab, bool IsWorkshop);
+public record RoomCommand(int Id, string Name, int Capacity, bool IsLab, bool IsWorkshop);
 public record RoomDto(int Id, string Name, int Capacity, bool IsLab, bool IsWorkshop);
 public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab, bool IsWorkshop);

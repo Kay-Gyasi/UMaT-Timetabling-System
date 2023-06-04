@@ -20,7 +20,7 @@ public class TimetableController : Controller
     [HttpGet]
     public async Task<IActionResult> GetData()
     {
-        await _processor.SeedDbForTimetable();
+        await _processor.SyncWithUMaT();
         return NoContent();
     }
 

@@ -52,7 +52,7 @@ public class Initializer
                 else continue;
             }
 
-            var name = split is not null ? split[0].Trim() : cellValue;
+            var name = split is not null ? split[0].Trim() : cellValue.Trim();
             name = SetNames(name);
             if(name is null) continue;
             if (await _roomRepository.Exists(name)) continue;
@@ -62,10 +62,9 @@ public class Initializer
             var isWorkshop = split is not null ? split[0].Contains("WORKSHOP")
                 : cellValue.Contains("WORKSHOP");
             
-            capacity ??= SetCapacities(name);
-            var command = ClassRoom.Create(name, capacity);
-            if (isLab) command.IsLabRoom();
-            if (isWorkshop) command.IsWorkshopRoom();
+            var command = ClassRoom.Create(name, capacity ?? 0);
+            command.IsLabRoom(isLab);
+            //if (isWorkshop) command.IsWorkshopRoom();
             await _roomRepository.AddAsync(command, false);
         }
 

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import {Navigations} from "../../helpers/navigations";
 
 @Component({
   selector: 'app-dashboard',
@@ -6,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent {
-
+  navigator = new Navigations();
 }

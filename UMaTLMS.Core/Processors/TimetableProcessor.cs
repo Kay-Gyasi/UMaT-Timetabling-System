@@ -1,5 +1,4 @@
 ﻿using UMaTLMS.Core.Contracts;
-using UMaTLMS.Core.Entities;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
 
@@ -33,6 +32,9 @@ public class TimetableProcessor
 
     public async Task Generate()
     {
+        // await AddSubClassGroups();
+        // await AddLectures();
+
         var lectures = await _lectureRepository.GetAll();
         var schedules = await _lectureScheduleRepository.GetAll();
 
@@ -56,7 +58,7 @@ public class TimetableProcessor
         await Task.CompletedTask;
     }
 
-    public async Task SeedDbForTimetable()
+    public async Task SyncWithUMaT()
     {
         var lecturersTask = _umatApiService.GetLecturers();
         var groupsTask = _umatApiService.GetClasses();
@@ -69,7 +71,7 @@ public class TimetableProcessor
 		catch (Exception e)
         {
             _logger.LogError("Error while pulling data from UMaT API. Message: {Message}", e.Message);
-            return;
+            throw;
         }
         
         var lecturers = lecturersTask.Result;
@@ -78,9 +80,7 @@ public class TimetableProcessor
 
         await AddLecturers(lecturers);
         await AddGroups(groups);
-        await AddSubClassGroups();
         await AddCoursesFromUmatDb(courses);
-        await AddLectures();
     }
 
     private async Task AddLecturers(List<Staff>? lecturers)

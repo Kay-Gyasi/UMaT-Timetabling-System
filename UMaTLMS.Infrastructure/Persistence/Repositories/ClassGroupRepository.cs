@@ -21,4 +21,15 @@ public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepo
 	    return base.GetBaseQuery()
                 .Include(x => x.SubClassGroups);
     }
+
+    public override Task<PaginatedList<ClassGroup>> GetPageAsync(PaginatedCommand command, IQueryable<ClassGroup>? source = null)
+    {
+        if (string.IsNullOrEmpty(command.Search))
+        {
+            return base.GetPageAsync(command);
+        }
+
+        source = base.GetBaseQuery().Where(x => x.Name.Contains(command.Search ?? ""));
+        return base.GetPageAsync(command, source);
+    }
 }

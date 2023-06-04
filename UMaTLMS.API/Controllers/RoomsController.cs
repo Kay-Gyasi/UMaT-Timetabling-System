@@ -31,8 +31,8 @@ public class RoomsController : Controller
     {
         var result = await _processor.UpsertAsync(command);
         return result.IsT0
-            ? CreatedAtAction(nameof(Get), result.AsT0)
-            : BadRequest();
+            ? new ObjectResult(SuccessResponse(result.AsT0, StatusCodes.Status201Created))
+            : new ObjectResult(ErrorResponse(result.AsT1));
     }
 
     [HttpDelete("{id}")]

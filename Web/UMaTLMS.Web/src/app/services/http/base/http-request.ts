@@ -18,7 +18,7 @@ export class HttpRequest implements IHttpRequest{
       }));
   }
 
-  getRequestAsync<TResponse>(path: string): Observable<ApiResponse<TResponse> | null> {
+  getRequestAsync<TResponse>(path: string): Observable<ApiResponse<TResponse>> {
     return this.http.get(`${environment.apiBaseUrl}/${path}`).pipe(
       map(data => {
         return data as ApiResponse<TResponse>;

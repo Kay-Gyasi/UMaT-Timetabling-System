@@ -1,1 +1,82 @@
-<p>edit-room works!</p>
+<!--begin::Basic info-->
+<div class="card mb-5 mb-xl-10">
+  <!--begin::Card header-->
+  <div class="card-header border-0 cursor-pointer" role="button" data-bs-toggle="collapse" data-bs-target="#kt_account_profile_details" aria-expanded="true" aria-controls="kt_account_profile_details">
+    <!--begin::Card title-->
+    <div class="card-title m-0">
+      <h3 class="fw-bolder m-0">Edit Lecture Room</h3>
+    </div>
+    <!--end::Card title-->
+  </div>
+  <!--begin::Card header-->
+  <!--begin::Content-->
+  <div class="collapse show">
+    <!--begin::Form-->
+    <form [formGroup]="roomForm" class="form" (ngSubmit)="editRoom()">
+      <!--begin::Card body-->
+      <div class="card-body border-top p-9">
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label required fw-bold fs-6">Name</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input formControlName="name" [class.is-invalid]="getControl('name').touched && getControl('name').invalid"
+                   type="text" name="name" class="form-control form-control-lg form-control-solid"
+                   placeholder="eg. LH 1" />
+            <div *ngIf="getControl('name').touched && getControl('name').invalid">
+              <span class="text-danger">Field should not be empty</span>
+            </div>
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label required fw-bold fs-6">Capacity</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input type="number" formControlName="capacity" [class.is-invalid]="getControl('capacity').touched && getControl('capacity').invalid"
+                   name="capacity" class="form-control form-control-lg form-control-solid"/>
+            <div *ngIf="getControl('capacity').touched && getControl('capacity').invalid">
+              <span class="text-danger">Field should not be empty</span>
+            </div>
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Is Lab?</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input formControlName="isLab" [class.is-invalid]="getControl('isLab').touched && getControl('isLab').invalid"
+                   class="form-check-input" type="checkbox" value="" id="flexCheckChecked">
+            <div *ngIf="getControl('isLab').touched && getControl('isLab').invalid">
+              <span class="text-danger">Field should not be empty</span>
+            </div>
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+
+      </div>
+      <!--end::Card body-->
+      <!--begin::Actions-->
+      <div class="card-footer d-flex justify-content-end py-6 px-9">
+        <button type="reset" class="btn btn-light btn-active-light-primary me-2">Discard</button>
+        <button type="submit" class="btn btn-primary" [disabled]="roomForm.invalid">Submit</button>
+      </div>
+      <!--end::Actions-->
+    </form>
+    <!--end::Form-->
+  </div>
+  <!--end::Content-->
+</div>
+<!--end::Basic info-->

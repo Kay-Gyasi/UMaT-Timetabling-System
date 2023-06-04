@@ -6,77 +6,42 @@ namespace UMaTLMS.Core.Processors;
 public class ClassProcessor
 {
 	private readonly IClassGroupRepository _classGroupRepository;
-	private readonly ISubClassGroupRepository _subClassGroupRepository;
 
-	public ClassProcessor(IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository)
+	public ClassProcessor(IClassGroupRepository classGroupRepository)
     {
 		_classGroupRepository = classGroupRepository;
-		_subClassGroupRepository = subClassGroupRepository;
 	}
 
-	public async Task<OneOf<int, Exception>> CreateSub(SubClassGroupCommand command)
+	public async Task<OneOf<bool, Exception>> SetNumberOfSubClasses(int numberOfSubClasses, int classGroupId)
 	{
-		var isValid = await _subClassGroupRepository.IsValid(command.GroupId, command.Size, command.Name);
-		if (!isValid) return new InvalidDataException();
+		var @class = await _classGroupRepository.FindByIdAsync(classGroupId);
+		if (@class is null) return new InvalidIdException();
 
-		var subClass = SubClassGroup.Create(command.GroupId, command.Size, command.Name);
-		await _subClassGroupRepository.AddAsync(subClass);
-		return subClass.Id;
+		@class.HasNoOfSubClasses(numberOfSubClasses);
+		await _classGroupRepository.UpdateAsync(@class);
+		await _classGroupRepository.SaveChanges();
+		return true;
 	}
 
-	public async Task<ClassGroupDto?> Get(int classId)
+	public async Task<OneOf<ClassGroupDto?, Exception>> GetAsync(int classId)
 	{
 		var @class = await _classGroupRepository.FindByIdAsync(classId);
-		if (@class == null) return null;
+		if (@class == null) return new InvalidIdException();
 
 		return @class.Adapt<ClassGroupDto>(Mapping.GetTypeAdapterConfig());
 	}
 
-	public async Task<SubClassGroupDto?> GetSub(int subClassId)
-	{
-		var sub = await _subClassGroupRepository.FindByIdAsync(subClassId);
-		if (sub is null) return null;
-
-		return sub.Adapt<SubClassGroupDto>(Mapping.GetTypeAdapterConfig());
-	}
-
-	public async Task<PaginatedList<ClassGroupPageDto>?> GetPage(PaginatedCommand command)
+	public async Task<PaginatedList<ClassGroupPageDto>> GetPageAsync(PaginatedCommand command)
 	{
 		var paginated = await _classGroupRepository.GetPageAsync(command);
-		return paginated.Adapt<PaginatedList<ClassGroupPageDto>?>(Mapping.GetTypeAdapterConfig());
-	}
-
-	public async Task<PaginatedList<SubClassGroupPageDto>?> GetSubPage(PaginatedCommand command)
-	{
-		var paginated = await _subClassGroupRepository.GetPageAsync(command);
-		return paginated.Adapt<PaginatedList<SubClassGroupPageDto>?>(Mapping.GetTypeAdapterConfig());
-	}
-
-	public async Task<bool> DeleteAllSubs(int classId)
-	{
-		var @class = await _classGroupRepository.FindByIdAsync(classId);
-		if (@class == null) return false;
-
-		foreach (var sub in @class.SubClassGroups)
-		{
-			await _subClassGroupRepository.DeleteAsync(sub, false).ConfigureAwait(false);
-		}
-
-		return await _subClassGroupRepository.SaveChanges();
-	}
-
-	public async Task<bool> DeleteSub(int subClassId) 
-	{
-		var sub = await _subClassGroupRepository.FindByIdAsync(subClassId);
-		if (sub == null) return false;
-
-		await _subClassGroupRepository.DeleteAsync(sub);
-		return true;
-	}
+		var result = paginated.Adapt<PaginatedList<ClassGroupPageDto>>(Mapping.GetTypeAdapterConfig());
+        result.HasData(result.Data.OrderBy(x => x.Name).ToList());
+        return result;
+    }
 }
 
-public record SubClassGroupCommand(int GroupId, int Size, string Name);
-public record SubClassGroupDto(int Id, int GroupId, int Size, string Name, List<LectureDto> Lectures);
-public record SubClassGroupPageDto(int Id, int GroupId, int Size, string Name);
-public record ClassGroupDto(int Id, int UmatId, int Size, string Name, List<SubClassGroupDto> SubClassGroups);
-public record ClassGroupPageDto(int Id, int UmatId, int Size, string Name);
+public record SubClassGroupCommand(int GroupId, int? Size, string Name);
+public record SubClassGroupDto(int Id, int GroupId, int? Size, string Name, List<LectureDto> Lectures);
+public record SubClassGroupPageDto(int Id, int GroupId, int? Size, string Name);
+public record ClassGroupDto(int Id, int UmatId, int? Size, int NumOfSubClasses, string Name, List<SubClassGroupDto> SubClassGroups);
+public record ClassGroupPageDto(int Id, int UmatId, int? Size, int NumOfSubClasses, string Name);

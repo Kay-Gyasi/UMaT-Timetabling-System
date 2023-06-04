@@ -14,7 +14,7 @@ namespace UMaTLMS.Infrastructure.Persistence.Repositories
             return await GetBaseQuery().ToListAsync();
         }
 
-		public async Task<bool> IsValid(int groupId, int capacity, string name)
+		public async Task<bool> IsValid(int groupId, int? capacity, string name)
 		{
 			var isValidName = await GetBaseQuery().AnyAsync(x => x.Name != name);
 			if (!isValidName) return false;

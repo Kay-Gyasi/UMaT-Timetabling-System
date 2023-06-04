@@ -5,6 +5,6 @@ namespace UMaTLMS.Core.Repositories
     public interface ISubClassGroupRepository : IRepository<SubClassGroup, int>
     {
         Task<List<SubClassGroup>> GetAll();
-        Task<bool> IsValid(int groupId, int capacity, string name);
+        Task<bool> IsValid(int groupId, int? capacity, string name);
     }
 }

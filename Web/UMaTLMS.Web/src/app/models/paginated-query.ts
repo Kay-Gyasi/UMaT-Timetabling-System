@@ -1,12 +1,12 @@
 export class PaginatedQuery {
-  constructor(start:number, currentPage:number, pageSize:number){
+  constructor(start:number, pageNumber:number, pageSize:number){
     this.Start = start;
-    this.CurrentPage = currentPage;
+    this.PageNumber = pageNumber;
     this.PageSize = pageSize;
   }
 
-  static Build(start:number = 0, currentPage:number = 1, pageSize:number = 20) : PaginatedQuery{
-    return new PaginatedQuery(start, currentPage, pageSize);
+  static Build(start:number = 0, pageNumber:number = 1, pageSize:number = 20) : PaginatedQuery{
+    return new PaginatedQuery(start, pageNumber, pageSize);
   }
 
   thenSearch(term:string){
@@ -14,7 +14,7 @@ export class PaginatedQuery {
   }
 
   Skip!:number;
-  CurrentPage!:number;
+  PageNumber!:number;
   PageSize!:number;
   Start!:number;
   Sort!:string;
