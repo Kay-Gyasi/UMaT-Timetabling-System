@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
-    <None Include="_content\DefaultData.json" />
   </ItemGroup>
 
   <ItemGroup>

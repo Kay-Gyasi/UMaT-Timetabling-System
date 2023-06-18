@@ -11,7 +11,7 @@ import {NotificationService} from "../notification.service";
   providedIn: 'root'
 })
 export class RoomService{
-  constructor(private http:IHttpRequest, private toast:NotificationService) {
+    constructor(private http:IHttpRequest, private toast:NotificationService) {
   }
 
   get(id:number): Observable<RoomResponse | undefined>{

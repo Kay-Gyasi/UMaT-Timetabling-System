@@ -1,4 +1,5 @@
 **TODO**
+- Set up docker compose
 - Use in-memory caching to cache lectures, classes etc.
 - Decide how to handle combine classes
 - Maximum capacity in a subclass table is 80
@@ -14,5 +15,6 @@
 **Prerequisites for timetable generation**
 - Creation of subclass groups is done at the timetable generation stage based on NumOfSubClasses field in ClassGroup table
 - Initially add all subgroups offering a particular course to a single lecture (and provide functionality to split)
+- VLE lectures should be marked
 - Lectures should be confirmed by lecturer or chief examiner before timetable build can run (add an isConfirmed field to the lectures)
 - Departmental admins should set NumOfSubClasses fields for each class group

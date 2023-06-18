@@ -1,6 +1,8 @@
 ﻿using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Helpers;
+using UMaTLMS.Core.Repositories;
 using UMaTLMS.Core.Services;
+using UMaTLMS.SharedKernel.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -15,10 +17,15 @@ public class TimetableProcessor
     private readonly ICourseRepository _courseRepository;
     private readonly ISubClassGroupRepository _subClassGroupRepository;
     private readonly IUMaTApiService _umatApiService;
+    private readonly IOnlineLectureScheduleRepository _onlineLectureScheduleRepository;
+    private readonly IRoomRepository _roomRepository;
+    private readonly IExcelReader _excelReader;
 
     public TimetableProcessor(ILogger<TimetableProcessor> logger, ILectureScheduleRepository timetableRepository, 
         ILectureRepository lectureRepository, ILecturerRepository lecturerRepository, IClassGroupRepository classGroupRepository, 
-        ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService uMaTApiService)
+        ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService umatApiService,
+        IOnlineLectureScheduleRepository onlineLectureScheduleRepository, IRoomRepository roomRepository,
+        IExcelReader excelReader)
     {
         _logger = logger;
         _lectureScheduleRepository = timetableRepository;
@@ -27,35 +34,44 @@ public class TimetableProcessor
         _classGroupRepository = classGroupRepository;
         _courseRepository = courseRepository;
         _subClassGroupRepository = subClassGroupRepository;
-        _umatApiService = uMaTApiService;
+        _umatApiService = umatApiService;
+        _onlineLectureScheduleRepository = onlineLectureScheduleRepository;
+        _roomRepository = roomRepository;
+        _excelReader = excelReader;
     }
+
+    // TODO:: Work on assigning rooms to schedules
+    // TODO:: Work on exporting schedules to excel
 
     public async Task Generate()
     {
-        // await AddSubClassGroups();
-        // await AddLectures();
-
         var lectures = await _lectureRepository.GetAll();
         var schedules = await _lectureScheduleRepository.GetAll();
+        var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
 
-        schedules = TimetableGenerator.Generate(schedules, lectures);
+        var result = TimetableGenerator.Generate(schedules, onlineSchedules, lectures);
+        schedules = result.Item1;
+        onlineSchedules = result.Item2;
+
         foreach (var schedule in schedules)
         {
             await _lectureScheduleRepository.UpdateAsync(schedule, false).ConfigureAwait(false);
         }
+        
+        foreach (var schedule in onlineSchedules)
+        {
+            await _onlineLectureScheduleRepository.UpdateAsync(schedule, false).ConfigureAwait(false);
+        }
 
         await _lectureScheduleRepository.SaveChanges();
+        await TimetableGenerator.GetTimetable(_excelReader, schedules, onlineSchedules);
     }
 
-    public async Task<IEnumerable<TimetableDto>> GetClassSchedule(int classId)
+    public async Task GenerateLectures()
     {
-        await Task.CompletedTask;
-        return new List<TimetableDto>();
-    }
-
-    public async Task ChangeRoom(int roomId)
-    {
-        await Task.CompletedTask;
+        await InitializeLectureSchedule();
+        await AddSubClassGroups();
+        await AddLectures();
     }
 
     public async Task SyncWithUMaT()
@@ -66,14 +82,14 @@ public class TimetableProcessor
 
         try
         {
-			await Task.WhenAll(lecturersTask, groupsTask, coursesTask);
-		}
-		catch (Exception e)
+            await Task.WhenAll(lecturersTask, groupsTask, coursesTask);
+        }
+        catch (Exception e)
         {
             _logger.LogError("Error while pulling data from UMaT API. Message: {Message}", e.Message);
             throw;
         }
-        
+
         var lecturers = lecturersTask.Result;
         var groups = groupsTask.Result;
         var courses = coursesTask.Result;
@@ -81,6 +97,37 @@ public class TimetableProcessor
         await AddLecturers(lecturers);
         await AddGroups(groups);
         await AddCoursesFromUmatDb(courses);
+    }
+
+    private async Task InitializeLectureSchedule()
+    {
+        var rooms = (await _roomRepository.GetAllAsync()).ToList();
+        var timeSlots = GetTimeSLots().ToList();
+
+        for (var i = 0; i < 5; i++)
+        {
+            foreach (var room in rooms)
+            {
+                foreach (var timeSlot in timeSlots)
+                {
+                    var schedule = LectureSchedule.Create(AppHelper.GetDayOfWeek(i), timeSlot, room.Id);
+                    if (i == 4 && timeSlot is "4:30pm" or "6:30pm") continue;
+                    await _lectureScheduleRepository.AddAsync(schedule, false);
+                }
+            }
+        }
+
+        for (var i = 0; i < 5; i++)
+        {
+            foreach (var timeSlot in timeSlots)
+            {
+                var online = OnlineLectureSchedule.Create(AppHelper.GetDayOfWeek(i), timeSlot);
+                if (i == 4 && timeSlot is "4:30pm" or "6:30pm") continue;
+                await _onlineLectureScheduleRepository.AddAsync(online, false);
+            }
+        }
+
+        await _lectureScheduleRepository.SaveChanges();
     }
 
     private async Task AddLecturers(List<Staff>? lecturers)
@@ -107,9 +154,11 @@ public class TimetableProcessor
         {
             foreach (var group in groups)
             {
-                var groupExists = addedGroups.Any(x => x.name == group.name);
+                var groupExists = addedGroups.Any(x => x.Name == group.Name);
                 if (groupExists) continue;
-                await _classGroupRepository.AddAsync(ClassGroup.Create(group.id, group.size, group.name), false);
+                var entity = ClassGroup.Create(group.Id, group.Size, group.Name)
+                    .HasNoOfSubClasses((group.Size / 70) + 1);
+                await _classGroupRepository.AddAsync(entity, false);
                 addedGroups.Add(group);
             }
         }
@@ -120,47 +169,17 @@ public class TimetableProcessor
     private async Task AddSubClassGroups()
     {
         var groups = await _classGroupRepository.GetAll();
+        if (groups.FirstOrDefault()!.SubClassGroups.Any()) return;
         foreach (var group in groups)
         {
-            var size = group.Size;
-            var count = 1;
-            while (size > 0)
+            for (int i = 1; i <= group.NumOfSubClasses; i++)
             {
-                var number = group.Size - (60 * count) > 0 ? 60 : size;
-                await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, number,
-                    $"{group.Name}{GetSubClassSuffix(count)}"), false);
-                count += 1;
-                size -= number;
+                await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, null,
+                    $"{group.Name}{GetSubClassSuffix(i)}"), false);
             }
         }
 
         await _subClassGroupRepository.SaveChanges();
-    }
-
-    private static string GetSubClassSuffix(int count)
-    {
-        return count switch
-        {
-            1 => "A",
-            2 => "B",
-            3 => "C",
-            4 => "D",
-            5 => "E",
-            6 => "F",
-            7 => "G",
-            8 => "H",
-            9 => "I",
-            10 => "J",
-            11 => "K",
-            12 => "L",
-            13 => "M",
-            14 => "N",
-            15 => "O",
-            16 => "P",
-            17 => "Q",
-            18 => "R",
-            _ => ""
-        };
     }
 
     private async Task AddCoursesFromUmatDb(List<CourseResponse>? courses)
@@ -195,40 +214,100 @@ public class TimetableProcessor
 
     private async Task AddLectures()
     {
+        var isSeeded = (await _lectureRepository.GetAll()).Any();
+        if (isSeeded) return;
+
         var savedCourses = await _courseRepository.GetAll();
-        var classGroups = await _subClassGroupRepository.GetAll();
+        var classGroups = await _classGroupRepository.GetAll();
+        var lecturers = await _lecturerRepository.GetAll();
+        var lectures = new List<Lecture>();
+
         foreach (var course in savedCourses)
         {
             if (course.Code!.StartsWith("EM 411") || course.Code!.StartsWith("EM 413")) continue;
-            if (course.FirstExaminerStaffId is null) return;
-            var courseNumber = course.Code!.Split(" ")[1];
-            var professor = course.FirstExaminerStaffId;
+            if (course.FirstExaminerStaffId is null) continue;
+            var courseCode = course.Code?.Trim().Split(" ")[1];
 
-            var groups = classGroups?.Where(x => course.Code!.StartsWith(x.Name[..^1])).ToList();
-            if (groups is null) continue;
-            
-            foreach (var subClassGroup in groups)
+            var lecturerId = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId)?.Id;
+            var insertedLectures = lectures.Where(x => x.Course?.Code?.Split(" ")[1] == courseCode && x.LecturerId == lecturerId).ToList();
+            if (insertedLectures.Any()) 
             {
-                if(course.TeachingHours != 0)
+                foreach (var lecture in insertedLectures)
                 {
-					var teachingLecture = Lecture.Create(professor ?? 0, course.UmatId ?? 0, course.TeachingHours, courseNumber, false);
-					teachingLecture.AddGroup(subClassGroup);
-					await _lectureRepository.AddAsync(teachingLecture, false);
-				}
-                
-                if(course.PracticalHours != 0)
-                {
-					var practicalLecture = Lecture.Create(professor ?? 0, course.UmatId ?? 0, course.PracticalHours, courseNumber, true);
-					practicalLecture.AddGroup(subClassGroup);
-					await _lectureRepository.AddAsync(practicalLecture, false);
-				}
+                    var subs2 = classGroups.FirstOrDefault(x => x.Name.StartsWith(course.ProgrammeCode!) && x.Year == course.Year)?
+                    .SubClassGroups;
+                    lecture.AddGroups(subs2?.ToList());
+                }
+                continue;
             }
+
+            var lecturer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
+            if (lecturer is null) return;
+
+            var subs = classGroups.FirstOrDefault(x => x.Name.StartsWith(course.ProgrammeCode!) && x.Year == course.Year)?
+                    .SubClassGroups;
+
+            var teaching = Lecture.Create(lecturer.Id, course.Id, course.TeachingHours)
+                .ForCourse(course)
+                .AddGroups(subs?.ToList());
+            
+            var practical = Lecture.Create(lecturer.Id, course.Id, course.PracticalHours, true)
+                .ForCourse(course)
+                .AddGroups(subs?.ToList());
+
+            lectures.AddRange(new List<Lecture> { teaching, practical });
+        }
+
+        foreach (var lecture in lectures)
+        {
+            if (lecture.Duration == 0) continue;
+            await _lectureRepository.AddAsync(lecture, false).ConfigureAwait(false);
         }
 
         await _lectureRepository.SaveChanges();
     }
+
+    private static IEnumerable<string> GetTimeSLots()
+    {
+        return new List<string>()
+        {
+            "6am",
+            "8am",
+            "10am",
+            "12:30pm",
+            "2:30pm",
+            "4:30pm"
+        };
+    }
+
+    private static string GetSubClassSuffix(int count)
+    {
+        return count switch
+        {
+            1 => "A",
+            2 => "B",
+            3 => "C",
+            4 => "D",
+            5 => "E",
+            6 => "F",
+            7 => "G",
+            8 => "H",
+            9 => "I",
+            10 => "J",
+            11 => "K",
+            12 => "L",
+            13 => "M",
+            14 => "N",
+            15 => "O",
+            16 => "P",
+            17 => "Q",
+            18 => "R",
+            _ => ""
+        };
+    }
+
 }
 
 public record TimetableDto(int CourseId, int RoomId, int Day, int Time, ClassRoom? Room);
 
-public record Group(int id, string name, int size);
+public record Group(int Id, string Name, int Size);

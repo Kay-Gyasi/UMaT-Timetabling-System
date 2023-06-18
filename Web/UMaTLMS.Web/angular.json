@@ -26,9 +26,26 @@
             ],
             "styles": [
               "node_modules/ngx-toastr/toastr.css",
-              "src/styles.css"
+              "src/styles.css",
+              "src/assets/bootstrap/bootstrap.min.css",
+              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.css",
+              "src/assets/plugins/global/plugins.bundle.css",
+              "src/assets/css/style.bundle.css"
             ],
-            "scripts": []
+            "scripts": [
+              "src/assets/plugins/custom/fullcalendar/fullcalendar.bundle.js",
+              "src/assets/js/custom/widgets.js",
+              "src/assets/js/custom/apps/chat/chat.js",
+              "src/assets/js/custom/modals/create-app.js",
+              "src/assets/plugins/custom/datatables/datatables.bundle.js",
+              "src/assets/js/custom/modals/upgrade-plan.js",
+              "src/assets/js/custom/pages/search/horizontal.js",
+              "src/assets/js/custom/pages/projects/users/users.js",
+              "src/assets/js/custom/apps/invoices/create.js",
+              "src/assets/js/custom/apps/customers/add.js",
+              "src/assets/js/custom/authentication/sign-in/general.js",
+              "src/assets/js/custom/authentication/password-reset/password-reset.js"
+            ]
           },
           "configurations": {
             "production": {

@@ -1,4 +1,5 @@
 ﻿using OfficeOpenXml;
+using System.Reflection.Metadata.Ecma335;
 using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Infrastructure;
@@ -10,6 +11,8 @@ public sealed class ExcelReader : IExcelReader
     {
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
     }
+
+    public ExcelPackage CreateNew(string filePath) => new ExcelPackage(new FileInfo(filePath));
 
     public ExcelWorksheet GetWorkSheet(string filePath, string worksheet)
     {

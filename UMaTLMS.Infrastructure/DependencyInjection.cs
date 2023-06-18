@@ -55,10 +55,11 @@ public static class DependencyInjection
         services.AddScoped<IRoomRepository, RoomRepository>()
             .AddScoped<ICourseRepository, CourseRepository>()
             .AddScoped<IClassGroupRepository, ClassGroupRepository>()
-            .AddScoped<ISubClassGroupRepository,SubClassGroupRepository>()
+            .AddScoped<ISubClassGroupRepository, SubClassGroupRepository>()
             .AddScoped<ILectureRepository, LectureRepository>()
             .AddScoped<ILecturerRepository, LecturerRepository>()
-            .AddScoped<ILectureScheduleRepository, LectureScheduleRepository>();
+            .AddScoped<ILectureScheduleRepository, LectureScheduleRepository>()
+            .AddScoped<IOnlineLectureScheduleRepository, OnlineLectureScheduleRepository>();
         return services;
     }
 }

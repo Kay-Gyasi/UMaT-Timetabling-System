@@ -1,8 +1,8 @@
 C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\appsettings.Development.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\appsettings.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\_content\DefaultData.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\_content\TimetableData.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\_tests\http-client.env.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\_content\classGroups.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\_content\courses.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\_content\lecturers.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\UMaTLMS.API.exe
 C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\UMaTLMS.API.deps.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTLMS.API\bin\Debug\net7.0\UMaTLMS.API.runtimeconfig.json

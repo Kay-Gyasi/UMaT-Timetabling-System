@@ -1,0 +1,10 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@BaseUrl=https://localhost:7048/api
+
+POST {{BaseUrl}}/Rooms/GetPage
+Content-Type: application/json
+
+{
+    "pageSize": 400,
+    "pageNumber": 1
+}

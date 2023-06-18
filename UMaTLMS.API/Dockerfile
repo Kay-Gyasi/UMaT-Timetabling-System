@@ -2,12 +2,15 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
-EXPOSE 80
+EXPOSE 81
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["UMaTLMS.API/UMaTLMS.API.csproj", "UMaTLMS.API/"]
+COPY ["UMaTLMS.Core/UMaTLMS.Core.csproj", "UMaTLMS.Core/"]
+COPY ["UMaTLMS.SharedKernel/UMaTLMS.SharedKernel.csproj", "UMaTLMS.SharedKernel/"]
+COPY ["UMaTLMS.Infrastructure/UMaTLMS.Infrastructure.csproj", "UMaTLMS.Infrastructure/"]
 RUN dotnet restore "UMaTLMS.API/UMaTLMS.API.csproj"
 COPY . .
 WORKDIR "/src/UMaTLMS.API"

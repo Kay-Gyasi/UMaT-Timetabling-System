@@ -9,6 +9,7 @@ namespace UMaTLMS.Core.Services;
 
 public interface IExcelReader
 {
+    ExcelPackage CreateNew(string filePath);
     ExcelWorksheet GetWorkSheet(string filePath, string worksheet);
     ExcelWorksheet GetWorkSheet(string filePath, int index);
     object GetCellValue(ExcelWorksheet worksheet, int row, int col);

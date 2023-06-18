@@ -8,6 +8,7 @@ public class AppDbContext : DbContext
     public DbSet<ClassRoom> Rooms { get; set; }
     public DbSet<OutboxMessage> OutboxMessages { get; set; }
     public DbSet<LectureSchedule> Schedules { get; set; }
+    public DbSet<OnlineLectureSchedule> OnlineSchedules { get; set; }
     public DbSet<IncomingCourse> IncomingCourses { get; set; }
     public DbSet<ClassGroup> ClassGroups { get; set; }
     public DbSet<SubClassGroup> SubClassGroups { get; set; }

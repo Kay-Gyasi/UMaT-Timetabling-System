@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: UMaTLMS.API/Dockerfile
+    ports:
+      - "8081:81"
+    depends_on:
+      - phoenix-db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default="Data Source=phoenix-db;Integrated Security=True;Initial Catalog=Zomujo;User Id=sa;Password=hY52wjfbgN9u9EQ!;"
+
+  phoenix-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=hY52wjfbgN9u9EQ!
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"
+    volumes:
+      - zomujo-data:/var/opt/mssql
+
+volumes:
+  zomujo-data:

@@ -10,15 +10,17 @@ public class Initializer
     private readonly IExcelReader _reader;
     private readonly IRoomRepository _roomRepository;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
+    private readonly IOnlineLectureScheduleRepository _onlineLectureScheduleRepository;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
 
     public Initializer(IExcelReader reader, IRoomRepository roomRepository, 
-        ILectureScheduleRepository lectureScheduleRepository)
+        ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository)
     {
         _reader = reader;
         _roomRepository = roomRepository;
         _lectureScheduleRepository = lectureScheduleRepository;
+        _onlineLectureScheduleRepository = onlineLectureScheduleRepository;
     }
 
     public async Task Initialize()
@@ -30,8 +32,6 @@ public class Initializer
             await InitializeRooms();
             currentWorksheet += 1;
         }
-
-        await InitializeLectureSchedule();
     }
 
     private async Task InitializeRooms()
@@ -57,39 +57,15 @@ public class Initializer
             if(name is null) continue;
             if (await _roomRepository.Exists(name)) continue;
 
-            var isLab = split is not null ? split[0].Contains("LAB") || split[0].Contains("MEDIA ROOM")
-                : cellValue.Contains("LAB") || cellValue.Contains("MEDIA ROOM");
-            var isWorkshop = split is not null ? split[0].Contains("WORKSHOP")
-                : cellValue.Contains("WORKSHOP");
+            var isLab = split is not null ? split[0].Contains("LAB") || split[0].Contains("MEDIA ROOM") || split[0].Contains("WORKSHOP")
+                : cellValue.Contains("LAB") || cellValue.Contains("MEDIA ROOM") || cellValue.Contains("WORKSHOP");
             
             var command = ClassRoom.Create(name, capacity ?? 0);
             command.IsLabRoom(isLab);
-            //if (isWorkshop) command.IsWorkshopRoom();
             await _roomRepository.AddAsync(command, false);
         }
 
         await _roomRepository.SaveChanges();
-    }
-
-    private async Task InitializeLectureSchedule()
-    {
-        var rooms = (await _roomRepository.GetAllAsync()).ToList();
-        var timeSlots = GetTimeSLots().ToList();
-        
-        for (var i = 0; i < 5; i++)
-        {
-            foreach (var room in rooms)
-            {
-                foreach (var timeSlot in timeSlots)
-                {
-                    var schedule = LectureSchedule.Create(AppHelper.GetDayOfWeek(i), timeSlot, room.Id);
-                    if (i == 4 && timeSlot is "4:30pm" or "6:30pm") continue;
-                    await _lectureScheduleRepository.AddAsync(schedule, false);
-                }
-            }
-        }
-
-        await _lectureScheduleRepository.SaveChanges();
     }
 
     private static int SetCapacities(string name)
@@ -142,13 +118,14 @@ public class Initializer
 
     private static string? SetNames(string name)
     {
-        switch (name)
+        switch (name.Trim())
         {
             case "COMPUTER  ROOM":
             case "FIELD WORK 1":
             case "FIELD WORK 2":
             case "FIELD WORK 3":
             case "LIBRARY":
+            case "VLE":
             case "Auditorium Foyer":
             case "FRENCH MULTI MEDIA ROOM":
             case "Mini                                   Auditorium":
@@ -159,19 +136,5 @@ public class Initializer
         }
 
         return name;
-    }
-
-    private static IEnumerable<string> GetTimeSLots()
-    {
-        return new List<string>()
-        {
-            "6am",
-            "8am",
-            "10am",
-            "12:30pm",
-            "2:30pm",
-            "4:30pm",
-            "6:30pm"
-        };
     }
 }

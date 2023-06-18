@@ -5,6 +5,8 @@ import {ViewRoomsComponent} from "./components/rooms/view-rooms/view-rooms.compo
 import {AddRoomComponent} from "./components/rooms/add-room/add-room.component";
 import {EditRoomComponent} from "./components/rooms/edit-room/edit-room.component";
 import {ViewClassesComponent} from "./components/classes/view-classes/view-classes.component";
+import {ViewLecturesComponent} from "./components/lectures/view-lectures/view-lectures.component";
+import {EditLectureComponent} from "./components/lectures/edit-lecture/edit-lecture.component";
 
 const routes: Routes = [
   {path:"", component:DashboardComponent},
@@ -12,7 +14,9 @@ const routes: Routes = [
   {path:"rooms", component: ViewRoomsComponent},
   {path:"rooms/add", component:AddRoomComponent},
   {path:"rooms/edit/:id", component:EditRoomComponent},
-  {path:"classes", component:ViewClassesComponent}
+  {path:"classes", component:ViewClassesComponent},
+  {path:"lectures", component:ViewLecturesComponent},
+  {path:"lectures/edit/:id", component:EditLectureComponent}
 ];
 
 @NgModule({

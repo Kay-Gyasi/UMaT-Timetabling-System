@@ -18,15 +18,17 @@ public class TimetableController : Controller
     }
     
     [HttpGet]
+    //[Authorize("")] For developers and chief examiners only
+    public async Task<IActionResult> GenerateLectures()
+    {
+        await _processor.GenerateLectures();
+        return NoContent();
+    }
+    
+    [HttpGet]
     public async Task<IActionResult> GetData()
     {
         await _processor.SyncWithUMaT();
         return NoContent();
-    }
-
-    [HttpGet("{classId}")]
-    public async Task<IActionResult> GetClassSchedule(int classId)
-    {
-        return new ObjectResult(SuccessResponse(await _processor.GetClassSchedule(classId)));
     }
 }

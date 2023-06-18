@@ -14,6 +14,7 @@ public class RoomProcessor
         _logger = logger;
     }
 
+    //TODO:: Create schedules for room when inserted (use outbox)
     public async Task<OneOf<int, Exception>> UpsertAsync(RoomCommand command)
     {
 		var isNew = command.Id == 0;
@@ -63,7 +64,7 @@ public class RoomProcessor
         if (room is null) return new NullReferenceException();
 
         return room.Adapt<RoomDto>();
-    }
+    }   
 
     public async Task<bool> Exists(string name)
     {
@@ -76,6 +77,7 @@ public class RoomProcessor
         return page.Adapt<PaginatedList<RoomPageDto>>(Mapping.GetTypeAdapterConfig());
     }
 
+    // TODO:: Delete all schedules for particular room
     public async Task DeleteAsync(int id)
     {
         var room = await _roomRepository.FindByIdAsync(id);
@@ -98,6 +100,6 @@ public class RoomProcessor
     }
 }
 
-public record RoomCommand(int Id, string Name, int Capacity, bool IsLab, bool IsWorkshop);
-public record RoomDto(int Id, string Name, int Capacity, bool IsLab, bool IsWorkshop);
-public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab, bool IsWorkshop);
+public record RoomCommand(int Id, string Name, int Capacity, bool IsLab);
+public record RoomDto(int Id, string Name, int Capacity, bool IsLab);
+public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab);

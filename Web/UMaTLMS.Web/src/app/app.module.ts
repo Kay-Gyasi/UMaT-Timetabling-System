@@ -23,7 +23,9 @@ import { RoomService } from './services/http/room-service';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { ViewClassesComponent } from './components/classes/view-classes/view-classes.component';
 import {ClassService} from "./services/http/class-service";
-
+import { ViewLecturesComponent } from './components/lectures/view-lectures/view-lectures.component';
+import { EditLectureComponent } from './components/lectures/edit-lecture/edit-lecture.component';
+import {NgSelectModule} from "@ng-select/ng-select";
 @NgModule({
   declarations: [
     AppComponent,
@@ -35,7 +37,9 @@ import {ClassService} from "./services/http/class-service";
     AddRoomComponent,
     EditRoomComponent,
     ViewRoomsComponent,
-    ViewClassesComponent
+    ViewClassesComponent,
+    ViewLecturesComponent,
+    EditLectureComponent
   ],
   imports: [
     BrowserModule,
@@ -45,6 +49,7 @@ import {ClassService} from "./services/http/class-service";
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    NgSelectModule,
     ToastrModule.forRoot()
   ],
   providers: [

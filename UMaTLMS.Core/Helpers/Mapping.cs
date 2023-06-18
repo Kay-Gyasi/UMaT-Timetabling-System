@@ -26,6 +26,15 @@ internal class Mapping
 		config.NewConfig<PaginatedList<SubClassGroup>, PaginatedList<SubClassGroupPageDto>>()
 			.MapWith(x => new PaginatedList<SubClassGroupPageDto>(x.Data.Adapt<List<SubClassGroupPageDto>>(), 
 				x.TotalCount, x.CurrentPage, x.PageSize));
+		
+		config.NewConfig<PaginatedList<Lecture>, PaginatedList<LecturePageDto>>()
+			.MapWith(x => new PaginatedList<LecturePageDto>(x.Data.Select(x => new LecturePageDto(x.Id, 
+			x.Lecturer!.Name ?? "", 
+			x.Course!.Name ?? "", 
+			x.IsPractical, 
+			x.IsVLE,
+			x.SubClassGroups.Select(a => a.Name).ToList())).ToList(),
+				x.TotalCount, x.CurrentPage, x.PageSize));
 		return config;
 	}
 }

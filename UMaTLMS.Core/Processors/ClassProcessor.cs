@@ -40,7 +40,7 @@ public class ClassProcessor
     }
 }
 
-public record SubClassGroupCommand(int GroupId, int? Size, string Name);
+public record SubClassGroupCommand(int? Id, int GroupId, int? Size, string Name);
 public record SubClassGroupDto(int Id, int GroupId, int? Size, string Name, List<LectureDto> Lectures);
 public record SubClassGroupPageDto(int Id, int GroupId, int? Size, string Name);
 public record ClassGroupDto(int Id, int UmatId, int? Size, int NumOfSubClasses, string Name, List<SubClassGroupDto> SubClassGroups);
