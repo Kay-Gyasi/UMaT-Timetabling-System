@@ -12,16 +12,19 @@ public class LectureSchedule : Entity
     public DayOfWeek? DayOfWeek { get; private set; }
     public string TimePeriod { get; private set; }
     public int RoomId { get; private set; }
-    public int? LectureId { get; private set; }
+    public int? FirstLectureId { get; private set; }
+    public int? SecondLectureId { get; private set; }
     public ClassRoom Room { get; private set; }
-    public Lecture? Lecture { get; private set; }
+    public Lecture? FirstLecture { get; private set; }
+    public Lecture? SecondLecture { get; private set; }
 
     public static LectureSchedule Create(DayOfWeek? dayOfWeek, string timePeriod, int roomId)
         => new(dayOfWeek, timePeriod, roomId);
 
-    public LectureSchedule HasLecture(int lectureId)
+    public LectureSchedule HasLecture(int? firstLectureId, int? secondLectureId)
     {
-        LectureId = lectureId;
+        if (firstLectureId is not null) FirstLectureId = firstLectureId;
+        if (secondLectureId is not null) SecondLectureId = secondLectureId;
         return this;
     }
 }

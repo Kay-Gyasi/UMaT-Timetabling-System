@@ -1,4 +1,5 @@
-﻿using UMaTLMS.Core.Contracts;
+﻿using OfficeOpenXml;
+using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Repositories;
 using UMaTLMS.Core.Services;
@@ -43,11 +44,12 @@ public class TimetableProcessor
     // TODO:: Work on assigning rooms to schedules
     // TODO:: Work on exporting schedules to excel
 
-    public async Task Generate()
+    public async Task<(byte[], string, string)> Generate()
     {
         var lectures = await _lectureRepository.GetAll();
         var schedules = await _lectureScheduleRepository.GetAll();
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
+        var rooms = await _roomRepository.GetAllAsync();
 
         var result = TimetableGenerator.Generate(schedules, onlineSchedules, lectures);
         schedules = result.Item1;
@@ -64,7 +66,10 @@ public class TimetableProcessor
         }
 
         await _lectureScheduleRepository.SaveChanges();
-        await TimetableGenerator.GetTimetable(_excelReader, schedules, onlineSchedules);
+        await TimetableGenerator.GetTimetable(_excelReader, schedules, onlineSchedules, rooms.ToList());
+
+        var fileBytes = await File.ReadAllBytesAsync("_content/Timetable.xlsx");
+        return (fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "timetable.xlsx");
     }
 
     public async Task GenerateLectures()

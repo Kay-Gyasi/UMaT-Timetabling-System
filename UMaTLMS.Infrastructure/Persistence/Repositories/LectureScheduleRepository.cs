@@ -16,13 +16,14 @@ public class LectureScheduleRepository : Repository<LectureSchedule, int>, ILect
     public async Task<int> GetNumberOfLecturesForLecturerInADay(int lecturerId, int day)
     {
         return await GetBaseQuery().CountAsync(x =>
-            x.DayOfWeek == AppHelper.GetDayOfWeek(day) && x.Lecture!.LecturerId == lecturerId);
+            x.DayOfWeek == AppHelper.GetDayOfWeek(day) && (x.FirstLecture!.LecturerId == lecturerId || x.SecondLecture!.LecturerId == lecturerId));
     }
 
     protected override IQueryable<LectureSchedule> GetBaseQuery()
     {
         return base.GetBaseQuery()
             .Include(x => x.Room)
-            .Include(x => x.Lecture);
+            .Include(x => x.FirstLecture)
+            .Include(x => x.SecondLecture);
     }
 }

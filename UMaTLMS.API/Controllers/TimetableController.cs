@@ -13,8 +13,8 @@ public class TimetableController : Controller
     //[Authorize("")] For developers and chief examiners only
     public async Task<IActionResult> Generate()
     {
-        await _processor.Generate();
-        return NoContent();
+        var result = await _processor.Generate();
+        return File(result.Item1, result.Item2, result.Item3);
     }
     
     [HttpGet]

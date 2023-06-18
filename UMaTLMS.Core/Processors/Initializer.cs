@@ -126,7 +126,6 @@ public class Initializer
             case "FIELD WORK 3":
             case "LIBRARY":
             case "VLE":
-            case "Auditorium Foyer":
             case "FRENCH MULTI MEDIA ROOM":
             case "Mini                                   Auditorium":
                 return null;
