@@ -13,7 +13,10 @@ namespace UMaTLMS.Core.Helpers
         {
 
             Shuffle(schedules);
-            lectures = lectures.OrderByDescending(x => x.Duration).ToList();
+            lectures = lectures.OrderByDescending(x => x.Duration)
+                .OrderBy(x => x.PreferredRoom is not null)
+                .ToList();
+
             foreach (var lecture in lectures)
             {
                 var builder = PredicateBuilder.New<LectureSchedule>(x => true);
@@ -53,7 +56,9 @@ namespace UMaTLMS.Core.Helpers
 
                 if (lecture.Duration == 2)
                 {
-                    schedule = eligibleSchedules.FirstOrDefault(x => x.FirstLectureId == null && x.SecondLectureId == null);
+                    schedule = eligibleSchedules
+                        .OrderBy(x => x.RoomId == lecture.PreferredRoom)
+                        .FirstOrDefault(x => x.FirstLectureId == null && x.SecondLectureId == null);
                     schedule?.HasLecture(lecture.Id, lecture.Id);
                     continue;
                 }
@@ -61,8 +66,15 @@ namespace UMaTLMS.Core.Helpers
                 var eligibleSchedulesForOnePeriodLectures = eligibleSchedules.Where(x => x.FirstLectureId == null || x.SecondLectureId == null);
                 if (eligibleSchedulesForOnePeriodLectures.Any())
                 {
-                    schedule = eligibleSchedulesForOnePeriodLectures.FirstOrDefault();
-                    if (schedule?.FirstLectureId is null) schedule?.HasLecture(lecture.Id, null);
+                    schedule = eligibleSchedulesForOnePeriodLectures
+                        .OrderBy(x => x.RoomId == lecture.PreferredRoom)
+                        .FirstOrDefault();
+                    if (schedule?.FirstLectureId is null)
+                    {
+                        schedule?.HasLecture(lecture.Id, null);
+                        continue;
+                    }
+
                     if (schedule?.SecondLectureId is null) schedule?.HasLecture(null, lecture.Id);
                 }
             }
@@ -70,9 +82,10 @@ namespace UMaTLMS.Core.Helpers
             return (schedules, onlineSchedules);
         }
 
-        public static async Task GetTimetable(IExcelReader excelReader, IEnumerable<LectureSchedule> lectureSchedules, IEnumerable<OnlineLectureSchedule> onlineLectureSchedules, List<ClassRoom> rooms)
+        public static async Task GetTimetable(IExcelReader excelReader, IEnumerable<LectureSchedule> lectureSchedules, IEnumerable<OnlineLectureSchedule> onlineLectureSchedules, List<ClassRoom> rooms, string file)
         {
-            using var excelPackage = excelReader.CreateNew("_content/Timetable.xlsx");
+            if (string.IsNullOrWhiteSpace(file)) return;
+            using var excelPackage = excelReader.CreateNew(file);
 
             var groupedLectureSchedules = lectureSchedules.GroupBy(ls => ls.DayOfWeek);
             var groupedOnlineLectureSchedules = onlineLectureSchedules.GroupBy(ls => ls.DayOfWeek);

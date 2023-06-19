@@ -1,7 +1,6 @@
-﻿using OfficeOpenXml;
+﻿using Microsoft.Extensions.Configuration;
 using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Helpers;
-using UMaTLMS.Core.Repositories;
 using UMaTLMS.Core.Services;
 using UMaTLMS.SharedKernel.Helpers;
 
@@ -10,6 +9,9 @@ namespace UMaTLMS.Core.Processors;
 [Processor]
 public class TimetableProcessor
 {
+    private const string TimetableFile = "Timetable:File";
+    private const string TimetableType = "Timetable:Type";
+    private const string TimetableDownload = "Timetable:DownloadName";
     private readonly ILogger<TimetableProcessor> _logger;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
     private readonly ILectureRepository _lectureRepository;
@@ -21,12 +23,13 @@ public class TimetableProcessor
     private readonly IOnlineLectureScheduleRepository _onlineLectureScheduleRepository;
     private readonly IRoomRepository _roomRepository;
     private readonly IExcelReader _excelReader;
+    private readonly IConfiguration _configuration;
 
     public TimetableProcessor(ILogger<TimetableProcessor> logger, ILectureScheduleRepository timetableRepository, 
         ILectureRepository lectureRepository, ILecturerRepository lecturerRepository, IClassGroupRepository classGroupRepository, 
         ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService umatApiService,
         IOnlineLectureScheduleRepository onlineLectureScheduleRepository, IRoomRepository roomRepository,
-        IExcelReader excelReader)
+        IExcelReader excelReader, IConfiguration configuration)
     {
         _logger = logger;
         _lectureScheduleRepository = timetableRepository;
@@ -39,12 +42,13 @@ public class TimetableProcessor
         _onlineLectureScheduleRepository = onlineLectureScheduleRepository;
         _roomRepository = roomRepository;
         _excelReader = excelReader;
+        _configuration = configuration;
     }
 
-    // TODO:: Work on assigning rooms to schedules
-    // TODO:: Work on exporting schedules to excel
+    // TODO:: Work on PreferredRoom functionality on UI
+    // TODO:: Work on swapping functionality
 
-    public async Task<(byte[], string, string)> Generate()
+    public async Task<(byte[]?, string?, string?)> Generate()
     {
         var lectures = await _lectureRepository.GetAll();
         var schedules = await _lectureScheduleRepository.GetAll();
@@ -66,10 +70,13 @@ public class TimetableProcessor
         }
 
         await _lectureScheduleRepository.SaveChanges();
-        await TimetableGenerator.GetTimetable(_excelReader, schedules, onlineSchedules, rooms.ToList());
 
-        var fileBytes = await File.ReadAllBytesAsync("_content/Timetable.xlsx");
-        return (fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "timetable.xlsx");
+        var fileName = _configuration[TimetableFile] ?? "";
+        await TimetableGenerator.GetTimetable(_excelReader, schedules, onlineSchedules, 
+            rooms.ToList(), fileName);
+
+        var fileBytes = await File.ReadAllBytesAsync(fileName);
+        return (fileBytes, _configuration[TimetableType], _configuration[TimetableDownload]);
     }
 
     public async Task GenerateLectures()

@@ -12,6 +12,7 @@
 
         public int LecturerId { get; private set; }
         public int CourseId { get; private set; }
+        public int? PreferredRoom { get; private set; }
         public int? OnlineLectureScheduleId { get; private set; }
         public OnlineLectureSchedule? OnlineLectureSchedule { get; private set; }
         public int Duration { get; private set; }

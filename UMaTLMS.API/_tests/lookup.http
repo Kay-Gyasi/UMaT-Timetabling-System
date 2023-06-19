@@ -1,0 +1,4 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+@BaseUrl=https://localhost:7048/api
+
+GET {{BaseUrl}}/Lookup/Get/0

@@ -85,10 +85,10 @@ public class LectureProcessor
 	}
 }
 
-public record LectureCommand(int Id, int LecturerId, int CourseId, int Duration, bool IsPractical, bool  IsVLE, 
+public record LectureCommand(int Id, int LecturerId, int CourseId, int? PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 
 	 List<SubClassGroupCommand> SubClassGroups);
 
-public record LectureDto(int Id, int LecturerId, int CourseId, int Duration, bool IsPractical, bool  IsVLE, 
+public record LectureDto(int Id, int LecturerId, int CourseId, string PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 
 	 LecturerDto Lecturer, CourseDto Course, List<SubClassGroupPageDto> SubClassGroups);
 
 public record LecturerDto(int Id, int UmatId, string Name);
