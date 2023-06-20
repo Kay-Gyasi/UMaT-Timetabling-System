@@ -100,6 +100,6 @@ public class RoomProcessor
     }
 }
 
-public record RoomCommand(int Id, string Name, int Capacity, bool IsLab);
-public record RoomDto(int Id, string Name, int Capacity, bool IsLab);
-public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab);
+public record RoomCommand(int Id, string Name, int Capacity, bool IsLab, bool IsIncludedInGeneralAssignment);
+public record RoomDto(int Id, string Name, int Capacity, bool IsLab, bool IsIncludedInGeneralAssignment);
+public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab, bool IsIncludedInGeneralAssignment);

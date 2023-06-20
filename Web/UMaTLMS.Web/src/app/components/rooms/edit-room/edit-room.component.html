@@ -66,6 +66,26 @@
         </div>
         <!--end::Input group-->
 
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Is Included In General Assignment?</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input formControlName="isIncludedInGeneralAssignment"
+                   [class.is-invalid]="getControl('isIncludedInGeneralAssignment').touched
+                   && getControl('isIncludedInGeneralAssignment').invalid"
+                   class="form-check-input" type="checkbox" value="" id="isIncludeflexCheckChecked">
+            <div *ngIf="getControl('isIncludedInGeneralAssignment').touched
+            && getControl('isIncludedInGeneralAssignment').invalid">
+              <span class="text-danger">Field should not be empty</span>
+            </div>
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+
       </div>
       <!--end::Card body-->
       <!--begin::Actions-->

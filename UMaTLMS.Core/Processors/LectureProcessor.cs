@@ -6,32 +6,12 @@ namespace UMaTLMS.Core.Processors;
 public class LectureProcessor
 {
 	private readonly ILectureRepository _lectureRepository;
-    private readonly ISubClassGroupRepository _subClassGroupRepository;
+	private readonly ISubClassGroupRepository _subClassGroupRepository;
 
-    public LectureProcessor(ILectureRepository lectureRepository, ISubClassGroupRepository subClassGroupRepository)
-    {
-		_lectureRepository = lectureRepository;
-        _subClassGroupRepository = subClassGroupRepository;
-    }
-
-	public async Task<bool> Combine(int firstLectureId, int secondLectureId)
+	public LectureProcessor(ILectureRepository lectureRepository, ISubClassGroupRepository subClassGroupRepository)
 	{
-		var firstLecture = await _lectureRepository.FindByIdAsync(firstLectureId);
-		var secondLecture = await _lectureRepository.FindByIdAsync(secondLectureId);
-		if (firstLecture == null || secondLecture == null) return false;
-		if (firstLecture.Duration != secondLecture.Duration) return false;
-		if (firstLecture.CourseId != secondLecture.CourseId) return false;
-		if (firstLecture.Course?.Name != secondLecture.Course?.Name) return false;
-		if (firstLecture.LecturerId != secondLecture.LecturerId) return false;
-
-		var groups = firstLecture.SubClassGroups;
-		foreach (var group in groups)
-		{
-			secondLecture.AddGroup(group);
-		}
-
-		await _lectureRepository.DeleteAsync(firstLecture, false);
-		return await _lectureRepository.SaveChanges();
+		_lectureRepository = lectureRepository;
+		_subClassGroupRepository = subClassGroupRepository;
 	}
 
 	public async Task<OneOf<bool, Exception>> CreateCombined(List<LectureCommand> lectures)
@@ -45,29 +25,30 @@ public class LectureProcessor
 
 		try
 		{
-            foreach (var x in lectures)
-            {
-                var lect = Lecture.Create(x.LecturerId, x.CourseId, lecture.Duration, x.IsPractical);
-                if (x.IsVLE) lect.IsHeldOnline();
+			foreach (var x in lectures)
+			{
+				var lect = Lecture.Create(x.LecturerId, x.CourseId, lecture.Duration, x.IsPractical);
+				if (x.IsVLE) lect.IsHeldOnline();
+				if (x.PreferredRoom is not null) lect.HasPreferredRoom(x.PreferredRoom);
 
-                foreach (var id in x.SubClassGroups.Select(g => g.Id))
-                {
-                    if (id is null or 0) continue;
-                    var group = await _subClassGroupRepository.FindByIdAsync(id ?? 0);
-                    lect.AddGroup(group);
-                }
+				foreach (var id in x.SubClassGroups.Select(g => g.Id))
+				{
+					if (id is null or 0) continue;
+					var group = await _subClassGroupRepository.FindByIdAsync(id ?? 0);
+					lect.AddGroup(group);
+				}
 
-                await _lectureRepository.AddAsync(lect, false);
-            }
+				await _lectureRepository.AddAsync(lect, false);
+			}
 
-            await _lectureRepository.SaveChanges();
-        }
+			await _lectureRepository.SaveChanges();
+		}
 		catch (Exception ex)
 		{
 			return ex;
 		}
 
-        return true;
+		return true;
 	}
 
 	public async Task<PaginatedList<LecturePageDto>> GetPageAsync(PaginatedCommand command) 
@@ -85,7 +66,7 @@ public class LectureProcessor
 	}
 }
 
-public record LectureCommand(int Id, int LecturerId, int CourseId, int? PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 
+public record LectureCommand(int Id, int LecturerId, int CourseId, string? PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 
 	 List<SubClassGroupCommand> SubClassGroups);
 
 public record LectureDto(int Id, int LecturerId, int CourseId, string PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 

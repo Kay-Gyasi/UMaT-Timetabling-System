@@ -14,6 +14,7 @@ public class TimetableController : Controller
     public async Task<IActionResult> Generate()
     {
         var result = await _processor.Generate();
+        if (result.Item1 == null || string.IsNullOrWhiteSpace(result.Item2)) return NoContent();
         return File(result.Item1, result.Item2, result.Item3);
     }
     

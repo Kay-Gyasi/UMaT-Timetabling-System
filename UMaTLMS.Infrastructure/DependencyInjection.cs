@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using UMaTLMS.Core.Services;
 using UMaTLMS.Infrastructure.Persistence.Repositories;
 
@@ -7,9 +9,9 @@ namespace UMaTLMS.Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration, IWebHostEnvironment hostEnvironment)
     {
-        services.RegisterDbContext(configuration)
+        services.RegisterDbContext(configuration, hostEnvironment)
             .RegisterRepositories()
             .AddHttpClient("UMaT", opts =>
             {
@@ -30,7 +32,7 @@ public static class DependencyInjection
     }
 
     private static IServiceCollection RegisterDbContext(this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration, IWebHostEnvironment hostEnvironment)
     {
         services.AddSingleton<ConvertDomainEventsToOutboxMessagesInterceptor>();
         services.AddSingleton<AuditEntitiesInterceptor>();
@@ -44,7 +46,7 @@ public static class DependencyInjection
                     o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 })
                 .AddInterceptors(interceptor!, saveChangesInterceptor!);
-            options.EnableSensitiveDataLogging();
+            if (hostEnvironment.IsDevelopment()) options.EnableSensitiveDataLogging();
         });
 
         return services;

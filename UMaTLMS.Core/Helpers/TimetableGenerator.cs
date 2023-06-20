@@ -57,7 +57,7 @@ namespace UMaTLMS.Core.Helpers
                 if (lecture.Duration == 2)
                 {
                     schedule = eligibleSchedules
-                        .OrderBy(x => x.RoomId == lecture.PreferredRoom)
+                        .OrderBy(x => x.Room.Name == lecture.PreferredRoom)
                         .FirstOrDefault(x => x.FirstLectureId == null && x.SecondLectureId == null);
                     schedule?.HasLecture(lecture.Id, lecture.Id);
                     continue;
@@ -67,7 +67,7 @@ namespace UMaTLMS.Core.Helpers
                 if (eligibleSchedulesForOnePeriodLectures.Any())
                 {
                     schedule = eligibleSchedulesForOnePeriodLectures
-                        .OrderBy(x => x.RoomId == lecture.PreferredRoom)
+                        .OrderBy(x => x.Room.Name == lecture.PreferredRoom)
                         .FirstOrDefault();
                     if (schedule?.FirstLectureId is null)
                     {

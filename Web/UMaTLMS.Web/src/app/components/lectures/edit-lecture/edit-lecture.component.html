@@ -16,7 +16,8 @@
     <!--begin::Content-->
     <div class="fw-bold">
       <h4 class="text-gray-900 fw-bolder">Create new lecture pairings for classes of selected lecture</h4>
-      <div class="fs-6 text-gray-700">Click on <span class="fw-bolder">Create New</span> and add new pairings.</div>
+      <div class="fs-6 text-gray-700">Click on the <span class="fw-bolder">Edit</span> button to add new pairings.</div>
+      <div class="fs-6 text-gray-700">Choose a preferred room for lecture to be held in if required. (eg. lab, big classes)</div>
     </div>
     <!--end::Content-->
   </div>
@@ -69,11 +70,28 @@
       <!--begin::Input group-->
       <div class="row mb-6">
         <!--begin::Label-->
-        <label class="col-lg-1 col-form-label fw-bold fs-6">Is VLE?</label>
+        <label class="col-lg-1 col-form-label fw-bold fs-6 fw-bold">Is VLE?</label>
         <!--end::Label-->
         <!--begin::Col-->
         <div class="col-lg-11 fv-row">
           <input [(ngModel)]="lecture.isVLE" class="form-check-input" type="checkbox" value="" id="isVleLecture">
+        </div>
+        <!--end::Col-->
+      </div>
+      <!--end::Input group-->
+
+      <!--begin::Input group-->
+      <div class="row mb-6">
+        <!--begin::Col-->
+        <div class="col-lg-12 fv-row">
+          <ng-select [(ngModel)]="lecture.preferredRoom" name="preferredRoom" class="form-control form-control-lg form-control-solid"
+                     [items]="roomsLookup"
+                     bindLabel="name"
+                     bindValue="name"
+                     [searchable]="true"
+                     placeholder="Select Preferred Room"
+                     appendTo="">
+          </ng-select>
         </div>
         <!--end::Col-->
       </div>
@@ -171,6 +189,7 @@
                        bindValue="id"
                        placeholder="Select Classes"
                        appendTo=""
+                       [searchable]="true"
                        [multiple]=true>
             </ng-select>
           </div>

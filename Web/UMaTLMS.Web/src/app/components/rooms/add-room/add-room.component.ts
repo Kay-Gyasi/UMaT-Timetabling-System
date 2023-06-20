@@ -2,8 +2,6 @@ import { Component } from '@angular/core';
 import {
   FormBuilder,
   FormControl,
-  UntypedFormArray,
-  UntypedFormBuilder,
   UntypedFormGroup,
   Validators
 } from "@angular/forms";
@@ -30,7 +28,8 @@ export class AddRoomComponent {
         this.roomForm.setValue({
           name: "",
           capacity: 0,
-          isLab: false
+          isLab: false,
+          isIncludedInGeneralAssignment: false
         });
       },
       error: _ => {
@@ -47,7 +46,8 @@ export class AddRoomComponent {
     this.roomForm = this.fb.group({
       name: ["", [Validators.required]],
       capacity: [0, []],
-      isLab: [false, []]
+      isLab: [false, []],
+      isIncludedInGeneralAssignment: [false, []]
     })
   }
 }

@@ -62,58 +62,14 @@ public class Initializer
             
             var command = ClassRoom.Create(name, capacity ?? 0);
             command.IsLabRoom(isLab);
+
+            var excludedNames = GetRoomsExcludedFromGeneralAssignment();
+            if (excludedNames.Any(x => x == command.Name)) command.IsExcludedFromGeneralAssignment();
+
             await _roomRepository.AddAsync(command, false);
         }
 
         await _roomRepository.SaveChanges();
-    }
-
-    private static int SetCapacities(string name)
-    {
-        switch (name)
-        {
-            case "LH 5":
-            case "ED I":
-            case "ED II":
-            case "ED III":
-            case "MS 1":
-            case "MS 2":
-            case "ELECT. LAB.":
-            case "COMPUTER ROOM":
-            case "PETROLEUM ROOM":
-            case "COMP ENG LAB":
-            case "SOFTWARE LAB":
-            case "MINING LAB":
-            case "GIS/PET LAB":
-            case "GEOL. LAB.":
-            case "MECH. LAB.":
-            case "MECH. WORKSHOP":
-            case "MINER. ENG. LAB.":
-            case "MINING COMP LAB":
-            case "GIS/PETROLEUM":
-                return 70;
-            case "Mini Auditorium":
-            case "VLE":
-            case "FIELD WORK 1":
-            case "FIELD WORK 2":
-            case "FIELD WORK 3":
-            case "LIBRARY":
-                return 400;
-            case "Auditorium Foyer":
-            case "GE 1":
-                return 50;
-            case "MRT I":
-            case "MRT II":
-            case "MRT III":
-            case "CB 2":
-            case "CL 1":
-            case "MC 1":
-                return 100;
-            case "FRENCH MULTI MEDIA ROOM":
-                return 25;
-            default:
-                return 70;
-        }
     }
 
     private static string? SetNames(string name)
@@ -121,12 +77,7 @@ public class Initializer
         switch (name.Trim())
         {
             case "COMPUTER  ROOM":
-            case "FIELD WORK 1":
-            case "FIELD WORK 2":
-            case "FIELD WORK 3":
-            case "LIBRARY":
             case "VLE":
-            case "FRENCH MULTI MEDIA ROOM":
             case "Mini                                   Auditorium":
                 return null;
             case "Mini                                                   Auditorium":
@@ -135,5 +86,10 @@ public class Initializer
         }
 
         return name;
+    }
+
+    private static List<string> GetRoomsExcludedFromGeneralAssignment()
+    {
+        return new List<string> { "FIELD WORK 1", "FIELD WORK 2", "FIELD WORK 3", "LIBRARY", "FRENCH MULTI MEDIA ROOM" };
     }
 }

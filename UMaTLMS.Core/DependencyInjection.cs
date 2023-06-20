@@ -1,6 +1,9 @@
 ﻿using MediatR.NotificationPublishers;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using UMaTLMS.Core.Processors;
 
 namespace UMaTLMS.Core;
 
@@ -28,5 +31,12 @@ public static class DependencyInjection
             services.AddScoped(processor);
         }
         return services;
+    }
+
+    public static void Initialize(this WebApplication app)
+    {
+        using var serviceScope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+        var initializer = serviceScope.ServiceProvider.GetService<Initializer>();
+        initializer?.Initialize().GetAwaiter().GetResult();
     }
 }

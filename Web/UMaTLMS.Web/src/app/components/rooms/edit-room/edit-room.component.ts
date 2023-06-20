@@ -28,6 +28,7 @@ export class EditRoomComponent implements OnInit {
     request.name = this.roomForm.get('name')?.value;
     request.capacity = this.roomForm.get('capacity')?.value;
     request.isLab = this.roomForm.get('isLab')?.value;
+    request.isIncludedInGeneralAssignment = this.roomForm.get('isIncludedInGeneralAssignment')?.value;
     return this.roomService.save(request).subscribe({
       error: err => {
         this.toast.showError("Unable to add room", "Failed");
@@ -43,7 +44,8 @@ export class EditRoomComponent implements OnInit {
     this.roomForm = this.fb.group({
       name: ["", [Validators.required]],
       capacity: [0, []],
-      isLab: [false, []]
+      isLab: [false, []],
+      isIncludedInGeneralAssignment: [false, []]
     })
 
     this.roomId = this.route.snapshot.params["id"];
@@ -52,7 +54,8 @@ export class EditRoomComponent implements OnInit {
         this.roomForm.setValue({
           name: response?.name,
           capacity: response?.capacity,
-          isLab: response?.isLab
+          isLab: response?.isLab,
+          isIncludedInGeneralAssignment: response?.isIncludedInGeneralAssignment
         })
       },
       error: err => {

@@ -12,13 +12,12 @@
 
         public int LecturerId { get; private set; }
         public int CourseId { get; private set; }
-        public int? PreferredRoom { get; private set; }
+        public string? PreferredRoom { get; private set; }
         public int? OnlineLectureScheduleId { get; private set; }
         public OnlineLectureSchedule? OnlineLectureSchedule { get; private set; }
         public int Duration { get; private set; }
         public bool IsPractical { get; private set; }
         public bool IsVLE { get; private set; }
-        public bool IsConfirmed { get; private set; }
         public Lecturer? Lecturer { get; private set; }
         public IncomingCourse? Course { get; private set; }
         private List<SubClassGroup> _subClassGroups = new();
@@ -41,12 +40,6 @@
             return this;
         }
 
-        public Lecture Confirm()
-        {
-            IsConfirmed = true;
-            return this;
-        }
-
         public Lecture ForCourse(IncomingCourse? course)
         {
             Course = course;
@@ -62,6 +55,12 @@
         public Lecture IsHeldOnline()
         {
             IsVLE = true;
+            return this;
+        }
+
+        public Lecture HasPreferredRoom(string? room)
+        {
+            PreferredRoom = room;
             return this;
         }
     }

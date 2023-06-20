@@ -3,8 +3,11 @@ import {LectureResponse} from "../../../models/responses/lecture-response";
 import {LectureService} from "../../../services/http/lecture.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {NotificationService} from "../../../services/notification.service";
-import {LectureRequest, SubClassRequest} from "../../../models/requests/room-request";
 import {Navigations} from "../../../helpers/navigations";
+import {Lookup, LookupType} from 'src/app/models/lookup';
+import {LookupService} from "../../../services/http/lookup.service";
+import {LectureRequest} from "../../../models/requests/lecture-request";
+import {SubClassRequest} from "../../../models/requests/sub-class-request";
 
 @Component({
   selector: 'app-edit-lecture',
@@ -19,9 +22,10 @@ export class EditLectureComponent implements OnInit{
   pairings:number[] = [];
   selectedLecture:LectureRequest = new LectureRequest();
   navigator = new Navigations();
+  roomsLookup:Lookup[] = [];
 
   constructor(private route:ActivatedRoute, private toast:NotificationService, private lectureService:LectureService,
-              private cdr:ChangeDetectorRef, private router:Router) {
+              private cdr:ChangeDetectorRef, private router:Router, private lookupService:LookupService) {
   }
 
   ngOnInit() {
@@ -51,6 +55,7 @@ export class EditLectureComponent implements OnInit{
     request.courseId = this.selectedLecture?.courseId;
     request.isVLE = this.selectedLecture?.isVLE;
     request.isPractical = this.selectedLecture?.isPractical;
+    request.preferredRoom = this.selectedLecture.preferredRoom;
     request.subClassGroups = [];
 
     for (const x of this.pairings ?? []) {
@@ -85,6 +90,11 @@ export class EditLectureComponent implements OnInit{
 
   private initialize(){
     this.lectureId = this.route.snapshot.params["id"];
+    this.getSelectedLecture();
+    this.getRooms();
+  }
+
+  private getSelectedLecture(){
     this.lectureService.get(this.lectureId).subscribe({
       next: response => {
         this.lecture = response ?? new LectureResponse();
@@ -94,6 +104,7 @@ export class EditLectureComponent implements OnInit{
         request.courseId = response?.courseId ?? 0;
         request.isVLE = response?.isVLE ?? false;
         request.isPractical = response?.isPractical ?? false;
+        request.preferredRoom = response?.preferredRoom ?? "";
         request.subClassGroups = [];
 
         for (const x of response?.subClassGroups ?? []) {
@@ -108,6 +119,17 @@ export class EditLectureComponent implements OnInit{
       },
       error: err => {
         this.toast.showError("Unable to fetch lecture details", "Failed");
+      }
+    })
+  }
+
+  private getRooms(){
+    this.lookupService.get(LookupType.Rooms).subscribe({
+      next: response => {
+        this.roomsLookup = response ?? [];
+      },
+      error: err => {
+        this.toast.showError("Unable to load rooms", "Failed");
       }
     })
   }

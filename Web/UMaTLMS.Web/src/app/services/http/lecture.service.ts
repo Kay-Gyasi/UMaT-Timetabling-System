@@ -5,7 +5,7 @@ import {map, Observable} from "rxjs";
 import {PaginatedList} from "../../models/paginated-list";
 import {LecturePageResponse, LectureResponse} from "../../models/responses/lecture-response";
 import {RoomResponse} from "../../models/responses/room-response";
-import {LectureRequest} from "../../models/requests/room-request";
+import {LectureRequest} from "../../models/requests/lecture-request";
 
 @Injectable({
   providedIn: 'root'

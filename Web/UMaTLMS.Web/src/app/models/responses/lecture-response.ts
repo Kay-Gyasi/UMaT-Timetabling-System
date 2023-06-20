@@ -1,4 +1,4 @@
-import {SubClassResponse} from "./class-response";
+import {SubClassResponse} from "./sub-class-response";
 
 export class LectureResponse{
   id:number;
@@ -7,7 +7,7 @@ export class LectureResponse{
   lecturer:LecturerResponse;
   course:CourseResponse;
   duration:number;
-  courseNo:number;
+  preferredRoom:string;
   isPractical:boolean;
   isVLE:boolean;
   subClassGroups:SubClassResponse[];

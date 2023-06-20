@@ -99,6 +99,7 @@
           <th class="min-w-150px">Name</th>
           <th class="min-w-140px">Capacity</th>
           <th class="min-w-120px">IsLab</th>
+          <th class="min-w-120px">IsIncludedInGeneralAssignment</th>
           <th class="min-w-100px text-end">Actions</th>
         </tr>
         </thead>
@@ -116,6 +117,13 @@
           <td>
             <div class="form-check form-check-sm form-check-custom form-check-solid">
               <input class="form-check-input widget-13-check" type="checkbox" [value]=x.isLab [checked]=x.isLab />
+            </div>
+          </td>
+          <td>
+            <div class="form-check form-check-sm form-check-custom form-check-solid">
+              <input class="form-check-input widget-13-check" type="checkbox"
+                     [value]=x.isIncludedInGeneralAssignment
+                     [checked]=x.isIncludedInGeneralAssignment />
             </div>
           </td>
           <td class="text-end">

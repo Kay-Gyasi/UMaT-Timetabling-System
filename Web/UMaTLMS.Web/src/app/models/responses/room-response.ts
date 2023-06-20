@@ -3,5 +3,5 @@ export class RoomResponse{
   name:string;
   capacity:number;
   isLab:boolean;
-  isWorkShop:boolean;
+  isIncludedInGeneralAssignment:boolean;
 }

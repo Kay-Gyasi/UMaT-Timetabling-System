@@ -7,13 +7,13 @@ namespace UMaTLMS.API
     public static class DependencyInjection
     {
         public static void RegisterServices(this IServiceCollection services,
-            IConfiguration configuration)
+            IConfiguration configuration, IWebHostEnvironment hostEnvironment)
         {
             services.InstallDefaults()
                 .AddHttpContextAccessor()
                 .InstallSwagger(configuration)
                 .AddCore(configuration)
-                .AddInfrastructure(configuration);
+                .AddInfrastructure(configuration, hostEnvironment);
         }
 
         private static IServiceCollection InstallDefaults(this IServiceCollection services)

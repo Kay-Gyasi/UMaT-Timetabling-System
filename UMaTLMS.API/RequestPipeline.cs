@@ -15,6 +15,7 @@ public static class RequestPipeline
     public static void ConfigurePipeline(this WebApplication app)
     {
         app.AddMigrations();
+        app.Initialize();
         app.UseSwagger();
 
         if (app.Environment.IsDevelopment())

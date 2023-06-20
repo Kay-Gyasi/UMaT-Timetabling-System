@@ -45,13 +45,14 @@ public class TimetableProcessor
         _configuration = configuration;
     }
 
-    // TODO:: Work on PreferredRoom functionality on UI
     // TODO:: Work on swapping functionality
 
     public async Task<(byte[]?, string?, string?)> Generate()
     {
         var lectures = await _lectureRepository.GetAll();
-        var schedules = await _lectureScheduleRepository.GetAll();
+        var schedules = (await _lectureScheduleRepository.GetAll())
+            .Where(x => x.Room.IsIncludedInGeneralAssignment)
+            .ToList();
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
         var rooms = await _roomRepository.GetAllAsync();
 

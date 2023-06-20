@@ -33,6 +33,7 @@ public class RoomRepository : Repository<ClassRoom, int>, IRoomRepository
     public async Task<List<Lookup>> GetLookup()
     {
         return await GetBaseQuery()
+            .OrderBy(x => x.Name)
             .Select(x => new Lookup(x.Id, x.Name))
             .ToListAsync();
     }
