@@ -27,5 +27,11 @@ public class OnlineLectureSchedule : Entity
         _lectures.Add(lecture);
         return this;
     }
+
+    public OnlineLectureSchedule Reset()
+    {
+        _lectures.Clear();
+        return this;
+    }
 }
 

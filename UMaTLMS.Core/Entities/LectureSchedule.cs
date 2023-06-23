@@ -27,5 +27,12 @@ public class LectureSchedule : Entity
         if (secondLectureId is not null) SecondLectureId = secondLectureId;
         return this;
     }
+
+    public LectureSchedule Reset()
+    {
+        FirstLectureId = null;
+        SecondLectureId = null;
+        return this;
+    }
 }
 

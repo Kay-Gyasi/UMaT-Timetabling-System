@@ -1,12 +1,8 @@
 ﻿using LinqKit;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
-using UMaTLMS.Core.Entities;
-using UMaTLMS.Core.Processors;
 using UMaTLMS.Core.Services;
 using UMaTLMS.SharedKernel.Helpers;
 
@@ -16,9 +12,7 @@ namespace UMaTLMS.Core.Helpers
     {
         public static (List<LectureSchedule>, List<OnlineLectureSchedule>) Generate(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures)
         {
-            if (schedules.Any(x => x.FirstLecture is not null || x.SecondLecture is not null))
-                return (schedules, onlineSchedules);
-
+            ResetSchedules(schedules, onlineSchedules);
             Shuffle(schedules);
             lectures = lectures.OrderByDescending(x => x.Duration)
                 .OrderByDescending(x => x.PreferredRoom is not null)
@@ -285,18 +279,16 @@ namespace UMaTLMS.Core.Helpers
 
                 for (int i = 0; i < columns.Count; i++)
                 {
-                    var cellValue = worksheet.Cells[$"{columns[i]}{i}"].Value?.ToString();
+                    var cellValue = worksheet.Cells[$"{columns[i]}{7}"].Value?.ToString(); // 7th row has the time periods
                     if (string.IsNullOrEmpty(cellValue)) continue;
 
-                    if (cellValue == GetTimeMapping(lectureSchedule.TimePeriod, 1))
-                    {
-                        var name = $"{columns[i]}{i}";
-                        if (!string.IsNullOrWhiteSpace(worksheet.Cells[name].Value?.ToString())) break;
+                    if (cellValue != GetTimeMapping(lectureSchedule.TimePeriod, 1)) continue;
+                    var name = $"{columns[i]}{row}";
+                    if (!string.IsNullOrWhiteSpace(worksheet.Cells[name].Value?.ToString())) break;
 
-                        cellName.Item1 = columns[i];
-                        cellName.Item2 = i.ToString();
-                        break;
-                    }
+                    cellName.Item1 = columns[i];
+                    cellName.Item2 = row.ToString();
+                    break;
                 }
             }
 
@@ -375,6 +367,19 @@ namespace UMaTLMS.Core.Helpers
 
             if (period == 1) return firstPeriodMapping[key];
             return secondPeriodMapping[key];
+        }
+
+        private static void ResetSchedules(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules)
+        {
+            foreach (var s in schedules.Where(x => x.FirstLecture is not null || x.SecondLecture is not null))
+            {
+                s.Reset();
+            }
+
+            foreach (var o in onlineSchedules.Where(x => x.Lectures.Any()))
+            {
+                o.Reset();
+            }
         }
 
         private static void Shuffle<T>(List<T> list)

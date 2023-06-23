@@ -51,6 +51,7 @@ public class TimetableProcessor
         var schedules = (await _lectureScheduleRepository.GetAll())
             .Where(x => x.Room.IsIncludedInGeneralAssignment)
             .ToList();
+
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
         var rooms = await _roomRepository.GetAllAsync();
 
