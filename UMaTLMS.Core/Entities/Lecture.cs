@@ -60,6 +60,7 @@
 
         public Lecture HasPreferredRoom(string? room)
         {
+            if (string.IsNullOrWhiteSpace(room)) return this;
             PreferredRoom = room;
             return this;
         }

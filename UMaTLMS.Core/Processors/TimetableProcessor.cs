@@ -45,8 +45,6 @@ public class TimetableProcessor
         _configuration = configuration;
     }
 
-    // TODO:: Work on swapping functionality
-
     public async Task<(byte[]?, string?, string?)> Generate()
     {
         var lectures = await _lectureRepository.GetAll();
@@ -62,12 +60,14 @@ public class TimetableProcessor
 
         foreach (var schedule in schedules)
         {
-            await _lectureScheduleRepository.UpdateAsync(schedule, false).ConfigureAwait(false);
+            await _lectureScheduleRepository.UpdateAsync(schedule, false)
+                .ConfigureAwait(false);
         }
         
         foreach (var schedule in onlineSchedules)
         {
-            await _onlineLectureScheduleRepository.UpdateAsync(schedule, false).ConfigureAwait(false);
+            await _onlineLectureScheduleRepository.UpdateAsync(schedule, false)
+                .ConfigureAwait(false);
         }
 
         await _lectureScheduleRepository.SaveChanges();

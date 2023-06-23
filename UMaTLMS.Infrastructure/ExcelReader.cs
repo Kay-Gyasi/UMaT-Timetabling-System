@@ -26,15 +26,20 @@ public sealed class ExcelReader : IExcelReader
         return _package.Workbook.Worksheets[index];
     }
 
-    public object GetCellValue(ExcelWorksheet worksheet, int row, int col)
+    public string? GetCellValue(ExcelWorksheet worksheet, int row, string col)
     {
-        return worksheet.Cells[row, col].Value;
+        return worksheet.Cells[$"{col}{row}"].Value?.ToString();
     }
 
     public int NoOfWorkSheets(string filePath)
     {
         _package = _package.SetFilePath(filePath);
         return _package.Workbook.Worksheets.Count;
+    }
+
+    public async Task SaveAsync()
+    {
+        await _package.SaveAsync();
     }
 }
 

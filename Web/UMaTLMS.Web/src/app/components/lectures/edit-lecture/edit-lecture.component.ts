@@ -36,7 +36,10 @@ export class EditLectureComponent implements OnInit{
   submitLectures(){
     for (const lecture of this.lectures) {
       lecture.isVLE = this.lecture.isVLE;
+      lecture.preferredRoom = this.lecture.preferredRoom;
     }
+
+
     this.lectureService.createCombined(this.lectures).subscribe({
       next: async _ => {
         this.toast.showSuccess("", "Success");
