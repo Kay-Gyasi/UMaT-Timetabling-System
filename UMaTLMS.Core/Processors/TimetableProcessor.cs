@@ -232,8 +232,8 @@ public class TimetableProcessor
 
     private async Task AddSubClassGroups()
     {
-        var groups = await _classGroupRepository.GetAll();
-        if (groups is null) throw new DataNotSyncedWithUmatException();
+        var groups = await _classGroupRepository.GetAll() 
+            ?? throw new DataNotSyncedWithUmatException();
 
         var subGroups = await _subClassGroupRepository.GetAll();
         await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
