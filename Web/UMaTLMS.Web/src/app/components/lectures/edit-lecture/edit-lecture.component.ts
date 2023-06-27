@@ -23,6 +23,7 @@ export class EditLectureComponent implements OnInit{
   selectedLecture:LectureRequest = new LectureRequest();
   navigator = new Navigations();
   roomsLookup:Lookup[] = [];
+  isLoading:boolean = false;
 
   constructor(private route:ActivatedRoute, private toast:NotificationService, private lectureService:LectureService,
               private cdr:ChangeDetectorRef, private router:Router, private lookupService:LookupService) {
@@ -34,11 +35,12 @@ export class EditLectureComponent implements OnInit{
   }
 
   submitLectures(){
+    this.isLoading = true;
     for (const lecture of this.lectures) {
       lecture.isVLE = this.lecture.isVLE;
+      lecture.isPractical = this.lecture.isPractical;
       lecture.preferredRoom = this.lecture.preferredRoom;
     }
-
 
     this.lectureService.createCombined(this.lectures).subscribe({
       next: async _ => {
@@ -47,6 +49,9 @@ export class EditLectureComponent implements OnInit{
       },
       error: _ => {
         this.toast.showError("", "Operation Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     })
   }

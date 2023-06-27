@@ -16,6 +16,7 @@ import {NotificationService} from "../../../services/notification.service";
 })
 export class AddRoomComponent {
   roomForm:UntypedFormGroup;
+  isLoading:boolean = false;
 
   constructor(private fb:FormBuilder, private roomService:RoomService,
               private toast:NotificationService) {
@@ -23,6 +24,7 @@ export class AddRoomComponent {
   }
 
   addRoom(){
+    this.isLoading = true;
     return this.roomService.save(this.roomForm.value as RoomRequest).subscribe({
       next: _ => {
         this.roomForm.setValue({
@@ -34,6 +36,9 @@ export class AddRoomComponent {
       },
       error: _ => {
         this.toast.showError("Unable to add room", "Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     })
   }

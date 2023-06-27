@@ -11,16 +11,28 @@ public class Initializer
     private readonly IRoomRepository _roomRepository;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
     private readonly IOnlineLectureScheduleRepository _onlineLectureScheduleRepository;
+    private readonly ILectureRepository _lectureRepository;
+    private readonly ICourseRepository _courseRepository;
+    private readonly ILecturerRepository _lecturerRepository;
+    private readonly IClassGroupRepository _classGroupRepository;
+    private readonly ISubClassGroupRepository _subClassGroupRepository;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
 
     public Initializer(IExcelReader reader, IRoomRepository roomRepository, 
-        ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository)
+        ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository, ILectureRepository lectureRepository, 
+        ICourseRepository courseRepository, ILecturerRepository  lecturerRepository, 
+        IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository)
     {
         _reader = reader;
         _roomRepository = roomRepository;
         _lectureScheduleRepository = lectureScheduleRepository;
         _onlineLectureScheduleRepository = onlineLectureScheduleRepository;
+        _lectureRepository = lectureRepository;
+        _courseRepository = courseRepository;
+        _lecturerRepository = lecturerRepository;
+        _classGroupRepository = classGroupRepository;
+        _subClassGroupRepository = subClassGroupRepository;
     }
 
     public async Task Initialize()
@@ -32,6 +44,32 @@ public class Initializer
             await InitializeRooms();
             currentWorksheet += 1;
         }
+    }
+
+    public async Task Reset()
+    {
+        var lectureSchedules = await _lectureScheduleRepository.GetAll();
+        await _lectureScheduleRepository.DeleteAllAsync(lectureSchedules, saveChanges:false);
+
+        var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
+        await _onlineLectureScheduleRepository.DeleteAllAsync(onlineSchedules, saveChanges: false);
+
+        var subGroups = await _subClassGroupRepository.GetAll();
+        await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
+
+        var groups = await _classGroupRepository.GetAll();
+        await _classGroupRepository.DeleteAllAsync(groups, saveChanges: false);
+
+        var courses = await _courseRepository.GetAll();
+        await _courseRepository.DeleteAllAsync(courses, saveChanges: false);
+
+        var lecturers = await _lecturerRepository.GetAll();
+        await _lecturerRepository.DeleteAllAsync(lecturers, saveChanges: false);
+        
+        var lectures = await _lectureRepository.GetAll();
+        await _lectureRepository.DeleteAllAsync(lectures, saveChanges: false);
+
+        await _classGroupRepository.SaveChanges();
     }
 
     private async Task InitializeRooms()

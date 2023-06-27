@@ -33,7 +33,7 @@
             return this;
         }
         
-        public Lecture AddGroups(List<SubClassGroup>? groups)
+        public Lecture AddGroups(IEnumerable<SubClassGroup>? groups)
         {
             if (groups is null) return this;
             _subClassGroups.AddRange(groups);

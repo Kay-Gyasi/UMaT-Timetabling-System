@@ -1,0 +1,27 @@
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Transparent background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  /* Replace this with the Metronic 8 spinner styling */
+  /* For example, you can use the following Bootstrap spinner */
+  border: 0.25rem solid #f3f3f3;
+  border-top-color: #6c757d;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  animation: spinner-rotate 1s linear infinite;
+}
+
+@keyframes spinner-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

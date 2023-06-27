@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
 using UMaTLMS.Infrastructure.Persistence.Repositories;
 
@@ -15,7 +16,7 @@ public static class DependencyInjection
             .RegisterRepositories()
             .AddHttpClient("UMaT", opts =>
             {
-                opts.BaseAddress = new Uri("https://sys.umat.edu.gh/dev/api/");
+                opts.BaseAddress = new Uri(configuration["UMaTAPI"] ?? string.Empty);
                 opts.Timeout = TimeSpan.FromMinutes(5);
             });
             services.AddScoped<IUMaTApiService, UMaTApiService>()
@@ -41,7 +42,10 @@ public static class DependencyInjection
         {
             var interceptor = sp.GetService<ConvertDomainEventsToOutboxMessagesInterceptor>();
             var saveChangesInterceptor = sp.GetService<AuditEntitiesInterceptor>();
-            options.UseSqlServer(configuration.GetConnectionString("Default"), o =>
+            var dbName = hostEnvironment.IsProduction() ? "Default" : null;
+            dbName = AppHelpers.HostEnvironment.IsDocker ? "DefaultDocker" : dbName;
+            dbName ??= "DefaultDev";
+            options.UseSqlServer(configuration.GetConnectionString(dbName), o =>
                 {
                     o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 })

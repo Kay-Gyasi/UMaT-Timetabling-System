@@ -33,4 +33,12 @@ public class ClassesController : Controller
             ? new ObjectResult(SuccessResponse(result.AsT0, StatusCodes.Status204NoContent))
             : new ObjectResult(ErrorResponse(result.AsT1));
     }
+
+    [HttpPut("{limit}")]
+    public async Task<IActionResult> SetLimit(int limit)
+    {
+        var result = await _processor.SetLimit(limit);
+        if (result.IsT1) return new ObjectResult(ErrorResponse(result.AsT1));
+        return new ObjectResult(SuccessResponse<object>(null));
+    }
 }

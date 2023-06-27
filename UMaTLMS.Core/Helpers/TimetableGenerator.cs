@@ -25,13 +25,20 @@ namespace UMaTLMS.Core.Helpers
 
                 for (var i = 0; i < 5; i++)
                 {
-                    var numOfLecturesForLecturer = schedules.Count(x => x.DayOfWeek == AppHelper.GetDayOfWeek(i)
-                                                                        && (x.FirstLecture?.LecturerId != null
-                                                                        && x.FirstLecture.LecturerId == lecture.LecturerId ||
-                                                                        x.SecondLecture?.LecturerId != null
-                                                                        && x.SecondLecture.LecturerId == lecture.LecturerId))
-                        + onlineSchedules.Count(x => x.DayOfWeek == AppHelper.GetDayOfWeek(i) && x.Lectures.Any(a => a.LecturerId == lecture.LecturerId));
-                    if (numOfLecturesForLecturer < 4) continue;
+                    builder.And(x => x.Room.IsIncludedInGeneralAssignment);
+
+                    // confirm this works for excluded rooms
+                    builder.Or(x => x.Room.Name == lecture.PreferredRoom);
+
+                    var schedulesForLecturerPerDay = schedules.Count(x => x.DayOfWeek == AppHelper.GetDayOfWeek(i)
+                        && x.FirstLecture?.LecturerId == lecture.LecturerId
+                        || x.SecondLecture?.LecturerId == lecture.LecturerId);
+
+                    var onlineSchedulesForLecturerPerDay = onlineSchedules.Count(x => x.DayOfWeek == AppHelper.GetDayOfWeek(i)
+                        && x.Lectures.Any(a => a.LecturerId == lecture.LecturerId));
+
+                    var numOfLecturesForLecturer = schedulesForLecturerPerDay + onlineSchedulesForLecturerPerDay;
+                    if (numOfLecturesForLecturer <= 4) continue;
 
                     var i1 = i;
                     if (lecture.IsVLE)
@@ -74,6 +81,7 @@ namespace UMaTLMS.Core.Helpers
                     schedule = eligibleSchedulesForOnePeriodLectures
                         .OrderBy(x => x.Room.Name == lecture.PreferredRoom)
                         .FirstOrDefault();
+
                     if (schedule?.FirstLectureId is null)
                     {
                         schedule?.HasLecture(lecture.Id, null);
@@ -115,21 +123,46 @@ namespace UMaTLMS.Core.Helpers
                     {
                         var first = GetCellName(worksheet, ("", ""), lectureSchedule, columns, rooms.Count, 1);
                         var second = GetCellName(worksheet, ("", ""), lectureSchedule, columns, rooms.Count, 2);
-                        SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, first, second);
+
+                        try
+                        {
+                            SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, first, second);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            throw;
+                        }
                         continue;
                     }
 
                     if (lectureSchedule.FirstLecture is not null)
                     {
                         cellName = GetCellName(worksheet, ("", ""), lectureSchedule, columns, rooms.Count, 1);
-                        SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, cellName);
+                        try
+                        {
+                            SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, cellName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            throw;
+                        }    
                     }
 
                     if (lectureSchedule.SecondLecture is not null)
                     {
                         builder = new StringBuilder();
                         cellName = GetCellName(worksheet, ("", ""), lectureSchedule, columns, rooms.Count, 2);
-                        SetCellValue(lectureSchedule.SecondLecture!, builder, worksheet, cellName);
+                        try
+                        {
+                            SetCellValue(lectureSchedule.SecondLecture!, builder, worksheet, cellName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            throw;
+                        }
                     }
                 }
             }
@@ -154,7 +187,7 @@ namespace UMaTLMS.Core.Helpers
                     }
                 }
 
-                RemoveRedundantCells(worksheet); // not working
+                RemoveRedundantCells(worksheet);
             }
 
             await excelPackage.SaveAsync();
@@ -223,11 +256,7 @@ namespace UMaTLMS.Core.Helpers
 
         private static void RemoveRedundantCells(ExcelWorksheet worksheet)
         {
-            int lastRow = worksheet.Dimension.End.Row, lastColumn = worksheet.Dimension.End.Column;
-
-            worksheet.Rows[lastRow + 1, worksheet.Cells.End.Row - lastRow].Style.Fill.SetBackground(Color.Gray);
-            // worksheet.Columns[lastColumn + 1, worksheet.Cells.End.Column - lastColumn + 1].Style.Fill.SetBackground(Color.Gray);
-
+            // do work here
             var border = worksheet.Cells[$"{worksheet.Cells.Start.Address}:{worksheet.Dimension.End.Address}"].Style.Border;
             border.Left.Style = border.Right.Style = border.Top.Style = border.Bottom.Style = ExcelBorderStyle.Thin;
         }
@@ -239,7 +268,7 @@ namespace UMaTLMS.Core.Helpers
             {
                 if (!string.IsNullOrWhiteSpace(cellName.Item1) && !string.IsNullOrWhiteSpace(cellName.Item2)) break;
 
-                for (int j = 7; j < roomsCount + 7; j++)
+                for (int j = 7; j <= roomsCount + 7; j++)
                 {
                     if (!string.IsNullOrWhiteSpace(cellName.Item1) && !string.IsNullOrWhiteSpace(cellName.Item2)) break;
 

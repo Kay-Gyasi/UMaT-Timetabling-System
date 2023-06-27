@@ -16,7 +16,6 @@ export class ClassService {
  setNumOfSubClasses(numOfSubClasses:number, classId:number): Observable<boolean | undefined>{
    return this.http.putRequestAsync(`classes/setNumberOfSubClasses/${classId}/${numOfSubClasses}`, null)
      .pipe(map(data => {
-       console.log(data);
        if (data.statusCode != 204){
          return undefined;
        }
@@ -33,5 +32,16 @@ export class ClassService {
         return data.data;
       })
     );
+  }
+
+  setLimit(limit:number) : Observable<boolean | undefined>{
+    return this.http.putRequestAsync(`classes/setLimit/${limit}`, null).pipe(
+      map(data => {
+        if (data == undefined || data.statusCode != 204 && data.statusCode != 200){
+          return undefined;
+        }
+        return true;
+      })
+    )
   }
 }

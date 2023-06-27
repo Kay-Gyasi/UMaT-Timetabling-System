@@ -20,7 +20,7 @@ export class ViewLecturesComponent implements OnInit{
   lectures = new PaginatedList<LecturePageResponse>();
   pages:number[] = [];
   searchForm:UntypedFormGroup;
-  isLoading = false;
+  isLoading:boolean = false;
   query:PaginatedQuery = PaginatedQuery.Build(0, 1, 20);
 
   constructor(private lectureService:LectureService, private toast:NotificationService,
@@ -39,6 +39,7 @@ export class ViewLecturesComponent implements OnInit{
   }
 
   getLectures(pageNumber:number = 1){
+    this.isLoading = true;
     this.buildQuery(pageNumber);
     this.pages = [];
     this.lectureService.getPage(this.query).subscribe({
@@ -53,7 +54,10 @@ export class ViewLecturesComponent implements OnInit{
         }
       },
       error: err => {
-        this.toast.showError("Unable to load lectures", "Failed")
+        this.toast.showError("Unable to load lectures", "Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     })
   }

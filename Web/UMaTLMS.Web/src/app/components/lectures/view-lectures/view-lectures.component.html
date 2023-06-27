@@ -22,7 +22,13 @@
         <!--end::Input group-->
         <!--begin:Action-->
         <div class="d-flex align-items-center">
-          <button *ngIf="!isLoading" [disabled]="searchForm.invalid" type="submit" class="btn btn-primary me-5">Search</button>
+          <button type="submit" class="btn btn-primary me-5" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Search</span>
+            <span *ngIf="isLoading">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Loading...
+            </span>
+          </button>
         </div>
         <!--end:Action-->
       </div>

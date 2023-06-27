@@ -26,6 +26,7 @@ import {ClassService} from "./services/http/class-service";
 import { ViewLecturesComponent } from './components/lectures/view-lectures/view-lectures.component';
 import { EditLectureComponent } from './components/lectures/edit-lecture/edit-lecture.component';
 import {NgSelectModule} from "@ng-select/ng-select";
+import { LoadingScreenComponent } from './components/widgets/loading-screen/loading-screen.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -39,7 +40,8 @@ import {NgSelectModule} from "@ng-select/ng-select";
     ViewRoomsComponent,
     ViewClassesComponent,
     ViewLecturesComponent,
-    EditLectureComponent
+    EditLectureComponent,
+    LoadingScreenComponent
   ],
   imports: [
     BrowserModule,

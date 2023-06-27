@@ -13,7 +13,7 @@ import {RoomRequest} from "../../../models/requests/room-request";
 export class EditRoomComponent implements OnInit {
   roomForm:UntypedFormGroup;
   roomId:number;
-
+  isLoading:boolean = false;
   constructor(private fb:FormBuilder, private route:ActivatedRoute,
               private roomService:RoomService, private toast:NotificationService) {
   }
@@ -23,6 +23,7 @@ export class EditRoomComponent implements OnInit {
   }
 
   editRoom(){
+    this.isLoading = true;
     let request = new RoomRequest();
     request.id = this.roomId;
     request.name = this.roomForm.get('name')?.value;
@@ -32,6 +33,9 @@ export class EditRoomComponent implements OnInit {
     return this.roomService.save(request).subscribe({
       error: err => {
         this.toast.showError("Unable to add room", "Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     })
   }

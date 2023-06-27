@@ -54,6 +54,7 @@ public class LectureProcessor
 	public async Task<PaginatedList<LecturePageDto>> GetPageAsync(PaginatedCommand command) 
 	{
 		var page = await _lectureRepository.GetPageAsync(command);
+		page.HasData(page.Data.OrderBy(x => x.Course?.Name).ToList());
 		return page.Adapt<PaginatedList<LecturePageDto>>(Mapping.GetTypeAdapterConfig());
 	}
 
@@ -61,8 +62,7 @@ public class LectureProcessor
 	{
 		var lecture = await _lectureRepository.FindByIdAsync(id);
 		if (lecture is null) return new InvalidIdException();
-
-		return lecture.Adapt<LectureDto>();
+		return lecture.Adapt<LectureDto>(Mapping.GetTypeAdapterConfig());
 	}
 }
 

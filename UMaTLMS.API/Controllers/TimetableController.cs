@@ -1,4 +1,6 @@
-﻿namespace UMaTLMS.API.Controllers;
+﻿using OneOf.Types;
+
+namespace UMaTLMS.API.Controllers;
 
 public class TimetableController : Controller
 {
@@ -14,22 +16,24 @@ public class TimetableController : Controller
     public async Task<IActionResult> Generate()
     {
         var result = await _processor.Generate();
-        if (result.Item1 == null || string.IsNullOrWhiteSpace(result.Item2)) return NoContent();
-        return File(result.Item1, result.Item2, result.Item3);
+        if (result.IsT1) return new ObjectResult(ErrorResponse(result.AsT1));
+        return new ObjectResult(SuccessResponse<object>(null));
     }
     
     [HttpGet]
     //[Authorize("")] For developers and chief examiners only
     public async Task<IActionResult> GenerateLectures()
     {
-        await _processor.GenerateLectures();
-        return NoContent();
+        var result = await _processor.GenerateLectures();
+        if (result.IsT0) return new ObjectResult(SuccessResponse(result.AsT0));
+        return new ObjectResult(ErrorResponse(result.AsT1));
     }
     
     [HttpGet]
     public async Task<IActionResult> GetData()
     {
-        await _processor.SyncWithUMaT();
-        return NoContent();
+        var result = await _processor.SyncWithUMaT();
+        if (result.IsT0) return new ObjectResult(SuccessResponse(result.AsT0));
+        return new ObjectResult(ErrorResponse(result.AsT1));
     }
 }

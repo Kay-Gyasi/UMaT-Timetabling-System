@@ -12,4 +12,10 @@ public class Lecturer : Entity
     public string? Name { get; private set; }
 
     public static Lecturer Create(int umatId, string? name) => new(umatId, name);
+
+    public Lecturer HasUmatId(int umatId)
+    {
+        UmatId = umatId;
+        return this;
+    }
 }

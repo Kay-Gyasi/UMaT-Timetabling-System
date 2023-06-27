@@ -26,6 +26,12 @@ public class ClassGroup : Entity
         NumOfSubClasses = number;
         return this;
     }
+    
+    public ClassGroup HasSize(int number)
+    {
+        Size = number;
+        return this;
+    }
 
     private int GetYear()
     {

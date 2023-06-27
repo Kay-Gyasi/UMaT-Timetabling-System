@@ -2,11 +2,7 @@
 
 public class EntityExistsException : Exception
 {
-    public EntityExistsException()
-    {
-    }
-
-    public EntityExistsException(string message) : base(message)
+    public EntityExistsException(string message = "Entity already exists in database") : base(message)
     {
 
     }

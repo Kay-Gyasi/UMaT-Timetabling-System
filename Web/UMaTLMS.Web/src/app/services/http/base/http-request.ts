@@ -1,7 +1,7 @@
 import {IHttpRequest} from "./ihttp-request";
-import {map, Observable} from "rxjs";
+import {catchError, map, Observable, throwError} from "rxjs";
 import {ApiResponse} from "../../../models/api-response";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {Injectable} from "@angular/core";
 import {PaginatedQuery} from "../../../models/paginated-query";
 import {PaginatedList} from "../../../models/paginated-list";
@@ -49,5 +49,4 @@ export class HttpRequest implements IHttpRequest{
       })
     );
   }
-
 }

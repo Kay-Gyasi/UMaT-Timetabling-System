@@ -91,7 +91,13 @@
       <!--begin::Actions-->
       <div class="card-footer d-flex justify-content-end py-6 px-9">
         <button type="reset" class="btn btn-light btn-active-light-primary me-2">Discard</button>
-        <button type="submit" class="btn btn-primary" [disabled]="roomForm.invalid">Submit</button>
+        <button type="submit" class="btn btn-primary" [disabled]="roomForm.invalid">
+          <span *ngIf="!isLoading">Submit</span>
+          <span *ngIf="isLoading">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Working on it...
+        </span>
+        </button>
       </div>
       <!--end::Actions-->
     </form>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using UMaTLMS.Core.Exceptions;
 
 namespace UMaTLMS.API;
 
@@ -43,6 +44,13 @@ public static class Exceptions
     {
         return ex switch
         {
+            EntityExistsException => StatusCodes.Status400BadRequest,
+            SystemNotInitializedException => StatusCodes.Status204NoContent,
+            DataNotSyncedWithUmatException => StatusCodes.Status204NoContent,
+            LecturesNotGeneratedException => StatusCodes.Status204NoContent,
+            TimetableGeneratedException => StatusCodes.Status400BadRequest,
+            InvalidIdException => StatusCodes.Status400BadRequest,
+            InvalidLoginException => StatusCodes.Status400BadRequest,
             _ => StatusCodes.Status500InternalServerError
         };
     }

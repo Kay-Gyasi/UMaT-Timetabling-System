@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.FileProviders;
+using Serilog;
 
 namespace UMaTLMS.API;
 
@@ -18,25 +19,27 @@ public static class RequestPipeline
         app.Initialize();
         app.UseSwagger();
 
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwaggerUI(options =>
-            {
-                options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-            });
-        }
-
         app.UseSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-            options.RoutePrefix = string.Empty;
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "UMaT Lecture Management API v1");
+            if (!app.Environment.IsDevelopment()) options.RoutePrefix = string.Empty;
         });
 
         app.UseCors();
         app.UseHttpsRedirection();
 
         app.UseDefaultFiles();
-        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(
+            Path.Combine(app.Environment.ContentRootPath, "_content")),
+            RequestPath = "/files",
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers.Append(
+                     "Cache-Control", $"no-cache, no-store, must-revalidate");
+            }
+        });
 
         app.UseAuthentication();
         app.UseAuthorization();

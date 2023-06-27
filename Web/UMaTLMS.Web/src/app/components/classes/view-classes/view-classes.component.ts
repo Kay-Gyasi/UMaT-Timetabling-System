@@ -18,6 +18,7 @@ export class ViewClassesComponent implements OnInit{
   query = PaginatedQuery.Build(0, 1, 20);
   pages:number[] = [];
   isLoading = false;
+  classLimit:number = 0;
   classes:PaginatedList<ClassResponse> = new PaginatedList<ClassResponse>();
   searchForm:UntypedFormGroup;
   subClassForm:UntypedFormGroup;
@@ -37,6 +38,7 @@ export class ViewClassesComponent implements OnInit{
   }
 
   getClasses(pageNumber:number = 1){
+    this.isLoading = true;
     this.buildQuery(pageNumber);
     this.pages = [];
     this.classService.getPage(this.query).subscribe({
@@ -52,11 +54,15 @@ export class ViewClassesComponent implements OnInit{
       },
       error: err => {
         this.toast.showError("Unable to load classes", "Failed")
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     })
   }
 
   setSubClass(){
+    this.isLoading = true;
     return this.classService.setNumOfSubClasses(this.subClassForm.get('numOfSubClasses')?.value,
       this.selectedClass.id).subscribe({
       next: async response => {
@@ -71,12 +77,38 @@ export class ViewClassesComponent implements OnInit{
       },
       error: err => {
         this.toast.showError("Unable to complete operation", "Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
       }
     })
   }
 
   setSelectedClass(selected:ClassResponse){
     this.selectedClass = selected;
+    this.subClassForm.setValue({
+      "numOfSubClasses": selected.numOfSubClasses ?? 1
+    })
+  }
+
+  setClassLimit(){
+    this.isLoading = true;
+    this.classService.setLimit(this.classLimit).subscribe({
+      next: res => {
+        if (res == undefined){
+          this.isLoading = false;
+          this.toast.showError("Failed to adjust class sizes to limit", "Failed");
+          return;
+        }
+        this.getClasses();
+        this.isLoading = false;
+        this.toast.showSuccess("Sizes have been adjusted to limit", "Succeeded");
+      },
+      error : _ => {
+        this.isLoading = false;
+        this.toast.showError("Failed to adjust class sizes to limit", "Failed");
+      }
+    })
   }
 
   get term(){

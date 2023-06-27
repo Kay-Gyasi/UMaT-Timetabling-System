@@ -35,6 +35,10 @@ internal class Mapping
 			x.IsVLE,
 			x.SubClassGroups.Select(a => a.Name).ToList())).ToList(),
 				x.TotalCount, x.CurrentPage, x.PageSize));
+
+		config.NewConfig<Lecture, LectureDto>()
+			.MapWith(x => new LectureDto(x.Id, x.LecturerId, x.CourseId, x.PreferredRoom!, x.Duration, x.IsPractical, x.IsVLE,
+			x.Lecturer!.Adapt<LecturerDto>(), x.Course!.Adapt<CourseDto>(), x.SubClassGroups.Adapt<List<SubClassGroupPageDto>>()));
 		return config;
 	}
 }

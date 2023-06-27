@@ -13,7 +13,7 @@ public class RoomRepository : Repository<ClassRoom, int>, IRoomRepository
         return await GetBaseQuery().AnyAsync(x => x.Name == name);
     }
     
-    public async Task<IEnumerable<ClassRoom>> GetAllAsync()
+    public async Task<List<ClassRoom>> GetAll()
     {
         return await GetBaseQuery().ToListAsync();
     }

@@ -63,6 +63,27 @@ public class Repository<T, TKey> : IRepository<T, TKey>
             throw;
         }
     }
+    
+    public async Task DeleteAllAsync(List<T> entities, bool saveChanges = true)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                foreach (var entity in entities)
+                {
+                    Entities.Remove(entity);
+                }
+            });
+
+            if (saveChanges) await Context.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("{Message}", e.Message);
+            throw;
+        }
+    }
 
     public async Task SoftDeleteAsync(T entity, bool saveChanges = true)
     {
