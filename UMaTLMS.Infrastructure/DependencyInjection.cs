@@ -65,6 +65,7 @@ public static class DependencyInjection
             .AddScoped<ILectureRepository, LectureRepository>()
             .AddScoped<ILecturerRepository, LecturerRepository>()
             .AddScoped<ILectureScheduleRepository, LectureScheduleRepository>()
+            .AddScoped<IExamsScheduleRepository, ExamsScheduleRepository>()
             .AddScoped<IOnlineLectureScheduleRepository, OnlineLectureScheduleRepository>();
         return services;
     }

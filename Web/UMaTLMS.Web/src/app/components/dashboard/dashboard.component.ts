@@ -2,8 +2,6 @@ import { Component } from '@angular/core';
 import {Navigations} from "../../helpers/navigations";
 import {TimetableService} from "../../services/http/timetable.service";
 import {NotificationService} from "../../services/notification.service";
-import {ApiResponse} from "../../models/api-response";
-import {environment} from "../../../environments/environment";
 
 @Component({
   selector: 'app-dashboard',

@@ -59,4 +59,14 @@ public static class AppHelpers
 
         return sizes;
     }
+    public static void Shuffle<T>(List<T> list)
+    {
+        var random = new Random();
+
+        for (var i = list.Count - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
 }

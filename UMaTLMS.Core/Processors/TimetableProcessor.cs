@@ -50,7 +50,6 @@ public class TimetableProcessor
     public async Task<OneOf<bool, Exception>> Generate()
     {
         var fileName = _configuration[TimetableFile] ?? string.Empty;
-
         if (File.Exists(fileName))
         {
             return new TimetableGeneratedException();
@@ -70,6 +69,12 @@ public class TimetableProcessor
         var result = TimetableGenerator.Generate(schedules, onlineSchedules, lectures);
         schedules = result.Item1;
         onlineSchedules = result.Item2;
+
+        var lecturesNotScheduledCount = GetCountOfLecturesNotScheduled(lectures, result.Item1);
+        if (lecturesNotScheduledCount > 0)
+        {
+            return new LecturesNotScheduledException();
+        }
 
         foreach (var schedule in schedules)
         {
@@ -284,17 +289,19 @@ public class TimetableProcessor
     private async Task AddLectures()
     {
         var savedCourses = await _courseRepository.GetAll();
+        var lecturableCourses = savedCourses
+            .Where(x => x.IsToHaveWeeklyLectureSchedule).ToList();
         var classGroups = await _classGroupRepository.GetAll();
         var lecturers = await _lecturerRepository.GetAll();
 
-        if (!savedCourses.Any() || !classGroups.Any() || !lecturers.Any())
+        if (!lecturableCourses.Any() || !classGroups.Any() || !lecturers.Any())
             throw new DataNotSyncedWithUmatException();
 
         var seededLectures = await _lectureRepository.GetAll();
         if (seededLectures.Any()) await _lectureRepository.DeleteAllAsync(seededLectures, saveChanges: false);
 
         var lectures = new List<Lecture>();
-        foreach (var course in savedCourses)
+        foreach (var course in lecturableCourses)
         {
             if (course.Code!.StartsWith("EM 411") || course.Code!.StartsWith("EM 413")) continue;
             if (course.FirstExaminerStaffId is null) continue;
@@ -342,6 +349,29 @@ public class TimetableProcessor
         }
 
         await _lectureRepository.SaveChanges();
+    }
+
+    private static int GetCountOfLecturesNotScheduled(List<Lecture> lecturesInDb, List<LectureSchedule> lectureSchedules)
+    {
+        int result = 0;
+        var lecturesScheduled = lectureSchedules.Select(x => x.Id).ToList();
+        foreach (var lecture in lecturesInDb.Where(x => !x.IsVLE))
+        {
+            if (!lecturesScheduled.Any(x => x == lecture.Id))
+            {
+                result++;
+            }
+        }
+        
+        foreach (var lecture in lecturesInDb.Where(x => x.IsVLE))
+        {
+            if (lecture.OnlineLectureScheduleId == null)
+            {
+                result++;
+            }
+        }
+
+        return result;
     }
 
     private static IEnumerable<string> GetTimeSLots()

@@ -8,6 +8,7 @@ import {PaginatedQuery} from "../../../models/paginated-query";
 import {FormBuilder, FormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import {Router} from "@angular/router";
 
+declare var KTMenu:any;
 @Component({
   selector: 'app-view-classes',
   templateUrl: './view-classes.component.html',
@@ -127,6 +128,8 @@ export class ViewClassesComponent implements OnInit{
   }
 
   private initialize(){
+    KTMenu.init();
+    KTMenu.init();
     this.getClasses();
   }
 }

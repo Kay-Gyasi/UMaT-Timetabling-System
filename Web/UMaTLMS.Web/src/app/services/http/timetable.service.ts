@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import {IHttpRequest} from "./base/ihttp-request";
 import {map, Observable, throwError} from "rxjs";
-import {ApiResponse} from "../../models/api-response";
 import {NotificationService} from "../notification.service";
 import {environment} from "../../../environments/environment";
 
@@ -16,14 +15,21 @@ export class TimetableService {
   generate(): Observable<any>{
     return this.http.getRequestAsync<any>(`timetable/generate`).pipe(
       map(data => {
-        if(data === undefined || (data.statusCode != 200 && data.statusCode != 204 && data.statusCode != 201)){
+        if(data === undefined){
           this.toast.showError("Failed to generate timetable", "Failed");
           return undefined;
         }
 
-        this.download();
-        this.toast.showSuccess("Timetable has been generated", "Succeeded");
-        return data.data;
+        if (data.statusCode == 206){
+          this.toast.showError("Some lectures were not scheduled", "Failed");
+          return undefined;
+        }
+
+        if (data.statusCode == 200 || data.statusCode == 204 || data.statusCode == 201){
+          this.download();
+          this.toast.showSuccess("Timetable has been generated", "Succeeded");
+          return data.data;
+        }
       })
     )
   }

@@ -23,13 +23,6 @@ public class RoomRepository : Repository<ClassRoom, int>, IRoomRepository
         return await GetBaseQuery().AnyAsync();
     }
 
-    public override Task<PaginatedList<ClassRoom>> GetPageAsync(PaginatedCommand command, 
-        IQueryable<ClassRoom>? source = null)
-    {
-        source = GetBaseQuery().OrderBy(x => x.Name);
-        return base.GetPageAsync(command, source);
-    }
-
     public async Task<List<Lookup>> GetLookup()
     {
         return await GetBaseQuery()

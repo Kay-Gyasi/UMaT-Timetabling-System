@@ -13,9 +13,10 @@ namespace UMaTLMS.Core.Helpers
         public static (List<LectureSchedule>, List<OnlineLectureSchedule>) Generate(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures)
         {
             ResetSchedules(schedules, onlineSchedules);
-            Shuffle(schedules);
-            lectures = lectures.OrderByDescending(x => x.Duration)
-                .OrderByDescending(x => x.PreferredRoom is not null)
+            AppHelpers.Shuffle(schedules);
+            AppHelpers.Shuffle(lectures);
+
+            lectures = lectures.OrderByDescending(x => x.PreferredRoom is not null)
                 .ToList();
 
             foreach (var lecture in lectures)
@@ -26,9 +27,21 @@ namespace UMaTLMS.Core.Helpers
                 for (var i = 0; i < 5; i++)
                 {
                     builder.And(x => x.Room.IsIncludedInGeneralAssignment);
-
-                    // confirm this works for excluded rooms
                     builder.Or(x => x.Room.Name == lecture.PreferredRoom);
+
+                    foreach(var sub in lecture.SubClassGroups)
+                    {
+                        var schedulesForDay = schedules.Where(x => x.DayOfWeek == AppHelper.GetDayOfWeek(i));
+                        var subHasSameLectureOnDay = schedulesForDay.Any(x => 
+                            (x.FirstLecture != null && x.FirstLecture.Course?.Name == lecture.Course?.Name && x.FirstLecture.SubClassGroups.Contains(sub))
+                            || (x.SecondLecture != null && x.SecondLecture.Course?.Name == lecture.Course?.Name && x.SecondLecture.SubClassGroups.Contains(sub)));
+
+                        if (subHasSameLectureOnDay)
+                        {
+                            builder.And(x => x.DayOfWeek != AppHelper.GetDayOfWeek(i));
+                            break;
+                        }
+                    }
 
                     var schedulesForLecturerPerDay = schedules.Count(x => x.DayOfWeek == AppHelper.GetDayOfWeek(i)
                         && x.FirstLecture?.LecturerId == lecture.LecturerId
@@ -59,37 +72,53 @@ namespace UMaTLMS.Core.Helpers
                     continue;
                 }
 
-                var eligibleSchedules = schedules.Where(builder);
+                var eligibleSchedules = schedules.Where(builder)
+                    .OrderBy(x => x.Room.Capacity)
+                    .ToList();
                 LectureSchedule? schedule;
 
                 if (lecture.Duration == 2)
                 {
-                    schedule = eligibleSchedules
-                        .FirstOrDefault(x => x.FirstLectureId == null 
+                    schedule = eligibleSchedules.FirstOrDefault(
+                        x => x.FirstLectureId == null 
                         && x.SecondLectureId == null 
                         && x.Room.Name == lecture.PreferredRoom);
+        
+                    schedule ??= eligibleSchedules.FirstOrDefault(
+                        x => x.FirstLectureId == null 
+                        && x.SecondLectureId == null
+                        && x.Room.Capacity >= lecture.SubClassGroups.Sum(s => s.Size));
 
-                    schedule ??= eligibleSchedules
-                        .FirstOrDefault(x => x.FirstLectureId == null && x.SecondLectureId == null);
+                    schedule ??= eligibleSchedules.LastOrDefault(
+                        x => x.FirstLectureId == null
+                        && x.SecondLectureId == null);
+
                     schedule?.HasLecture(lecture.Id, lecture.Id);
                     continue;
                 }
 
-                var eligibleSchedulesForOnePeriodLectures = eligibleSchedules.Where(x => x.FirstLectureId == null || x.SecondLectureId == null);
-                if (eligibleSchedulesForOnePeriodLectures.Any())
+                var eligibleSchedulesForOnePeriodLectures = eligibleSchedules.Where(x => 
+                    x.FirstLectureId == null || 
+                    x.SecondLectureId == null).ToList();
+
+                schedule = null;
+                if (!eligibleSchedulesForOnePeriodLectures.Any()) continue;
+
+                schedule = eligibleSchedulesForOnePeriodLectures
+                    .FirstOrDefault(x => x.Room.Name == lecture.PreferredRoom);
+
+                schedule ??= eligibleSchedulesForOnePeriodLectures
+                    .FirstOrDefault(x => x.Room.Capacity >= lecture.SubClassGroups.Sum(s => s.Size));
+
+                schedule ??= eligibleSchedulesForOnePeriodLectures.LastOrDefault();
+
+                if (schedule?.FirstLectureId is null)
                 {
-                    schedule = eligibleSchedulesForOnePeriodLectures
-                        .OrderBy(x => x.Room.Name == lecture.PreferredRoom)
-                        .FirstOrDefault();
-
-                    if (schedule?.FirstLectureId is null)
-                    {
-                        schedule?.HasLecture(lecture.Id, null);
-                        continue;
-                    }
-
-                    if (schedule?.SecondLectureId is null) schedule?.HasLecture(null, lecture.Id);
+                    schedule?.HasLecture(lecture.Id, null);
+                    continue;
                 }
+
+                if (schedule.SecondLectureId is null) schedule.HasLecture(null, lecture.Id);
             }
 
             return (schedules, onlineSchedules);
@@ -293,7 +322,7 @@ namespace UMaTLMS.Core.Helpers
         private static string GetVleCellName(ExcelWorksheet worksheet, OnlineLectureSchedule lectureSchedule, 
             (string, string) cellName, List<string> columns)
         {
-            List<int> vleRows = new List<int>();
+            List<int> vleRows = new();
             string result;
 
             for (int k = 1; k <= worksheet.Dimension.End.Row; k++)
@@ -408,17 +437,6 @@ namespace UMaTLMS.Core.Helpers
             foreach (var o in onlineSchedules.Where(x => x.Lectures.Any()))
             {
                 o.Reset();
-            }
-        }
-
-        private static void Shuffle<T>(List<T> list)
-        {
-            var random = new Random();
-
-            for (var i = list.Count - 1; i > 0; i--)
-            {
-                var j = random.Next(i + 1);
-                (list[i], list[j]) = (list[j], list[i]);
             }
         }
     }

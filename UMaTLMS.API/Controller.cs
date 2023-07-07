@@ -14,8 +14,7 @@ public class Controller : ControllerBase
     {
         if (result is null)
         {
-            return new ApiSuccessResponse<TResponse>(result, StatusCodes.Status204NoContent,
-                string.IsNullOrEmpty(message) ? "Resource does not exist." : message);
+            return new ApiSuccessResponse<TResponse>(result, StatusCodes.Status204NoContent, message);
         }
         return new ApiSuccessResponse<TResponse>(result, statusCode, message);
     }
@@ -49,8 +48,11 @@ public static class Exceptions
             DataNotSyncedWithUmatException => StatusCodes.Status204NoContent,
             LecturesNotGeneratedException => StatusCodes.Status204NoContent,
             TimetableGeneratedException => StatusCodes.Status400BadRequest,
+            ExamNotAssignedRoomException => StatusCodes.Status412PreconditionFailed,
+            ExamDateAndPeriodNotSetException => StatusCodes.Status412PreconditionFailed,
             InvalidIdException => StatusCodes.Status400BadRequest,
             InvalidLoginException => StatusCodes.Status400BadRequest,
+            LecturesNotScheduledException => StatusCodes.Status206PartialContent,
             _ => StatusCodes.Status500InternalServerError
         };
     }

@@ -5,7 +5,7 @@ using UMaTLMS.SharedKernel.Helpers;
 namespace UMaTLMS.Core.Processors;
 
 [Processor]
-public class Initializer
+public sealed class Initializer
 {
     private readonly IExcelReader _reader;
     private readonly IRoomRepository _roomRepository;

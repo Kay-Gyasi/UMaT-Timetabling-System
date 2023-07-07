@@ -39,6 +39,9 @@ public class IncomingCourse : Entity
     public string? ProgrammeCode { get; private set; }
     public int? FirstExaminerStaffId { get; private set; }
     public int? SecondExaminerStaffId { get; private set; }
+    public bool IsExaminable { get; private set; } = true;
+    public bool IsToHaveWeeklyLectureSchedule { get; private set; } = true;
+    public bool HasPracticalExams { get; private set; }
 
     public static IncomingCourse Create(string name, int credit, int? yearGroup, int? umatId = null) 
         => new(name, credit, yearGroup, umatId);
@@ -96,6 +99,24 @@ public class IncomingCourse : Entity
     {
         FirstExaminerStaffId = first;
         SecondExaminerStaffId = second;
+        return this;
+    }
+
+    public IncomingCourse MarkAsNotExaminable()
+    {
+        IsExaminable = false;
+        return this;
+    }
+    
+    public IncomingCourse MarkAsHavingPracticalExams()
+    {
+        HasPracticalExams = true;
+        return this;
+    }
+    
+    public IncomingCourse HasNoWeeklyLectures()
+    {
+        IsToHaveWeeklyLectureSchedule = false;
         return this;
     }
 

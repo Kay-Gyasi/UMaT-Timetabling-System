@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<SubClassGroup> SubClassGroups { get; set; }
     public DbSet<Lecturer> Lecturers { get; set; }
     public DbSet<Lecture> Lectures { get; set; }
+    public DbSet<ExamsSchedule> ExamsSchedules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,9 +24,7 @@ public class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseSqlServer(ConnectionStrings.Development);
-        }
+        if (optionsBuilder.IsConfigured) return;
+        optionsBuilder.UseSqlServer(ConnectionStrings.Development);
     }
 }
