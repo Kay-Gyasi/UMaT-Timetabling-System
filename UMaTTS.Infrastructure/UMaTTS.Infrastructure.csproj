@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <NoWarn>S3925</NoWarn>
+	  <RootNamespace>UMaTLMS.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UMaTTS.Core\UMaTTS.Core.csproj" />
+    <ProjectReference Include="..\UMaTTS.SharedKernel\UMaTTS.SharedKernel.csproj" />
+  </ItemGroup>
+
+</Project>
