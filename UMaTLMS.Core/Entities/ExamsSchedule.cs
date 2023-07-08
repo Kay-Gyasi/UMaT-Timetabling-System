@@ -1,28 +1,48 @@
-﻿namespace UMaTLMS.Core.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
+
+namespace UMaTLMS.Core.Entities;
 
 public class ExamsSchedule : Entity
 {
-    public ExamsSchedule(string courseCode, int subClassGroupId)
+    private ExamsSchedule() { }
+    private ExamsSchedule(string courseCode)
     {
-        CourseCode = courseCode;
-        SubClassGroupId = subClassGroupId;
+        SerializedCourseCodes = JsonSerializer.Serialize(new List<string> {courseCode});
     }
     
     public ExamPeriod? ExamPeriod { get; private set; }
     public DateTime DateOfExam { get; private set; }
     public int? RoomId { get; private set; }
-    public int SubClassGroupId { get; private set; }
-    public string CourseCode { get; private set; }
-    public string CourseNo => CourseCode.Split(" ")[1];
-    public int? InvigilatorId { get; private set; }
-    public Lecturer? Invigilator { get; private set; }
+    public string SerializedCourseCodes { get; set; }
+    public string CourseNo => CourseCodes?[0].Split(" ")[1] ?? string.Empty;
     public int? ExaminerId { get; private set; }
-    public Lecturer? Examiner { get; private set; }
+    public string? Examiner { get; private set; }
     public ClassRoom? Room { get; private set; }
     
+    private List<SubClassGroup> _subClassGroups = new();
+    public IReadOnlyList<SubClassGroup> SubClassGroups => _subClassGroups.AsReadOnly();
+    private List<Lecturer> _invigilators = new();
+    public IReadOnlyList<Lecturer> Invigilators => _invigilators.AsReadOnly();
+    
+    [NotMapped]
+    public List<string>? CourseCodes => JsonSerializer.Deserialize<List<string>>(SerializedCourseCodes);
 
-    public static ExamsSchedule Create(string courseCode, int subClassGroupId) =>
-        new(courseCode, subClassGroupId);
+    public static ExamsSchedule Create(string courseCode) =>
+        new(courseCode);
+
+    public ExamsSchedule AddGroup(SubClassGroup? group, List<string>? courseCodes = null)
+    {
+        if (group is null) return this;
+        if (courseCodes is not null)
+        {
+            var codes = JsonSerializer.Deserialize<List<string>>(SerializedCourseCodes);
+            codes?.AddRange(courseCodes);
+            SerializedCourseCodes = JsonSerializer.Serialize(codes);
+        }
+        _subClassGroups.Add(group);
+        return this;
+    }
 
     public ExamsSchedule OnPeriod(ExamPeriod? period)
     {
@@ -42,14 +62,16 @@ public class ExamsSchedule : Entity
         return this;
     }
 
-    public ExamsSchedule ToBeInvigilatedBy(int lecturerId)
+    public ExamsSchedule ToBeInvigilatedBy(Lecturer? lecturer)
     {
-        InvigilatorId = lecturerId;
+        if (lecturer is null) return this;
+        _invigilators.Add(lecturer);
         return this;
     }
 
-    public ExamsSchedule ToBeExaminedBy(int examinerId)
+    public ExamsSchedule ToBeExaminedBy(int examinerId, string? examiner)
     {
+        Examiner = examiner;
         ExaminerId = examinerId;
         return this;
     }

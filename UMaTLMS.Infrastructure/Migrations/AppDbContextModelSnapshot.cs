@@ -22,6 +22,36 @@ namespace UMaTLMS.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ExamsScheduleLecturer", b =>
+                {
+                    b.Property<int>("ExamsSchedulesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("InvigilatorsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ExamsSchedulesId", "InvigilatorsId");
+
+                    b.HasIndex("InvigilatorsId");
+
+                    b.ToTable("ExamsScheduleLecturer");
+                });
+
+            modelBuilder.Entity("ExamsScheduleSubClassGroup", b =>
+                {
+                    b.Property<int>("ExamsSchedulesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubClassGroupsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ExamsSchedulesId", "SubClassGroupsId");
+
+                    b.HasIndex("SubClassGroupsId");
+
+                    b.ToTable("ExamsScheduleSubClassGroup");
+                });
+
             modelBuilder.Entity("LectureSubClassGroup", b =>
                 {
                     b.Property<int>("LecturesId")
@@ -97,37 +127,28 @@ namespace UMaTLMS.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CourseCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("DateOfExam")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExamPeriod")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ExaminerId")
-                        .HasColumnType("int");
+                    b.Property<string>("Examiner")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("InvigilatorId")
+                    b.Property<int?>("ExaminerId")
                         .HasColumnType("int");
 
                     b.Property<int?>("RoomId")
                         .HasColumnType("int");
 
-                    b.Property<int>("SubClassGroupId")
-                        .HasColumnType("int");
+                    b.Property<string>("SerializedCourseCodes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ExaminerId");
-
-                    b.HasIndex("InvigilatorId");
-
                     b.HasIndex("RoomId");
-
-                    b.HasIndex("SubClassGroupId");
 
                     b.ToTable("ExamsSchedules");
                 });
@@ -369,6 +390,36 @@ namespace UMaTLMS.Infrastructure.Migrations
                     b.ToTable("SubClassGroups");
                 });
 
+            modelBuilder.Entity("ExamsScheduleLecturer", b =>
+                {
+                    b.HasOne("UMaTLMS.Core.Entities.ExamsSchedule", null)
+                        .WithMany()
+                        .HasForeignKey("ExamsSchedulesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UMaTLMS.Core.Entities.Lecturer", null)
+                        .WithMany()
+                        .HasForeignKey("InvigilatorsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ExamsScheduleSubClassGroup", b =>
+                {
+                    b.HasOne("UMaTLMS.Core.Entities.ExamsSchedule", null)
+                        .WithMany()
+                        .HasForeignKey("ExamsSchedulesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UMaTLMS.Core.Entities.SubClassGroup", null)
+                        .WithMany()
+                        .HasForeignKey("SubClassGroupsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("LectureSubClassGroup", b =>
                 {
                     b.HasOne("UMaTLMS.Core.Entities.Lecture", null)
@@ -394,7 +445,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 855, DateTimeKind.Utc).AddTicks(3150));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 642, DateTimeKind.Utc).AddTicks(3117));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -409,7 +460,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 855, DateTimeKind.Utc).AddTicks(6534));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 642, DateTimeKind.Utc).AddTicks(4412));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -438,7 +489,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 944, DateTimeKind.Utc).AddTicks(2501));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 744, DateTimeKind.Utc).AddTicks(7800));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -453,7 +504,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 944, DateTimeKind.Utc).AddTicks(3605));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 744, DateTimeKind.Utc).AddTicks(9637));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -474,23 +525,9 @@ namespace UMaTLMS.Infrastructure.Migrations
 
             modelBuilder.Entity("UMaTLMS.Core.Entities.ExamsSchedule", b =>
                 {
-                    b.HasOne("UMaTLMS.Core.Entities.Lecturer", "Examiner")
-                        .WithMany()
-                        .HasForeignKey("ExaminerId");
-
-                    b.HasOne("UMaTLMS.Core.Entities.Lecturer", "Invigilator")
-                        .WithMany()
-                        .HasForeignKey("InvigilatorId");
-
                     b.HasOne("UMaTLMS.Core.Entities.ClassRoom", "Room")
                         .WithMany()
                         .HasForeignKey("RoomId");
-
-                    b.HasOne("UMaTLMS.Core.Entities.SubClassGroup", "SubClassGroup")
-                        .WithMany()
-                        .HasForeignKey("SubClassGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.OwnsOne("UMaTLMS.SharedKernel.Audit", "Audit", b1 =>
                         {
@@ -500,7 +537,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 898, DateTimeKind.Utc).AddTicks(4089));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 702, DateTimeKind.Utc).AddTicks(8301));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -515,7 +552,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 898, DateTimeKind.Utc).AddTicks(6075));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 702, DateTimeKind.Utc).AddTicks(9471));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -533,13 +570,7 @@ namespace UMaTLMS.Infrastructure.Migrations
 
                     b.Navigation("Audit");
 
-                    b.Navigation("Examiner");
-
-                    b.Navigation("Invigilator");
-
                     b.Navigation("Room");
-
-                    b.Navigation("SubClassGroup");
                 });
 
             modelBuilder.Entity("UMaTLMS.Core.Entities.IncomingCourse", b =>
@@ -578,7 +609,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 882, DateTimeKind.Utc).AddTicks(8971));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 670, DateTimeKind.Utc).AddTicks(5246));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -593,7 +624,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 883, DateTimeKind.Utc).AddTicks(2574));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 671, DateTimeKind.Utc).AddTicks(2288));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -641,7 +672,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 912, DateTimeKind.Utc).AddTicks(867));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 711, DateTimeKind.Utc).AddTicks(6670));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -656,7 +687,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 912, DateTimeKind.Utc).AddTicks(2285));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 711, DateTimeKind.Utc).AddTicks(7967));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -705,7 +736,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 930, DateTimeKind.Utc).AddTicks(1621));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 727, DateTimeKind.Utc).AddTicks(9458));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -720,7 +751,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 930, DateTimeKind.Utc).AddTicks(3670));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 728, DateTimeKind.Utc).AddTicks(754));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -755,7 +786,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 921, DateTimeKind.Utc).AddTicks(8168));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 720, DateTimeKind.Utc).AddTicks(3637));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -770,7 +801,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 921, DateTimeKind.Utc).AddTicks(9215));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 720, DateTimeKind.Utc).AddTicks(4553));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -799,7 +830,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 937, DateTimeKind.Utc).AddTicks(3501));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 736, DateTimeKind.Utc).AddTicks(8169));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -814,7 +845,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 937, DateTimeKind.Utc).AddTicks(5353));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 736, DateTimeKind.Utc).AddTicks(9336));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()
@@ -849,7 +880,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 950, DateTimeKind.Utc).AddTicks(8421));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 765, DateTimeKind.Utc).AddTicks(2762));
 
                             b1.Property<string>("CreatedBy")
                                 .IsRequired()
@@ -864,7 +895,7 @@ namespace UMaTLMS.Infrastructure.Migrations
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAdd()
                                 .HasColumnType("datetime2")
-                                .HasDefaultValue(new DateTime(2023, 7, 7, 8, 18, 24, 950, DateTimeKind.Utc).AddTicks(9420));
+                                .HasDefaultValue(new DateTime(2023, 7, 8, 1, 6, 9, 765, DateTimeKind.Utc).AddTicks(4451));
 
                             b1.Property<string>("UpdatedBy")
                                 .IsRequired()

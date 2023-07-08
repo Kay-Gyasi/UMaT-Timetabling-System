@@ -21,8 +21,8 @@ namespace UMaTLMS.Infrastructure.Migrations
                     Size = table.Column<int>(type: "int", nullable: true),
                     NumOfSubClasses = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 581, DateTimeKind.Utc).AddTicks(2906)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 581, DateTimeKind.Utc).AddTicks(4095)),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 801, DateTimeKind.Utc).AddTicks(2441)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 801, DateTimeKind.Utc).AddTicks(5325)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -58,8 +58,11 @@ namespace UMaTLMS.Infrastructure.Migrations
                     ProgrammeCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FirstExaminerStaffId = table.Column<int>(type: "int", nullable: true),
                     SecondExaminerStaffId = table.Column<int>(type: "int", nullable: true),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 633, DateTimeKind.Utc).AddTicks(6237)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 634, DateTimeKind.Utc).AddTicks(386)),
+                    IsExaminable = table.Column<bool>(type: "bit", nullable: false),
+                    IsToHaveWeeklyLectureSchedule = table.Column<bool>(type: "bit", nullable: false),
+                    HasPracticalExams = table.Column<bool>(type: "bit", nullable: false),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 824, DateTimeKind.Utc).AddTicks(8798)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 825, DateTimeKind.Utc).AddTicks(2324)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -77,8 +80,8 @@ namespace UMaTLMS.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UmatId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 664, DateTimeKind.Utc).AddTicks(9384)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 665, DateTimeKind.Utc).AddTicks(748)),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 895, DateTimeKind.Utc).AddTicks(1922)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 895, DateTimeKind.Utc).AddTicks(7671)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -96,8 +99,8 @@ namespace UMaTLMS.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DayOfWeek = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TimePeriod = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 684, DateTimeKind.Utc).AddTicks(523)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 684, DateTimeKind.Utc).AddTicks(1997)),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 932, DateTimeKind.Utc).AddTicks(2056)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 932, DateTimeKind.Utc).AddTicks(4179)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -132,8 +135,9 @@ namespace UMaTLMS.Infrastructure.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
                     IsLab = table.Column<bool>(type: "bit", nullable: false),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 694, DateTimeKind.Utc).AddTicks(4178)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 694, DateTimeKind.Utc).AddTicks(6628)),
+                    IsIncludedInGeneralAssignment = table.Column<bool>(type: "bit", nullable: false),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 947, DateTimeKind.Utc).AddTicks(3391)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 947, DateTimeKind.Utc).AddTicks(6013)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -152,8 +156,8 @@ namespace UMaTLMS.Infrastructure.Migrations
                     GroupId = table.Column<int>(type: "int", nullable: false),
                     Size = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 706, DateTimeKind.Utc).AddTicks(6561)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 706, DateTimeKind.Utc).AddTicks(8182)),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 965, DateTimeKind.Utc).AddTicks(2911)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 965, DateTimeKind.Utc).AddTicks(5410)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -177,13 +181,13 @@ namespace UMaTLMS.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LecturerId = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false),
+                    PreferredRoom = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     OnlineLectureScheduleId = table.Column<int>(type: "int", nullable: true),
                     Duration = table.Column<int>(type: "int", nullable: false),
                     IsPractical = table.Column<bool>(type: "bit", nullable: false),
                     IsVLE = table.Column<bool>(type: "bit", nullable: false),
-                    IsConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 655, DateTimeKind.Utc).AddTicks(9106)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 656, DateTimeKind.Utc).AddTicks(1542)),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 867, DateTimeKind.Utc).AddTicks(2835)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 867, DateTimeKind.Utc).AddTicks(5215)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -207,6 +211,33 @@ namespace UMaTLMS.Infrastructure.Migrations
                         name: "FK_Lectures_OnlineSchedules_OnlineLectureScheduleId",
                         column: x => x.OnlineLectureScheduleId,
                         principalTable: "OnlineSchedules",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExamsSchedules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExamPeriod = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DateOfExam = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RoomId = table.Column<int>(type: "int", nullable: true),
+                    ExaminerId = table.Column<int>(type: "int", nullable: true),
+                    Examiner = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 844, DateTimeKind.Utc).AddTicks(510)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 849, DateTimeKind.Utc).AddTicks(9230)),
+                    Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
+                    Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
+                    Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExamsSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExamsSchedules_Rooms_RoomId",
+                        column: x => x.RoomId,
+                        principalTable: "Rooms",
                         principalColumn: "Id");
                 });
 
@@ -243,9 +274,10 @@ namespace UMaTLMS.Infrastructure.Migrations
                     DayOfWeek = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TimePeriod = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RoomId = table.Column<int>(type: "int", nullable: false),
-                    LectureId = table.Column<int>(type: "int", nullable: true),
-                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 674, DateTimeKind.Utc).AddTicks(9320)),
-                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 6, 17, 9, 59, 7, 675, DateTimeKind.Utc).AddTicks(1162)),
+                    FirstLectureId = table.Column<int>(type: "int", nullable: true),
+                    SecondLectureId = table.Column<int>(type: "int", nullable: true),
+                    Audit_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 918, DateTimeKind.Utc).AddTicks(6050)),
+                    Audit_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValue: new DateTime(2023, 7, 7, 13, 54, 1, 918, DateTimeKind.Utc).AddTicks(8653)),
                     Audit_CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "admin"),
                     Audit_Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -254,8 +286,13 @@ namespace UMaTLMS.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Schedules", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Schedules_Lectures_LectureId",
-                        column: x => x.LectureId,
+                        name: "FK_Schedules_Lectures_FirstLectureId",
+                        column: x => x.FirstLectureId,
+                        principalTable: "Lectures",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Schedules_Lectures_SecondLectureId",
+                        column: x => x.SecondLectureId,
                         principalTable: "Lectures",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -265,6 +302,69 @@ namespace UMaTLMS.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "ExamsScheduleLecturer",
+                columns: table => new
+                {
+                    ExamsSchedulesId = table.Column<int>(type: "int", nullable: false),
+                    InvigilatorsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExamsScheduleLecturer", x => new { x.ExamsSchedulesId, x.InvigilatorsId });
+                    table.ForeignKey(
+                        name: "FK_ExamsScheduleLecturer_ExamsSchedules_ExamsSchedulesId",
+                        column: x => x.ExamsSchedulesId,
+                        principalTable: "ExamsSchedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ExamsScheduleLecturer_Lecturers_InvigilatorsId",
+                        column: x => x.InvigilatorsId,
+                        principalTable: "Lecturers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExamsScheduleSubClassGroup",
+                columns: table => new
+                {
+                    ExamsSchedulesId = table.Column<int>(type: "int", nullable: false),
+                    SubClassGroupsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExamsScheduleSubClassGroup", x => new { x.ExamsSchedulesId, x.SubClassGroupsId });
+                    table.ForeignKey(
+                        name: "FK_ExamsScheduleSubClassGroup_ExamsSchedules_ExamsSchedulesId",
+                        column: x => x.ExamsSchedulesId,
+                        principalTable: "ExamsSchedules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ExamsScheduleSubClassGroup_SubClassGroups_SubClassGroupsId",
+                        column: x => x.SubClassGroupsId,
+                        principalTable: "SubClassGroups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExamsScheduleLecturer_InvigilatorsId",
+                table: "ExamsScheduleLecturer",
+                column: "InvigilatorsId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExamsSchedules_RoomId",
+                table: "ExamsSchedules",
+                column: "RoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExamsScheduleSubClassGroup_SubClassGroupsId",
+                table: "ExamsScheduleSubClassGroup",
+                column: "SubClassGroupsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Lectures_CourseId",
@@ -287,14 +387,19 @@ namespace UMaTLMS.Infrastructure.Migrations
                 column: "SubClassGroupsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Schedules_LectureId",
+                name: "IX_Schedules_FirstLectureId",
                 table: "Schedules",
-                column: "LectureId");
+                column: "FirstLectureId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Schedules_RoomId",
                 table: "Schedules",
                 column: "RoomId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Schedules_SecondLectureId",
+                table: "Schedules",
+                column: "SecondLectureId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SubClassGroups_GroupId",
@@ -306,6 +411,12 @@ namespace UMaTLMS.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "ExamsScheduleLecturer");
+
+            migrationBuilder.DropTable(
+                name: "ExamsScheduleSubClassGroup");
+
+            migrationBuilder.DropTable(
                 name: "LectureSubClassGroup");
 
             migrationBuilder.DropTable(
@@ -313,6 +424,9 @@ namespace UMaTLMS.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Schedules");
+
+            migrationBuilder.DropTable(
+                name: "ExamsSchedules");
 
             migrationBuilder.DropTable(
                 name: "SubClassGroups");
