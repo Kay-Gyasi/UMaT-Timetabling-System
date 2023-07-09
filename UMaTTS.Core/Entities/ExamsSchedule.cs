@@ -18,6 +18,7 @@ public class ExamsSchedule : Entity
     public string CourseNo => CourseCodes?[0].Split(" ")[1] ?? string.Empty;
     public int? ExaminerId { get; private set; }
     public string? Examiner { get; private set; }
+    public string? CourseName { get; private set; }
     public ClassRoom? Room { get; private set; }
     
     private List<SubClassGroup> _subClassGroups = new();
@@ -69,8 +70,9 @@ public class ExamsSchedule : Entity
         return this;
     }
 
-    public ExamsSchedule ToBeExaminedBy(int examinerId, string? examiner)
+    public ExamsSchedule HasInfo(int examinerId, string? examiner, string? courseName)
     {
+        CourseName = courseName;
         Examiner = examiner;
         ExaminerId = examinerId;
         return this;

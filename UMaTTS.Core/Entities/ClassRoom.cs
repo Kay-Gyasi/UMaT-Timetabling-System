@@ -7,13 +7,15 @@ public class ClassRoom : Entity
     {
         Name = name;
         Capacity = capacity;
-        IsIncludedInGeneralAssignment = true;
+        IncludeInGeneralAssignment = true;
+        IsExaminationCenter = true;
     }
 
     public string Name { get; private set; }
     public int Capacity { get; private set; }
     public bool IsLab { get; private set; }
-    public bool IsIncludedInGeneralAssignment { get; private set; }
+    public bool IsExaminationCenter { get; private set; }
+    public bool IncludeInGeneralAssignment { get; private set; }
     public static ClassRoom Create(string name, int capacity)
         => new ClassRoom(name, capacity);
 
@@ -32,13 +34,19 @@ public class ClassRoom : Entity
     public ClassRoom IsLabRoom(bool isLab)
     {
         IsLab = isLab;
-        if (isLab) IsIncludedInGeneralAssignment = false;
+        if (isLab) IncludeInGeneralAssignment = false;
         return this;
     }
 
-    public ClassRoom IsExcludedFromGeneralAssignment()
+    public ClassRoom IsExcludedFromGeneralAssignment(bool value = false)
     {
-        IsIncludedInGeneralAssignment = false;
+        IncludeInGeneralAssignment = value;
+        return this;
+    }
+
+    public ClassRoom IsNotExaminationCenter(bool value = false)
+    {
+        IsExaminationCenter = value;
         return this;
     }
 }

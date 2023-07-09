@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace UMaTLMS.Core.Helpers;
+﻿namespace UMaTLMS.Core.Helpers;
 
 public static class AppHelpers
 {

@@ -11,9 +11,9 @@ namespace UMaTLMS.Core.Processors;
 [Processor]
 public class TimetableProcessor
 {
-    private const string TimetableFile = "Timetable:File";
-    private const string TimetableType = "Timetable:Type";
-    private const string TimetableDownload = "Timetable:DownloadName";
+    private const string _timetableFile = "Timetable:File";
+    private const string _timetableType = "Timetable:Type";
+    private const string _timetableDownload = "Timetable:DownloadName";
     private readonly ILogger<TimetableProcessor> _logger;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
     private readonly ILectureRepository _lectureRepository;
@@ -49,17 +49,17 @@ public class TimetableProcessor
 
     public async Task<OneOf<bool, Exception>> Generate()
     {
-        var fileName = _configuration[TimetableFile] ?? string.Empty;
+        var fileName = _configuration[_timetableFile] ?? string.Empty;
         if (File.Exists(fileName))
         {
             return new TimetableGeneratedException();
         }
 
-        var lectures = await _lectureRepository.GetAll();
-        var schedules = await _lectureScheduleRepository.GetAll();
+        var lectures = await _lectureRepository.GetAllAsync();
+        var schedules = await _lectureScheduleRepository.GetAllAsync();
 
-        var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
-        var rooms = await _roomRepository.GetAll();
+        var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
+        var rooms = await _roomRepository.GetAllAsync();
 
         if (!lectures.Any() || !schedules.Any() || !onlineSchedules.Any() || !rooms.Any())
         {
@@ -90,8 +90,7 @@ public class TimetableProcessor
 
         await _lectureScheduleRepository.SaveChanges();
 
-        await TimetableGenerator.GetTimetable(_excelReader, schedules, onlineSchedules,
-            rooms, fileName);
+        await TimetableGenerator.GetAsync(_excelReader, schedules, onlineSchedules, rooms, fileName);
         return true;
     }
 
@@ -141,12 +140,12 @@ public class TimetableProcessor
 
     private async Task InitializeLectureSchedule()
     {
-        var rooms = await _roomRepository.GetAll();
+        var rooms = await _roomRepository.GetAllAsync();
         if (!rooms.Any()) throw new SystemNotInitializedException();
 
         var timeSlots = GetTimeSLots().ToList();
 
-        var schedules = await _lectureScheduleRepository.GetAll();
+        var schedules = await _lectureScheduleRepository.GetAllAsync();
         if (schedules.Any())
         {
             foreach (var schedule in schedules)
@@ -170,7 +169,7 @@ public class TimetableProcessor
             }
         }
 
-        var onlineSchedules = (await _onlineLectureScheduleRepository.GetAll()).ToList();
+        var onlineSchedules = (await _onlineLectureScheduleRepository.GetAllAsync()).ToList();
         if (onlineSchedules.Any())
         {
             foreach (var schedule in onlineSchedules)
@@ -196,7 +195,7 @@ public class TimetableProcessor
 
     private async Task AddLecturers(List<Staff>? lecturers)
     {
-        var lecturersInDb = await _lecturerRepository.GetAll();
+        var lecturersInDb = await _lecturerRepository.GetAllAsync();
         if (lecturers is not null)
         {
             foreach (var lecturer in lecturers)
@@ -212,7 +211,7 @@ public class TimetableProcessor
 
     private async Task AddGroups(List<Group>? groups)
     {
-        var groupsInDb = await _classGroupRepository.GetAll();
+        var groupsInDb = await _classGroupRepository.GetAllAsync();
         groups = groups?.Distinct(new GroupComparer()).ToList();
 
         if (groups is not null)
@@ -237,10 +236,10 @@ public class TimetableProcessor
 
     private async Task AddSubClassGroups()
     {
-        var groups = await _classGroupRepository.GetAll() 
+        var groups = await _classGroupRepository.GetAllAsync() 
             ?? throw new DataNotSyncedWithUmatException();
 
-        var subGroups = await _subClassGroupRepository.GetAll();
+        var subGroups = await _subClassGroupRepository.GetAllAsync();
         await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
 
         foreach (var group in groups)
@@ -260,7 +259,7 @@ public class TimetableProcessor
     private async Task AddCoursesFromUmatDb(List<CourseResponse>? courses)
     {
         if (courses == null) return;
-        var coursesInDb = await _courseRepository.GetAll();
+        var coursesInDb = await _courseRepository.GetAllAsync();
         if (coursesInDb.Any()) return;
 
         foreach (var course in courses)
@@ -288,16 +287,14 @@ public class TimetableProcessor
 
     private async Task AddLectures()
     {
-        var savedCourses = await _courseRepository.GetAll();
-        var lecturableCourses = savedCourses
-            .Where(x => x.IsToHaveWeeklyLectureSchedule).ToList();
-        var classGroups = await _classGroupRepository.GetAll();
-        var lecturers = await _lecturerRepository.GetAll();
+        var lecturableCourses = await _courseRepository.GetAllAsync(x => x.IsToHaveWeeklyLectureSchedule);
+        var classGroups = await _classGroupRepository.GetAllAsync();
+        var lecturers = await _lecturerRepository.GetAllAsync();
 
         if (!lecturableCourses.Any() || !classGroups.Any() || !lecturers.Any())
             throw new DataNotSyncedWithUmatException();
 
-        var seededLectures = await _lectureRepository.GetAll();
+        var seededLectures = await _lectureRepository.GetAllAsync();
         if (seededLectures.Any()) await _lectureRepository.DeleteAllAsync(seededLectures, saveChanges: false);
 
         var lectures = new List<Lecture>();

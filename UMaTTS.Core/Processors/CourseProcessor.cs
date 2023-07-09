@@ -1,4 +1,5 @@
-﻿using UMaTLMS.Core.Contracts;
+﻿using System.Diagnostics.CodeAnalysis;
+using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -6,49 +7,29 @@ namespace UMaTLMS.Core.Processors;
 public class CourseProcessor
 {
     private readonly ICourseRepository _courseRepository;
+    private readonly ILecturerRepository _lecturerRepository;
 
-    public CourseProcessor(ICourseRepository courseRepository)
+    public CourseProcessor(ICourseRepository courseRepository,
+        ILecturerRepository lecturerRepository)
     {
         _courseRepository = courseRepository;
+        _lecturerRepository = lecturerRepository;
     }
 
-    public async Task<OneOf<int, Exception>> UpsertAsync(CourseCommand command)
+    public async Task<OneOf<bool, Exception>> UpdateAsync(CourseCommand command)
     {
-        var isNew = command.Id == 0;
-        IncomingCourse? course;
+        var courses = await _courseRepository.GetAllAsync(x => x.Name == command.Name);
+        if (courses is null) return new NullReferenceException();
 
-        if (isNew)
+        foreach (var course in courses)
         {
-            course = IncomingCourse.Create(command.Name, command.Credit, command.YearGroup);
-            course.HasCode(command.Code)
-                .ForAcademicPeriod(command.AcademicPeriod)
-                .ForYear(command.Year)
-                .HasGroup(command.CourseGroup)
-                .HasCategory(command.CourseCategory)
-                .HasCategory(command.CourseCategory)
-                .HasCourseId(command.CourseId)
-                //.ForProgramme(command.ProgrammeId)
-                .HasExaminers(command.FirstExaminerStaffId, command.SecondExaminerStaffId)
-                .HasType(command.CourseType);
-            await _courseRepository.AddAsync(course);
-            return course.Id;
+            course.MarkAsNotExaminable(command.IsExaminable)
+            .HasNoWeeklyLectures(command.IsToHaveWeeklyLectureSchedule)
+            .MarkAsHavingPracticalExams(command.HasPracticalExams);
+            await _courseRepository.UpdateAsync(course, saveChanges: false);
         }
 
-        course = await _courseRepository.FindByIdAsync(command.Id);
-        if (course is null) return new NullReferenceException();
-
-        course.HasCode(command.Code)
-            .ForAcademicPeriod(command.AcademicPeriod)
-            .ForYear(command.Year)
-            .HasGroup(command.CourseGroup)
-            .HasCategory(command.CourseCategory)
-            .HasCategory(command.CourseCategory)
-            .HasCourseId(command.CourseId)
-            //.ForProgramme(command.ProgrammeId)
-            .HasExaminers(command.FirstExaminerStaffId, command.SecondExaminerStaffId)
-            .HasType(command.CourseType);
-        await _courseRepository.UpdateAsync(course);
-        return course.Id;
+        return await _courseRepository.SaveChanges();
     }
 
     public async Task<OneOf<CourseDto, Exception>> GetAsync(int id)
@@ -56,13 +37,14 @@ public class CourseProcessor
         var course = await _courseRepository.FindByIdAsync(id);
         if (course is null) return new NullReferenceException();
 
-        return course.Adapt<CourseDto>();
+        return new CourseDto(course.Id, course.Code, course.Name ?? string.Empty, 
+            course.IsExaminable, course.IsToHaveWeeklyLectureSchedule, course.HasPracticalExams);
     }
 
     public async Task<PaginatedList<CourseDto>> GetPageAsync(PaginatedCommand command)
     {
         var page = await _courseRepository.GetPageAsync(command);
-        return page.Adapt<PaginatedList<CourseDto>>();
+        return page.Adapt<PaginatedList<CourseDto>>(Mapping.GetTypeAdapterConfig());
     }
 
     public async Task DeleteAsync(int id)
@@ -82,10 +64,7 @@ public class CourseProcessor
     }
 }
 
-public record CourseCommand(int Id,  int YearGroup, string? Code, string Name, int Credit, int? Year, int CourseGroup,
-    int CourseCategory, int CourseType, string? CourseId, int? ProgrammeId, int? FirstExaminerStaffId, 
-    int? SecondExaminerStaffId, AcademicPeriodResponse AcademicPeriod);
+public record CourseCommand(string Name, bool IsExaminable, bool IsToHaveWeeklyLectureSchedule, bool HasPracticalExams);
 
-public record CourseDto(int Id,  int? YearGroup, string? Code, string Name, int Credit, int? Year, int CourseGroup,
-    int CourseCategory, int CourseType, string? CourseId, int? ProgrammeId, int? FirstExaminerStaffId, 
-    int? SecondExaminerStaffId, AcademicPeriodResponse AcademicPeriod);
+public record CourseDto(int Id, string? Code, string Name, bool IsExaminable, 
+    bool IsToHaveWeeklyLectureSchedule, bool HasPracticalExams);

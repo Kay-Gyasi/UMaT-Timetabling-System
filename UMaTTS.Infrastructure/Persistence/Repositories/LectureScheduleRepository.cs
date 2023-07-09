@@ -8,11 +8,6 @@ public class LectureScheduleRepository : Repository<LectureSchedule, int>, ILect
     {
     }
 
-    public async Task<List<LectureSchedule>> GetAll()
-    {
-        return await GetBaseQuery().ToListAsync();
-    }
-
     public async Task<int> GetNumberOfLecturesForLecturerInADay(int lecturerId, int day)
     {
         return await GetBaseQuery().CountAsync(x =>

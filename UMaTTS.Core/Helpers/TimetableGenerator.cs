@@ -26,7 +26,7 @@ namespace UMaTLMS.Core.Helpers
 
                 for (var i = 0; i < 5; i++)
                 {
-                    builder.And(x => x.Room.IsIncludedInGeneralAssignment);
+                    builder.And(x => x.Room.IncludeInGeneralAssignment);
                     builder.Or(x => x.Room.Name == lecture.PreferredRoom);
 
                     foreach(var sub in lecture.SubClassGroups)
@@ -124,7 +124,7 @@ namespace UMaTLMS.Core.Helpers
             return (schedules, onlineSchedules);
         }
 
-        public static async Task GetTimetable(IExcelReader excelReader, IEnumerable<LectureSchedule> lectureSchedules, IEnumerable<OnlineLectureSchedule> onlineLectureSchedules, List<ClassRoom> rooms, string file)
+        public static async Task GetAsync(IExcelReader excelReader, IEnumerable<LectureSchedule> lectureSchedules, IEnumerable<OnlineLectureSchedule> onlineLectureSchedules, List<ClassRoom> rooms, string file)
         {
             if (string.IsNullOrWhiteSpace(file)) return;
             using var excelPackage = excelReader.CreateNew(file);
@@ -137,7 +137,7 @@ namespace UMaTLMS.Core.Helpers
                 var dayOfWeek = group.Key;
                 var worksheet = excelPackage.Workbook.Worksheets.Add(dayOfWeek.ToString());
 
-                BuildTimetableLayout(worksheet, dayOfWeek?.ToString() ?? "", rooms);
+                BuildLayout(worksheet, dayOfWeek?.ToString() ?? "", rooms);
 
                 // fill in lectures
                 var schedules = group.Where(x => x.FirstLecture != null || x.SecondLecture != null).ToList();
@@ -208,10 +208,9 @@ namespace UMaTLMS.Core.Helpers
                 {
                     foreach (var lecture in onlineSchedule.Lectures)
                     {
-                        string cellName;
                         var builder = new StringBuilder();
 
-                        cellName = GetVleCellName(worksheet, onlineSchedule, ("", ""), GetColumns());
+                        var cellName = GetVleCellName(worksheet, onlineSchedule, ("", ""), GetColumns());
                         SetCellValue(lecture, builder, worksheet, cellName);
                     }
                 }
@@ -222,7 +221,7 @@ namespace UMaTLMS.Core.Helpers
             await excelPackage.SaveAsync();
         }
 
-        private static void BuildTimetableLayout(ExcelWorksheet worksheet, string dayOfWeek, List<ClassRoom> rooms)
+        private static void BuildLayout(ExcelWorksheet worksheet, string dayOfWeek, List<ClassRoom> rooms)
         {
 
             worksheet.Columns.Width = 16.30;

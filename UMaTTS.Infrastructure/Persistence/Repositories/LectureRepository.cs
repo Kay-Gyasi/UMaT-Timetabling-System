@@ -6,11 +6,6 @@
         {
         }
 
-        public async Task<List<Lecture>> GetAll()
-        {
-            return await GetBaseQuery().ToListAsync();
-        }
-
         protected override IQueryable<Lecture> GetBaseQuery()
         {
             return base.GetBaseQuery()

@@ -27,6 +27,9 @@ public class RoomProcessor
 
 			room = ClassRoom.Create(command.Name, command.Capacity);
 			room.IsLabRoom(command.IsLab);
+			if (!command.IncludeInGeneralAssignment) room.IsExcludedFromGeneralAssignment();
+			if (!command.IsExaminationCenter) room.IsNotExaminationCenter();
+
 			try
 			{
 				await _roomRepository.AddAsync(room);
@@ -44,7 +47,9 @@ public class RoomProcessor
 
 		room.WithName(command.Name)
 			.HasCapacity(command.Capacity)
-			.IsLabRoom(command.IsLab);
+			.IsLabRoom(command.IsLab)
+			.IsExcludedFromGeneralAssignment(command.IncludeInGeneralAssignment)
+			.IsNotExaminationCenter(command.IsExaminationCenter);
 
 		try
 		{
@@ -93,13 +98,11 @@ public class RoomProcessor
 
 		await _roomRepository.DeleteAsync(room);
 	}
-
-	public async Task<IEnumerable<ClassRoom>> GetAllAsync()
-	{
-		return await _roomRepository.GetAll();
-	}
 }
 
-public record RoomCommand(int Id, string Name, int Capacity, bool IsLab, bool IsIncludedInGeneralAssignment);
-public record RoomDto(int Id, string Name, int Capacity, bool IsLab, bool IsIncludedInGeneralAssignment);
-public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab, bool IsIncludedInGeneralAssignment);
+public record RoomCommand(int Id, string Name, int Capacity, bool IsLab,
+    bool IsExaminationCenter, bool IncludeInGeneralAssignment);
+public record RoomDto(int Id, string Name, int Capacity, bool IsLab, 
+	bool IsExaminationCenter, bool IncludeInGeneralAssignment);
+public record RoomPageDto(int Id, string Name, int Capacity, bool IsLab, 
+	bool IsExaminationCenter, bool IncludeInGeneralAssignment);

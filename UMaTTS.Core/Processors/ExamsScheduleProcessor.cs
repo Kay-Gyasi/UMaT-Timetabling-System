@@ -1,10 +1,15 @@
-﻿using UMaTLMS.Core.Helpers;
+﻿using Microsoft.Extensions.Configuration;
+using UMaTLMS.Core.Helpers;
+using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Core.Processors;
 
 [Processor]
 public class ExamsScheduleProcessor
 {
+    private const string _timetableFile = "Timetable:ExamFile";
+    private const string _timetableType = "Timetable:Type";
+    private const string _timetableDownload = "Timetable:ExamDownloadName";
     private readonly IExamsScheduleRepository _examsScheduleRepository;
     private readonly ILogger<ExamsScheduleProcessor> _logger;
     private readonly ICourseRepository _courseRepository;
@@ -12,11 +17,14 @@ public class ExamsScheduleProcessor
     private readonly IRoomRepository _roomRepository;
     private readonly ILectureRepository _lectureRepository;
     private readonly ILecturerRepository _lecturerRepository;
+    private readonly IConfiguration _configuration;
+    private readonly IExcelReader _excelReader;
 
     public ExamsScheduleProcessor(IExamsScheduleRepository examsScheduleRepository, 
         ILogger<ExamsScheduleProcessor> logger, ICourseRepository courseRepository,
         ISubClassGroupRepository subClassGroupRepository, IRoomRepository roomRepository,
-        ILectureRepository lectureRepository, ILecturerRepository lecturerRepository)
+        ILectureRepository lectureRepository, ILecturerRepository lecturerRepository,
+        IConfiguration configuration, IExcelReader excelReader)
     {
         _examsScheduleRepository = examsScheduleRepository;
         _logger = logger;
@@ -25,15 +33,18 @@ public class ExamsScheduleProcessor
         _roomRepository = roomRepository;
         _lectureRepository = lectureRepository;
         _lecturerRepository = lecturerRepository;
+        _configuration = configuration;
+        _excelReader = excelReader;
     }
 
     public async Task<OneOf<bool, Exception>> Generate(ExamsScheduleCommand command)
     {
-        var rooms = await _roomRepository.GetAll();
-        var lectures = await _lectureRepository.GetAll();
-        var lecturers = await _lecturerRepository.GetAll();
-        var groups = await _subClassGroupRepository.GetAll();
-        var courses = await _courseRepository.GetAll();
+        var rooms = await _roomRepository.GetAllAsync(x => x.IsExaminationCenter);
+        var lectures = await _lectureRepository
+            .GetAllAsync(x => x.Course!.IsExaminable || x.Course!.HasPracticalExams);
+        var lecturers = await _lecturerRepository.GetAllAsync();
+        var groups = await _subClassGroupRepository.GetAllAsync();
+        var courses = await _courseRepository.GetAllAsync();
 
         var schedules = await Task.Run(() =>
             ExamsTimetableGenerator.Generate(lectures, rooms, groups, lecturers, courses, command));
@@ -44,9 +55,14 @@ public class ExamsScheduleProcessor
         
         var isSaved = await _examsScheduleRepository.SaveChanges();
         if (!isSaved) return new InvalidDataException();
+        
+        var fileName = _configuration[_timetableFile] ?? string.Empty;
+        if (File.Exists(fileName))
+        {
+            return new TimetableGeneratedException();
+        }
 
-        var isTimetableBuilt = await ExamsTimetableGenerator.GenerateTimetable(schedules);
-        if (!isTimetableBuilt) return new InvalidDataException();
+        await ExamsTimetableGenerator.GetAsync(_excelReader, schedules, fileName);
         return true;
     }
 }

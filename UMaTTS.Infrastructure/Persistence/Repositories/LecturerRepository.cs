@@ -11,10 +11,5 @@ namespace UMaTLMS.Infrastructure.Persistence.Repositories
         {
             return await GetBaseQuery().AnyAsync(x => x.UmatId == umatId);
         }
-
-        public async Task<List<Lecturer>> GetAll()
-        {
-            return await GetBaseQuery().ToListAsync();
-        }
     }
 }

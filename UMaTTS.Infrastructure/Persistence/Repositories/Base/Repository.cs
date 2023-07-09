@@ -1,4 +1,5 @@
 ﻿using System.Drawing.Printing;
+using System.Linq.Expressions;
 using UMaTLMS.Core.Repositories.Base;
 
 namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
@@ -20,6 +21,34 @@ public class Repository<T, TKey> : IRepository<T, TKey>
 
     protected virtual IQueryable<T> GetBaseQuery()
         => Entities;
+
+    public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = null)
+    {
+        try
+        {
+            predicate ??= x => true;
+            return await GetBaseQuery().Where(predicate).ToListAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("{Message}", e.Message);
+            throw;
+        }
+    }
+    
+    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
+    {
+        try
+        {
+            if (predicate == null) return null;
+            return await GetBaseQuery().FirstOrDefaultAsync(predicate);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("{Message}", e.Message);
+            throw;
+        }
+    }
 
     public async Task AddAsync(T entity, bool saveChanges = true)
     {

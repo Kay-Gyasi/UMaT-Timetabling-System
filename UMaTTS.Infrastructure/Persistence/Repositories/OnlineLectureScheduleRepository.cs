@@ -6,11 +6,6 @@ public class OnlineLectureScheduleRepository : Repository<OnlineLectureSchedule,
     {
     }
 
-    public async Task<List<OnlineLectureSchedule>> GetAll()
-    {
-        return await GetBaseQuery().ToListAsync();
-    }
-
     protected override IQueryable<OnlineLectureSchedule> GetBaseQuery()
     {
         return base.GetBaseQuery()

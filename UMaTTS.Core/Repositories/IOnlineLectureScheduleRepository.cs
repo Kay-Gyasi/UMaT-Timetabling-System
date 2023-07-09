@@ -4,5 +4,4 @@ namespace UMaTLMS.Core.Repositories;
 
 public interface IOnlineLectureScheduleRepository : IRepository<OnlineLectureSchedule, int>
 {
-    Task<List<OnlineLectureSchedule>> GetAll();
 }

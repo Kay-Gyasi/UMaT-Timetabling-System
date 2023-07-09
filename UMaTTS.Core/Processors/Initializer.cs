@@ -48,25 +48,25 @@ public sealed class Initializer
 
     public async Task Reset()
     {
-        var lectureSchedules = await _lectureScheduleRepository.GetAll();
+        var lectureSchedules = await _lectureScheduleRepository.GetAllAsync();
         await _lectureScheduleRepository.DeleteAllAsync(lectureSchedules, saveChanges:false);
 
-        var onlineSchedules = await _onlineLectureScheduleRepository.GetAll();
+        var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
         await _onlineLectureScheduleRepository.DeleteAllAsync(onlineSchedules, saveChanges: false);
 
-        var subGroups = await _subClassGroupRepository.GetAll();
+        var subGroups = await _subClassGroupRepository.GetAllAsync();
         await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
 
-        var groups = await _classGroupRepository.GetAll();
+        var groups = await _classGroupRepository.GetAllAsync();
         await _classGroupRepository.DeleteAllAsync(groups, saveChanges: false);
 
-        var courses = await _courseRepository.GetAll();
+        var courses = await _courseRepository.GetAllAsync();
         await _courseRepository.DeleteAllAsync(courses, saveChanges: false);
 
-        var lecturers = await _lecturerRepository.GetAll();
+        var lecturers = await _lecturerRepository.GetAllAsync();
         await _lecturerRepository.DeleteAllAsync(lecturers, saveChanges: false);
         
-        var lectures = await _lectureRepository.GetAll();
+        var lectures = await _lectureRepository.GetAllAsync();
         await _lectureRepository.DeleteAllAsync(lectures, saveChanges: false);
 
         await _classGroupRepository.SaveChanges();

@@ -102,21 +102,21 @@ public class IncomingCourse : Entity
         return this;
     }
 
-    public IncomingCourse MarkAsNotExaminable()
+    public IncomingCourse MarkAsNotExaminable(bool isExaminable = false)
     {
-        IsExaminable = false;
+        IsExaminable = isExaminable;
         return this;
     }
     
-    public IncomingCourse MarkAsHavingPracticalExams()
+    public IncomingCourse MarkAsHavingPracticalExams(bool hasPracticals = true)
     {
-        HasPracticalExams = true;
+        HasPracticalExams = hasPracticals;
         return this;
     }
     
-    public IncomingCourse HasNoWeeklyLectures()
+    public IncomingCourse HasNoWeeklyLectures(bool hasWeeklyLectures = false)
     {
-        IsToHaveWeeklyLectureSchedule = false;
+        IsToHaveWeeklyLectureSchedule = hasWeeklyLectures;
         return this;
     }
 
