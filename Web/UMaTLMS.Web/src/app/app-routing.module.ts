@@ -7,6 +7,8 @@ import {EditRoomComponent} from "./components/rooms/edit-room/edit-room.componen
 import {ViewClassesComponent} from "./components/classes/view-classes/view-classes.component";
 import {ViewLecturesComponent} from "./components/lectures/view-lectures/view-lectures.component";
 import {EditLectureComponent} from "./components/lectures/edit-lecture/edit-lecture.component";
+import { ViewCoursesComponent } from './components/courses/view-courses/view-courses.component';
+import { EditCourseComponent } from './components/courses/edit-course/edit-course.component';
 
 const routes: Routes = [
   {path:"", component:DashboardComponent},
@@ -14,7 +16,9 @@ const routes: Routes = [
   {path:"rooms", component: ViewRoomsComponent},
   {path:"rooms/add", component:AddRoomComponent},
   {path:"rooms/edit/:id", component:EditRoomComponent},
+  {path:"courses/edit/:id", component:EditCourseComponent},
   {path:"classes", component:ViewClassesComponent},
+  {path:"courses", component:ViewCoursesComponent},
   {path:"lectures", component:ViewLecturesComponent},
   {path:"lectures/edit/:id", component:EditLectureComponent}
 ];

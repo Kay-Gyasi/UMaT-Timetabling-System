@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import {ActivatedRoute} from "@angular/router";
-import {RoomService} from "../../../services/http/room-service";
+import {RoomService} from "../../../services/http/room.service";
 import {NotificationService} from "../../../services/notification.service";
 import {RoomRequest} from "../../../models/requests/room-request";
 
@@ -29,10 +29,11 @@ export class EditRoomComponent implements OnInit {
     request.name = this.roomForm.get('name')?.value;
     request.capacity = this.roomForm.get('capacity')?.value;
     request.isLab = this.roomForm.get('isLab')?.value;
-    request.isIncludedInGeneralAssignment = this.roomForm.get('isIncludedInGeneralAssignment')?.value;
+    request.includeInGeneralAssignment = this.roomForm.get('includeInGeneralAssignment')?.value;
+    request.isExaminationCenter = this.roomForm.get('isExaminationCenter')?.value;
     return this.roomService.save(request).subscribe({
       error: err => {
-        this.toast.showError("Unable to add room", "Failed");
+        this.toast.showError("Unable to edit room", "Failed");
       },
       complete: () => {
         this.isLoading = false;
@@ -49,7 +50,8 @@ export class EditRoomComponent implements OnInit {
       name: ["", [Validators.required]],
       capacity: [0, []],
       isLab: [false, []],
-      isIncludedInGeneralAssignment: [false, []]
+      isExaminationCenter: [false, []],
+      includeInGeneralAssignment: [false, []]
     })
 
     this.roomId = this.route.snapshot.params["id"];
@@ -59,7 +61,8 @@ export class EditRoomComponent implements OnInit {
           name: response?.name,
           capacity: response?.capacity,
           isLab: response?.isLab,
-          isIncludedInGeneralAssignment: response?.isIncludedInGeneralAssignment
+          includeInGeneralAssignment: response?.includeInGeneralAssignment,
+          isExaminationCenter: response?.isExaminationCenter
         })
       },
       error: err => {

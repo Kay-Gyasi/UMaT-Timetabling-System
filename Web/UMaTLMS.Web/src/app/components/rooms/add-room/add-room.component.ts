@@ -5,7 +5,7 @@ import {
   UntypedFormGroup,
   Validators
 } from "@angular/forms";
-import {RoomService} from "../../../services/http/room-service";
+import {RoomService} from "../../../services/http/room.service";
 import {RoomRequest} from "../../../models/requests/room-request";
 import {NotificationService} from "../../../services/notification.service";
 
@@ -31,7 +31,8 @@ export class AddRoomComponent {
           name: "",
           capacity: 0,
           isLab: false,
-          isIncludedInGeneralAssignment: false
+          isExaminationCenter: true,
+          includeInGeneralAssignment: true
         });
       },
       error: _ => {
@@ -52,7 +53,8 @@ export class AddRoomComponent {
       name: ["", [Validators.required]],
       capacity: [0, []],
       isLab: [false, []],
-      isIncludedInGeneralAssignment: [false, []]
+      isExaminationCenter: [true, []],
+      includeInGeneralAssignment: [true, []]
     })
   }
 }

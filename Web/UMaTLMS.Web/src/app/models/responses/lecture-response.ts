@@ -1,3 +1,4 @@
+import { CourseResponse } from "./course-response";
 import {SubClassResponse} from "./sub-class-response";
 
 export class LectureResponse{
@@ -16,11 +17,6 @@ export class LectureResponse{
 export class LecturerResponse{
   id:number;
   umatId:number;
-  name:string;
-}
-
-export class CourseResponse{
-  id:number;
   name:string;
 }
 

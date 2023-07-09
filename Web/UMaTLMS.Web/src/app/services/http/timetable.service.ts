@@ -3,6 +3,7 @@ import {IHttpRequest} from "./base/ihttp-request";
 import {map, Observable, throwError} from "rxjs";
 import {NotificationService} from "../notification.service";
 import {environment} from "../../../environments/environment";
+import { ExamTimetableRequest } from 'src/app/models/requests/exam-timetable-request';
 
 @Injectable({
   providedIn: 'root'
@@ -34,10 +35,40 @@ export class TimetableService {
     )
   }
 
+  generateExam(command:ExamTimetableRequest): Observable<any>{
+    return this.http.postRequestAsync<any>(`timetable/generate`, command).pipe(
+      map(data => {
+        if(data === undefined){
+          this.toast.showError("Failed to generate exams timetable", "Failed");
+          return undefined;
+        }
+
+        if (data.statusCode == 206){
+          this.toast.showError("Some courses were not scheduled", "Failed");
+          return undefined;
+        }
+
+        if (data.statusCode == 200 || data.statusCode == 204 || data.statusCode == 201){
+          this.downloadExam();
+          this.toast.showSuccess("Exams timetable has been generated", "Succeeded");
+          return data.data;
+        }
+      })
+    )
+  }
+
   download(){
     const downloadLink = document.createElement('a');
     downloadLink.href = environment.timetableUrl;
     downloadLink.download = 'timetable.xlsx';
+    downloadLink.click();
+    URL.revokeObjectURL(downloadLink.href);
+  }
+
+  downloadExam(){
+    const downloadLink = document.createElement('a');
+    downloadLink.href = environment.examTimetableUrl;
+    downloadLink.download = 'exam-timetable.xlsx';
     downloadLink.click();
     URL.revokeObjectURL(downloadLink.href);
   }

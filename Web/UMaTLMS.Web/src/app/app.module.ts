@@ -1,4 +1,4 @@
-import {APP_INITIALIZER, NgModule} from '@angular/core';
+import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -19,14 +19,17 @@ import {HttpRequest} from "./services/http/base/http-request";
 import {IHttpRequest} from "./services/http/base/ihttp-request";
 import {ToastrModule} from "ngx-toastr";
 import {NotificationService} from "./services/notification.service";
-import { RoomService } from './services/http/room-service';
+import { RoomService } from './services/http/room.service';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { ViewClassesComponent } from './components/classes/view-classes/view-classes.component';
-import {ClassService} from "./services/http/class-service";
+import {ClassService} from "./services/http/class.service";
 import { ViewLecturesComponent } from './components/lectures/view-lectures/view-lectures.component';
 import { EditLectureComponent } from './components/lectures/edit-lecture/edit-lecture.component';
 import {NgSelectModule} from "@ng-select/ng-select";
 import { LoadingScreenComponent } from './components/widgets/loading-screen/loading-screen.component';
+import { ViewCoursesComponent } from './components/courses/view-courses/view-courses.component';
+import { CourseService } from './services/http/course.service';
+import { EditCourseComponent } from './components/courses/edit-course/edit-course.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -41,7 +44,9 @@ import { LoadingScreenComponent } from './components/widgets/loading-screen/load
     ViewClassesComponent,
     ViewLecturesComponent,
     EditLectureComponent,
-    LoadingScreenComponent
+    LoadingScreenComponent,
+    ViewCoursesComponent,
+    EditCourseComponent
   ],
   imports: [
     BrowserModule,
@@ -55,9 +60,8 @@ import { LoadingScreenComponent } from './components/widgets/loading-screen/load
     ToastrModule.forRoot()
   ],
   providers: [
-    {provide:IHttpRequest, useClass: HttpRequest},
-    MetronicJs,
-    RoomService, ClassService, NotificationService],
+    { provide:IHttpRequest, useClass: HttpRequest },
+    MetronicJs, CourseService, RoomService, ClassService, NotificationService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

@@ -1,5 +1,5 @@
 <!--begin::Form-->
-<form [formGroup]="searchForm" class="form" (ngSubmit)="getRooms()">
+<form [formGroup]="searchForm" class="form" (ngSubmit)="getCourses()">
   <!--begin::Card-->
   <div class="card mb-7">
     <!--begin::Card body-->
@@ -44,8 +44,8 @@
   <!--begin::Header-->
   <div class="card-header border-0 pt-5">
     <h3 class="card-title align-items-start flex-column">
-      <span class="card-label fw-bolder fs-3 mb-1">Lecture Rooms</span>
-      <span class="text-muted mt-1 fw-bold fs-7">{{ rooms.totalCount }} rooms</span>
+      <span class="card-label fw-bolder fs-3 mb-1">Courses</span>
+      <span class="text-muted mt-1 fw-bold fs-7">{{ courses.totalCount }} distinct courses</span>
     </h3>
     <div class="card-toolbar">
       <!--begin::Menu-->
@@ -74,9 +74,11 @@
         <div class="separator mb-3 opacity-75"></div>
         <!--end::Menu separator-->
         <!--begin::Menu item-->
-        <div class="menu-item px-3">
+
+        <!-- <div class="menu-item px-3">
           <a [routerLink]="navigator.addRoom" class="menu-link px-3">New Room</a>
-        </div>
+        </div> -->
+
         <!--end::Menu item-->
       </div>
       <!--end::Menu 2-->
@@ -96,11 +98,10 @@
         <!--begin::Table head-->
         <thead>
         <tr class="fw-bolder text-muted">
-          <th class="min-w-100px">Name</th>
-          <th class="min-w-140px">Capacity</th>
-          <th class="min-w-120px">IsLab</th>
-          <th class="min-w-100px">IncludeInGeneralAssignment</th>
-          <th class="min-w-100px">IsExaminationCenter</th>
+          <th class="min-w-140px">Name</th>
+          <th class="min-w-100px">HasWeeklyLectures</th>
+          <th class="min-w-100px">HasGeneralExams</th>
+          <th class="min-w-100px">HasPracticalExams</th>
           <th class="min-w-100px text-end">Actions</th>
         </tr>
         </thead>
@@ -108,44 +109,32 @@
         <!--begin::Table body-->
         <tbody>
 
-        <tr *ngFor="let x of rooms.data">
+        <tr *ngFor="let x of courses.data">
           <td>
-            <a href="#" class="text-dark fw-bolder text-hover-primary fs-6">{{x.name}}</a>
-          </td>
-          <td>
-            <a href="#" class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.capacity}}</a>
+            <a href="#" class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.name}}</a>
           </td>
           <td>
             <div class="form-check form-check-sm form-check-custom form-check-solid">
-              <input class="form-check-input widget-13-check" type="checkbox" [value]=x.isLab [checked]=x.isLab />
+              <input class="form-check-input widget-13-check" type="checkbox"
+              [value]=x.isToHaveWeeklyLectureSchedule [checked]=x.isToHaveWeeklyLectureSchedule />
             </div>
           </td>
           <td>
             <div class="form-check form-check-sm form-check-custom form-check-solid">
               <input class="form-check-input widget-13-check" type="checkbox"
-                     [value]=x.includeInGeneralAssignment
-                     [checked]=x.includeInGeneralAssignment />
+                     [value]=x.isExaminable
+                     [checked]=x.isExaminable />
             </div>
           </td>
           <td>
             <div class="form-check form-check-sm form-check-custom form-check-solid">
               <input class="form-check-input widget-13-check" type="checkbox"
-                     [value]=x.isExaminationCenter
-                     [checked]=x.isExaminationCenter />
+                     [value]=x.hasPracticalExams
+                     [checked]=x.hasPracticalExams />
             </div>
           </td>
           <td class="text-end">
-<!--            <a href="#" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">-->
-<!--              &lt;!&ndash;begin::Svg Icon | path: icons/duotune/general/gen019.svg&ndash;&gt;-->
-<!--              <span class="svg-icon svg-icon-3">-->
-<!--                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">-->
-<!--                  <path d="M17.5 11H6.5C4 11 2 9 2 6.5C2 4 4 2 6.5 2H17.5C20 2 22 4 22 6.5C22 9 20 11 17.5 11ZM15 6.5C15 7.9 16.1 9 17.5 9C18.9 9 20 7.9 20 6.5C20 5.1 18.9 4 17.5 4C16.1 4 15 5.1 15 6.5Z" fill="black"/>-->
-<!--                  <path opacity="0.3" d="M17.5 22H6.5C4 22 2 20 2 17.5C2 15 4 13 6.5 13H17.5C20 13 22 15 22 17.5C22 20 20 22 17.5 22ZM4 17.5C4 18.9 5.1 20 6.5 20C7.9 20 9 18.9 9 17.5C9 16.1 7.9 15 6.5 15C5.1 15 4 16.1 4 17.5Z" fill="black"/>-->
-<!--                </svg>-->
-<!--              </span-->
-<!--              &lt;!&ndash;end::Svg Icon&ndash;&gt;-->
-<!--            </a> -->
-            <a [routerLink]="navigator.editRoom(x.id)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+            <a [routerLink]="navigator.editCourse(x.id)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
               <!--begin::Svg Icon | path: icons/duotune/art/art005.svg-->
               <span class="svg-icon svg-icon-3">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -155,17 +144,6 @@
               </span>
               <!--end::Svg Icon-->
             </a>
-            <button (click)="deleteRoom(x)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
-              <!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
-              <span class="svg-icon svg-icon-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black"/>
-                  <path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black"/>
-                  <path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black"/>
-                </svg>
-              </span>
-              <!--end::Svg Icon-->
-            </button>
           </td>
         </tr>
 
@@ -181,13 +159,13 @@
   <div class="card-footer">
     <div class="pagination">
       <div>
-        <a *ngIf="rooms.hasPrevious" (click)="getRooms(-1)" class="pagination-link">&laquo;</a>
+        <a *ngIf="courses.hasPrevious" (click)="getCourses(-1)" class="pagination-link">&laquo;</a>
       </div>
       <div>
-        &nbsp;{{rooms.currentPage}}/{{rooms.totalPages}}&nbsp;
+        &nbsp;{{courses.currentPage}}/{{courses.totalPages}}&nbsp;
       </div>
       <div>
-        <a *ngIf="rooms.hasNext" (click)="getRooms(-2)" class="pagination-link">&raquo;</a>
+        <a *ngIf="courses.hasNext" (click)="getCourses(-2)" class="pagination-link">&raquo;</a>
       </div>
     </div>
   </div>

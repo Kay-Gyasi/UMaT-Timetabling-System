@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {Navigations} from "../../../helpers/navigations";
 import {PaginatedList} from "../../../models/paginated-list";
 import {ClassResponse} from "../../../models/responses/class-response";
-import {ClassService} from "../../../services/http/class-service";
+import {ClassService} from "../../../services/http/class.service";
 import {NotificationService} from "../../../services/notification.service";
 import {PaginatedQuery} from "../../../models/paginated-query";
 import {FormBuilder, FormControl, UntypedFormGroup, Validators} from "@angular/forms";

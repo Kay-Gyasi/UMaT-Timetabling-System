@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import {Navigations} from "../../helpers/navigations";
 import {TimetableService} from "../../services/http/timetable.service";
 import {NotificationService} from "../../services/notification.service";
+import { ExamTimetableRequest } from 'src/app/models/requests/exam-timetable-request';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,6 +12,7 @@ import {NotificationService} from "../../services/notification.service";
 export class DashboardComponent {
   navigator = new Navigations();
   isLoading:boolean = false;
+  examRequest:ExamTimetableRequest;
 
   constructor(private timetableService:TimetableService, private toast:NotificationService) {
   }
@@ -52,6 +54,19 @@ export class DashboardComponent {
   generate(){
     this.isLoading = true;
     return this.timetableService.generate().subscribe({
+      next: _ => {
+        this.isLoading = false;
+      },
+      error: _ => {
+        this.isLoading = false;
+        this.toast.showError("Failed to generate timetable", "Failed");
+      }
+    });
+  }
+
+  generateExams(){
+    this.isLoading = true;
+    return this.timetableService.generateExam(this.examRequest).subscribe({
       next: _ => {
         this.isLoading = false;
       },

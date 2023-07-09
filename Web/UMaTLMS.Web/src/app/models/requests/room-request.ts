@@ -3,6 +3,7 @@ export class RoomRequest{
   name:string;
   capacity:number;
   isLab:boolean;
-  isIncludedInGeneralAssignment:boolean;
+  isExaminationCenter:boolean;
+  includeInGeneralAssignment:boolean;
 }
 

@@ -1,10 +1,11 @@
 import {Component, OnInit} from '@angular/core';
 import {PaginatedList} from "../../../models/paginated-list";
 import {RoomResponse} from "../../../models/responses/room-response";
-import {RoomService} from "../../../services/http/room-service";
+import {RoomService} from "../../../services/http/room.service";
 import {PaginatedQuery} from "../../../models/paginated-query";
 import {NotificationService} from "../../../services/notification.service";
 import {Navigations} from "../../../helpers/navigations";
+import { FormBuilder, FormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 declare var KTMenu:any;
 @Component({
@@ -16,16 +17,23 @@ export class ViewRoomsComponent implements OnInit{
   rooms:PaginatedList<RoomResponse> = new PaginatedList<RoomResponse>();
   pages:Array<number> = [];
   navigator = new Navigations();
-  query:PaginatedQuery = PaginatedQuery.Build(0, 1, 400);
-  constructor(private roomService:RoomService,
+  isLoading:boolean = false;
+  searchForm:UntypedFormGroup;
+  query:PaginatedQuery = PaginatedQuery.Build(0, 1, 20);
+  constructor(private roomService:RoomService, private fb:FormBuilder,
               private toast: NotificationService) {
+      this.searchForm = this.fb.group({
+        "term": ["", [Validators.maxLength(30)]]
+      });
   }
 
   ngOnInit() {
     this.initialize();
   }
 
-  private getRooms(){
+  public getRooms(pageNumber:number = 1){
+    this.isLoading = true;
+    this.buildQuery(pageNumber);
     this.roomService.getPage(this.query).subscribe({
       next: data => {
         if (data == undefined){
@@ -36,9 +44,11 @@ export class ViewRoomsComponent implements OnInit{
         for (let i = 1; i <= data.totalPages; i++){
           this.pages.push(i);
         }
+        this.isLoading = false;
       },
       error: err => {
-        this.toast.showError("Unable to load rooms", "Failed")
+        this.toast.showError("Unable to load rooms", "Failed");
+        this.isLoading = false;
       }
     })
   }
@@ -60,6 +70,17 @@ export class ViewRoomsComponent implements OnInit{
         this.toast.showError("Unable to delete room", "Failed");
       }
     })
+  }
+
+  get term(){
+    return this.searchForm.get('term') as FormControl;
+  }
+
+  private buildQuery(pageNumber:number){
+    if (pageNumber == -1) this.query.PageNumber -= 1;
+    else if (pageNumber == -2) this.query.PageNumber += 1;
+    else this.query.PageNumber = pageNumber;
+    this.query.thenSearch(this.searchForm.get('term')?.value);
   }
 
   private initialize(){
