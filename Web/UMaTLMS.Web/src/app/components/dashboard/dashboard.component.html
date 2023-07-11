@@ -94,7 +94,7 @@
           </svg>
         </span>
         <!--end::Svg Icon-->
-        <div class="text-gray-900 fw-bolder fs-2 mb-2 mt-5">Generate Timetable</div>
+        <div class="text-gray-900 fw-bolder fs-2 mb-2 mt-5">Generate Lecture Timetable</div>
         <div class="fw-bold text-gray-400">Generate and download lecture timetable</div>
       </div>
       <!--end::Body-->
@@ -104,7 +104,7 @@
 
   <div class="col-xl-4">
     <!--begin::Statistics Widget 5-->
-    <a (click)="generateExams()" class="card bg-body-white bg-hover-light-dark hoverable card-xl-stretch mb-xl-8 menu-card">
+    <a data-bs-toggle="modal" data-bs-target="#lectureModal" class="card bg-body-white bg-hover-light-dark hoverable card-xl-stretch mb-xl-8 menu-card">
       <!--begin::Body-->
       <div class="card-body">
         <!--begin::Svg Icon | path: icons/duotune/ecommerce/ecm002.svg-->
@@ -177,8 +177,28 @@
           </svg>
         </span>
         <!--end::Svg Icon-->
-        <div class="text-gray-900 fw-bolder fs-2 mb-2 mt-5">Download Timetable</div>
-        <div class="fw-bold text-gray-400">Download UMaT lecture timetable</div>
+        <div class="text-gray-900 fw-bolder fs-2 mb-2 mt-5">Download Lecture Timetable</div>
+        <div class="fw-bold text-gray-400">Download lecture timetable for current semester</div>
+      </div>
+      <!--end::Body-->
+    </a>
+    <!--end::Statistics Widget 5-->
+  </div>
+
+  <div class="col-xl-4">
+    <!--begin::Statistics Widget 5-->
+    <a (click)="downloadExams()" class="card bg-body-white bg-hover-light-dark hoverable card-xl-stretch mb-xl-8 menu-card">
+      <!--begin::Body-->
+      <div class="card-body">
+        <!--begin::Svg Icon | path: icons/duotune/ecommerce/ecm002.svg-->
+        <span class="svg-icon svg-icon-primary svg-icon-3x ms-n1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-arrow-down-circle-fill" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"/>
+          </svg>
+        </span>
+        <!--end::Svg Icon-->
+        <div class="text-gray-900 fw-bolder fs-2 mb-2 mt-5">Download Exams Timetable</div>
+        <div class="fw-bold text-gray-400">Download exams timetable for current semester</div>
       </div>
       <!--end::Body-->
     </a>
@@ -208,5 +228,106 @@
 
 </div>
 <!--end::Row-->
+
+
+<!-- Modal -->
+<div class="modal fade" id="lectureModal" tabindex="-1" role="dialog" aria-labelledby="lectureModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="lectureModalLabel">Generate Exams Timetable</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form class="form" (ngSubmit)="generateExams()">
+        <div class="modal-body">
+          <!--begin::Card body-->
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-4 col-form-label fw-bold fs-6 fw-bold"><b>Start Date:</b></label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-8 fv-row">
+              <input [(ngModel)]="examRequest.startDate" name="startDate" class="form-control" type="date" value="" id="startDate">
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-4 col-form-label fw-bold fs-6 fw-bold"><b>End Date:</b></label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-8 fv-row">
+              <input [(ngModel)]="examRequest.endDate" name="endDate" class="form-control" type="date" value="" id="endDate">
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-4 col-form-label fw-bold fs-6 fw-bold"><b>Practical Exams Start Date:</b></label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-8 fv-row">
+              <input [(ngModel)]="examRequest.practicalsStartDate"  name="pracstartDate"class="form-control" type="date" value="" id="pracendDate">
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-4 col-form-label fw-bold fs-6 fw-bold"><b>Practical Exams End Date:</b></label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-8 fv-row">
+              <input [(ngModel)]="examRequest.practicalsEndDate" name="pracendDate" class="form-control" type="date" value="" id="pracstartDate">
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-4 col-form-label fw-bold fs-6 fw-bold">Include Saturdays?</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-8 fv-row">
+              <input [(ngModel)]="examRequest.includeSaturdays" name="incliSat" class="form-check-input" type="checkbox" value="" id="satudLecture">
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-4 col-form-label fw-bold fs-6 fw-bold">Include Sundays?</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-8 fv-row">
+              <input [(ngModel)]="examRequest.includeSundays" name="incliSun" class="form-check-input" type="checkbox" value="" id="sundayLecture">
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+        </div>
+        <div class="modal-footer">
+          <input type="submit" class="btn btn-primary" value="Generate" data-bs-toggle="modal" data-bs-target="#lectureModal" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <app-loading-screen *ngIf="isLoading"></app-loading-screen>

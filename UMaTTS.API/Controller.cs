@@ -21,16 +21,16 @@ public class Controller : ControllerBase
 
     protected static ApiErrorResponse ErrorResponse(Exception ex)
     {
-        return new ApiErrorResponse(ex.GetStatusCode(), ex.Message);
+        return new ApiErrorResponse(ex.GetStatusCode(), ex.Message, ex.Message);
     }
 
     protected static ApiErrorResponse ErrorResponse(int? statusCode = 404,
         object? id = null,
         string message = "Bad request")
     {
-        if (id is null) return new ApiErrorResponse(statusCode, message);
+        if (id is null) return new ApiErrorResponse(statusCode, message, message);
         return new ApiErrorResponse(StatusCodes.Status404NotFound,
-            $"Entity with id: {id} does not exist");
+            $"Entity with id: {id} does not exist", "");
     }
 
     protected IActionResult BuildProblemDetails(Exception ex)
@@ -59,4 +59,4 @@ public static class Exceptions
 }
 
 public record ApiSuccessResponse<TResponse>(TResponse? Data, int? StatusCode, string? Message);
-public record ApiErrorResponse(int? StatusCode, string? Message);
+public record ApiErrorResponse(int? StatusCode, string? Message, string? DetailedMessage);

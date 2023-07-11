@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {Navigations} from "../../helpers/navigations";
 import {TimetableService} from "../../services/http/timetable.service";
 import {NotificationService} from "../../services/notification.service";
@@ -9,7 +9,7 @@ import { ExamTimetableRequest } from 'src/app/models/requests/exam-timetable-req
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   navigator = new Navigations();
   isLoading:boolean = false;
   examRequest:ExamTimetableRequest;
@@ -17,12 +17,16 @@ export class DashboardComponent {
   constructor(private timetableService:TimetableService, private toast:NotificationService) {
   }
 
+  ngOnInit(): void {
+    this.examRequest = new ExamTimetableRequest();
+  }
+
   syncData(){
     this.isLoading = true;
     this.timetableService.syncData().subscribe({
-      next: _ => {
+      next: data => {
         this.isLoading = false;
-        this.toast.showSuccess("System data synced with that of UMaT", "Success");
+        this.toast.showSuccess(data.message, "Success");
       },
       error: _ => {
         this.isLoading = false;
@@ -34,9 +38,9 @@ export class DashboardComponent {
   generateLectures(){
     this.isLoading = true;
     this.timetableService.generateLectures().subscribe({
-      next: _ => {
+      next: data => {
         this.isLoading = false;
-        this.toast.showSuccess("Lectures have been generated", "Success");
+        this.toast.showSuccess(data.message, "Success");
       },
       error: _ => {
         this.isLoading = false;
@@ -48,6 +52,12 @@ export class DashboardComponent {
   download(){
     this.isLoading = true;
     this.timetableService.download();
+    this.isLoading = false;
+  }
+
+  downloadExams(){
+    this.isLoading = true;
+    this.timetableService.downloadExam();
     this.isLoading = false;
   }
 
@@ -80,9 +90,9 @@ export class DashboardComponent {
   reset(){
     this.isLoading = true;
     return this.timetableService.reset().subscribe({
-      next: _ => {
+      next: data => {
         this.isLoading = false;
-        this.toast.showSuccess("System has been successfully reset", "Success");
+        this.toast.showSuccess(data.message, "Success");
       },
       error: _ => {
         this.isLoading = false;

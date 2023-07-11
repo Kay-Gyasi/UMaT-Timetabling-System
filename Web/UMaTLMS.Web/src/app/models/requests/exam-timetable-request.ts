@@ -1,8 +1,8 @@
 export class ExamTimetableRequest {
-  startDate: Date;
-  endDate: Date;
+  startDate: string;
+  endDate: string;
   includeSaturdays: boolean;
   includeSundays: boolean;
-  practicalsStartDate: Date;
-  practicalsEndDate: Date;
+  practicalsStartDate: string;
+  practicalsEndDate: string;
 }

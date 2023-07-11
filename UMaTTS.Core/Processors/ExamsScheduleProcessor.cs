@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FluentValidation;
+using Microsoft.Extensions.Configuration;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
 
@@ -40,27 +41,17 @@ public class ExamsScheduleProcessor
     public async Task<OneOf<bool, Exception>> Generate(ExamsScheduleCommand command)
     {
         var rooms = await _roomRepository.GetAllAsync(x => x.IsExaminationCenter);
-        var lectures = await _lectureRepository
-            .GetAllAsync(x => x.Course!.IsExaminable || x.Course!.HasPracticalExams);
+        var lectures = await _lectureRepository.GetAllAsync(x => x.Course!.IsExaminable || x.Course!.HasPracticalExams);
         var lecturers = await _lecturerRepository.GetAllAsync();
         var groups = await _subClassGroupRepository.GetAllAsync();
         var courses = await _courseRepository.GetAllAsync();
 
         var schedules = await Task.Run(() =>
             ExamsTimetableGenerator.Generate(lectures, rooms, groups, lecturers, courses, command));
-        foreach (var schedule in schedules)
-        {
-            await _examsScheduleRepository.UpdateAsync(schedule, saveChanges: false).ConfigureAwait(false);
-        }
-        
-        var isSaved = await _examsScheduleRepository.SaveChanges();
-        if (!isSaved) return new InvalidDataException();
         
         var fileName = _configuration[_timetableFile] ?? string.Empty;
-        if (File.Exists(fileName))
-        {
-            return new TimetableGeneratedException();
-        }
+        if (string.IsNullOrWhiteSpace(fileName)) return new TimetableGeneratedException();
+        if (File.Exists(fileName)) return new TimetableGeneratedException();
 
         await ExamsTimetableGenerator.GetAsync(_excelReader, schedules, fileName);
         return true;
@@ -69,3 +60,18 @@ public class ExamsScheduleProcessor
 
 public record ExamsScheduleCommand(DateTime StartDate, DateTime EndDate, bool IncludeSaturdays,
     bool IncludeSundays, DateTime PracticalsStartDate, DateTime PracticalsEndDate);
+
+public class ExamsScheduleCommandValidator : AbstractValidator<ExamsScheduleCommand>
+{
+    public ExamsScheduleCommandValidator()
+    {
+        RuleFor(x => x.StartDate.Date)
+            .GreaterThanOrEqualTo(DateTime.Now.Date);
+        RuleFor(x => x.EndDate.Date)
+            .GreaterThanOrEqualTo(x => x.StartDate.Date);
+        RuleFor(x => x.PracticalsStartDate.Date)
+            .GreaterThanOrEqualTo(DateTime.Now.Date);
+        RuleFor(x => x.PracticalsEndDate.Date)
+            .GreaterThanOrEqualTo(x => x.PracticalsStartDate.Date);
+    }
+}

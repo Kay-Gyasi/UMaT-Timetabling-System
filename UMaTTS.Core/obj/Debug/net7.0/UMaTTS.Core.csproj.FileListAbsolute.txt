@@ -1,0 +1,15 @@
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\bin\Debug\net7.0\UMaTTS.Core.deps.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\bin\Debug\net7.0\UMaTTS.Core.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\bin\Debug\net7.0\UMaTTS.Core.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\bin\Debug\net7.0\UMaTTS.SharedKernel.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\bin\Debug\net7.0\UMaTTS.SharedKernel.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.csproj.AssemblyReference.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.AssemblyInfoInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.AssemblyInfo.cs
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.csproj.CopyComplete
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\refint\UMaTTS.Core.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\ref\UMaTTS.Core.dll

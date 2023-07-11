@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Entities;
 
@@ -15,7 +16,7 @@ public class ExamsSchedule : Entity
     public DateTime DateOfExam { get; private set; }
     public int? RoomId { get; private set; }
     public string SerializedCourseCodes { get; set; }
-    public string CourseNo => CourseCodes?[0].Split(" ")[1] ?? string.Empty;
+    public string CourseNo => CourseCodes?[0].Split(AppHelpers.WhiteSpace)[1] ?? string.Empty;
     public int? ExaminerId { get; private set; }
     public string? Examiner { get; private set; }
     public string? CourseName { get; private set; }

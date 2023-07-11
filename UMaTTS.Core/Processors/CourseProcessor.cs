@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using UMaTLMS.Core.Helpers;
+﻿using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -7,13 +6,10 @@ namespace UMaTLMS.Core.Processors;
 public class CourseProcessor
 {
     private readonly ICourseRepository _courseRepository;
-    private readonly ILecturerRepository _lecturerRepository;
 
-    public CourseProcessor(ICourseRepository courseRepository,
-        ILecturerRepository lecturerRepository)
+    public CourseProcessor(ICourseRepository courseRepository)
     {
         _courseRepository = courseRepository;
-        _lecturerRepository = lecturerRepository;
     }
 
     public async Task<OneOf<bool, Exception>> UpdateAsync(CourseCommand command)

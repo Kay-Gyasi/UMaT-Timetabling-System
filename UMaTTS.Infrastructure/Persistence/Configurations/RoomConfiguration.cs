@@ -6,5 +6,6 @@ public class RoomConfiguration : DatabaseConfiguration<ClassRoom, int>
     {
         base.Configure(builder);
         builder.ToTable(DomainEntities.Room);
+        builder.HasIndex(x => x.Name);
     }
 }

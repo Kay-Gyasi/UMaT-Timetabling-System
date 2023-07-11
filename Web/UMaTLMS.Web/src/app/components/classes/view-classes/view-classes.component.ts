@@ -101,6 +101,7 @@ export class ViewClassesComponent implements OnInit{
           this.toast.showError("Failed to adjust class sizes to limit", "Failed");
           return;
         }
+
         this.getClasses();
         this.isLoading = false;
         this.toast.showSuccess("Sizes have been adjusted to limit", "Succeeded");

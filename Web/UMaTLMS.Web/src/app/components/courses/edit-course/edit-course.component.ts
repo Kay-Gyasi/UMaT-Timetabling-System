@@ -26,6 +26,7 @@ export class EditCourseComponent implements OnInit {
   editCourse(){
     this.isLoading = true;
     let request = new CourseRequest();
+    request.name = this.course;
     request.isExaminable = this.courseForm.get('isExaminable')?.value;
     request.isToHaveWeeklyLectureSchedule = this.courseForm.get('isToHaveWeeklyLectureSchedule')?.value;
     request.hasPracticalExams = this.courseForm.get('hasPracticalExams')?.value;

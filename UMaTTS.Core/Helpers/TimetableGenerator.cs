@@ -376,7 +376,7 @@ namespace UMaTLMS.Core.Helpers
             var names = lecture.SubClassGroups.Select(x => x.Name);
             builder.Append(string.Join(",", names));
             builder.Append(' ');
-            builder.Append(lecture.Course?.Code!.Split(" ")[1]);
+            builder.Append(lecture.Course?.Code!.Split(AppHelpers.WhiteSpace)[1]);
             builder.Append(lecture.IsPractical == true ? " (P)" : "");
             builder.Append(Environment.NewLine);
             builder.Append(lecture.Lecturer?.Name?.Split(",").First());

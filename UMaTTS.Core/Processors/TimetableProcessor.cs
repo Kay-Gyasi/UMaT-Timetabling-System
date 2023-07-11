@@ -302,11 +302,11 @@ public class TimetableProcessor
         {
             if (course.Code!.StartsWith("EM 411") || course.Code!.StartsWith("EM 413")) continue;
             if (course.FirstExaminerStaffId is null) continue;
-            var courseCode = course.Code?.Trim().Split(" ")[1];
+            var courseCode = course.Code?.Trim().Split(AppHelpers.WhiteSpace)[1];
 
             var lecturerId = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId)?.Id;
             var insertedLectures = lectures.Where(x => 
-                x.Course?.Code?.Split(" ")[1] == courseCode 
+                x.Course?.Code?.Split(AppHelpers.WhiteSpace)[1] == courseCode 
                 && x.LecturerId == lecturerId).ToList();
 
             if (insertedLectures.Any()) 

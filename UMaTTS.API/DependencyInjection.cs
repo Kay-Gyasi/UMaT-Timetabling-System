@@ -1,6 +1,7 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using UMaTLMS.API.Attributes;
 
 namespace UMaTLMS.API
 {
@@ -18,7 +19,14 @@ namespace UMaTLMS.API
 
         private static IServiceCollection InstallDefaults(this IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers(options =>
+            {
+                options.Filters.Add(typeof(CustomValidationAttribute));
+            });
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
             services.AddEndpointsApiExplorer()
                 .InstallCors();
             return services;

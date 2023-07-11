@@ -22,7 +22,7 @@ export class TimetableService {
         }
 
         if (data.statusCode == 206){
-          this.toast.showError("Some lectures were not scheduled", "Failed");
+          this.toast.showError(data.message, "Failed");
           return undefined;
         }
 
@@ -43,16 +43,14 @@ export class TimetableService {
           return undefined;
         }
 
-        if (data.statusCode == 206){
-          this.toast.showError("Some courses were not scheduled", "Failed");
+        if (data.statusCode != 200 && data.statusCode != 204 && data.statusCode != 201){
+          this.toast.showError(data.message, "Failed");
           return undefined;
         }
 
-        if (data.statusCode == 200 || data.statusCode == 204 || data.statusCode == 201){
-          this.downloadExam();
-          this.toast.showSuccess("Exams timetable has been generated", "Succeeded");
-          return data.data;
-        }
+        this.downloadExam();
+        this.toast.showSuccess("Exams timetable has been generated", "Succeeded");
+        return data.data;
       })
     )
   }

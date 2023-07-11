@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using UMaTLMS.Core.Processors;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace UMaTLMS.Core;
 
@@ -17,6 +19,9 @@ public static class DependencyInjection
             opts.NotificationPublisher = new ForeachAwaitPublisher();
             opts.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
         });
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly)
+            .AddFluentValidationAutoValidation()
+            .AddFluentValidationClientsideAdapters();
         return services;
     }
 

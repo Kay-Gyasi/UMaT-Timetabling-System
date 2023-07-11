@@ -63,4 +63,6 @@ public static class AppHelpers
             (list[i], list[j]) = (list[j], list[i]);
         }
     }
+
+    public const string WhiteSpace = " ";
 }

@@ -39,7 +39,7 @@ export class CourseService{
   edit(payload:CourseRequest): Observable<any>{
     return this.http.postRequestAsync("courses/save", payload).pipe(
       map(data => {
-          if (data.statusCode != 201){
+          if (data.statusCode != 201 && data.statusCode != 200 && data.statusCode != 204){
             this.toast.showError("Unable to edit course", "Failed");
             return;
           }

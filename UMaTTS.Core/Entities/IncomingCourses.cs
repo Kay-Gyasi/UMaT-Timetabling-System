@@ -19,6 +19,7 @@ public class IncomingCourse : Entity
             name = builder.ToString();
         }
         Name = name;
+        IsExaminable = name.ToLower().Contains("field trip") == false;
         Credit = credit;
     }
 
