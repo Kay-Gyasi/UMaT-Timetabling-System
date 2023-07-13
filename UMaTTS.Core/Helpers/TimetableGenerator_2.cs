@@ -215,37 +215,37 @@ public static partial class TimetableGenerator
         border.Left.Style = border.Right.Style = border.Top.Style = border.Bottom.Style = ExcelBorderStyle.Thin;
     }
 
-    private static string GetCellName(ExcelWorksheet worksheet, (string, string) cellName,
+    private static string GetCellName(ExcelWorksheet worksheet, (string Column, string Row) cellName,
         LectureSchedule lectureSchedule, List<string> columns, int roomsCount, int lectureNo)
     {
         for (int i = 0; i < columns.Count; i++)
         {
-            if (!string.IsNullOrWhiteSpace(cellName.Item1) && !string.IsNullOrWhiteSpace(cellName.Item2)) break;
+            if (!string.IsNullOrWhiteSpace(cellName.Column) && !string.IsNullOrWhiteSpace(cellName.Row)) break;
 
             for (int j = 7; j <= roomsCount + 7; j++)
             {
-                if (!string.IsNullOrWhiteSpace(cellName.Item1) && !string.IsNullOrWhiteSpace(cellName.Item2)) break;
+                if (!string.IsNullOrWhiteSpace(cellName.Column) && !string.IsNullOrWhiteSpace(cellName.Row)) break;
 
                 var cellValue = worksheet.Cells[$"{columns[i]}{j}"].Value?.ToString();
                 if (string.IsNullOrEmpty(cellValue)) continue;
 
                 if (cellValue == GetTimeMapping(lectureSchedule.TimePeriod, lectureNo))
                 {
-                    cellName.Item1 = columns[i];
+                    cellName.Column = columns[i];
                 }
 
                 if (cellValue == lectureSchedule.Room.Name)
                 {
-                    cellName.Item2 = j.ToString();
+                    cellName.Row = j.ToString();
                 }
             }
         }
 
-        return $"{cellName.Item1}{cellName.Item2}";
+        return $"{cellName.Column}{cellName.Row}";
     }
 
     private static string GetVleCellName(ExcelWorksheet worksheet, OnlineLectureSchedule lectureSchedule,
-        (string, string) cellName, List<string> columns)
+        (string Column, string Row) cellName, List<string> columns)
     {
         List<int> vleRows = new();
         string result;
@@ -258,7 +258,7 @@ public static partial class TimetableGenerator
 
         foreach (var row in vleRows)
         {
-            if (!string.IsNullOrWhiteSpace(cellName.Item1) && !string.IsNullOrWhiteSpace(cellName.Item2)) break;
+            if (!string.IsNullOrWhiteSpace(cellName.Column) && !string.IsNullOrWhiteSpace(cellName.Row)) break;
 
             for (int i = 0; i < columns.Count; i++)
             {
@@ -269,20 +269,20 @@ public static partial class TimetableGenerator
                 var name = $"{columns[i]}{row}";
                 if (!string.IsNullOrWhiteSpace(worksheet.Cells[name].Value?.ToString())) break;
 
-                cellName.Item1 = columns[i];
-                cellName.Item2 = row.ToString();
+                cellName.Column = columns[i];
+                cellName.Row = row.ToString();
                 break;
             }
         }
 
-        if (string.IsNullOrWhiteSpace(cellName.Item1))
+        if (string.IsNullOrWhiteSpace(cellName.Column))
         {
             AddVleRow(worksheet);
             result = GetVleCellName(worksheet, lectureSchedule, cellName, columns);
             return result;
         }
 
-        return $"{cellName.Item1}{cellName.Item2}";
+        return $"{cellName.Column}{cellName.Row}";
     }
 
     private static void ApplyStyling(this ExcelRange range, int fontSize = 10, bool isBold = false, bool isMerge = false)

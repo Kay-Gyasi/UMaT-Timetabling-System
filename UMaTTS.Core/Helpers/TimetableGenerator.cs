@@ -5,7 +5,7 @@ namespace UMaTLMS.Core.Helpers
 {
     public static partial class TimetableGenerator
     {
-        public static (List<LectureSchedule>, List<OnlineLectureSchedule>) Generate(List<LectureSchedule> schedules, 
+        public static (List<LectureSchedule> GeneralSchedules, List<OnlineLectureSchedule> OnlineSchedules) Generate(List<LectureSchedule> schedules, 
             List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures)
         {
             ResetSchedules(schedules, onlineSchedules);

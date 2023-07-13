@@ -24,7 +24,7 @@ public static partial class ExamsTimetableGenerator
         return AssignInvigilators((schedules, practicalSchedules), lecturers, courses);
     }
     
-    private static (List<IGrouping<string, ExamsSchedule>>, List<IGrouping<string, ExamsSchedule>>) 
+    private static (List<IGrouping<string, ExamsSchedule>> Exams, List<IGrouping<string, ExamsSchedule>> Practicals) 
         GetSchedulesInInitialState(List<Lecture> examinableLectures)
     {
         var schedules = new List<ExamsSchedule>();
@@ -76,7 +76,7 @@ public static partial class ExamsTimetableGenerator
 
     private static (List<ExamsSchedule>, List<ExamsSchedule>) SetInitialDatesAndPeriods(ExamsScheduleCommand command, 
         List<DateTime> examDates, List<DateTime> practicalDates, ExamPeriod[] examPeriods, List<ExamsSchedule> schedules,
-        (List<IGrouping<string, ExamsSchedule>>, List<IGrouping<string, ExamsSchedule>>) examsGroupedByCourseCode, 
+        (List<IGrouping<string, ExamsSchedule>> Exams, List<IGrouping<string, ExamsSchedule>> Practicals) examsGroupedByCourseCode, 
         List<ExamsSchedule> practicalSchedules)
     {
         GenerateExamDates(examDates, command.StartDate, command.EndDate, command.IncludeSaturdays, command.IncludeSundays);
@@ -85,12 +85,12 @@ public static partial class ExamsTimetableGenerator
 
         var (examMoments, practicalMoments) = GenerateExamMoments(examDates, practicalDates, examPeriods);
 
-        SetDatesAndPeriodsForEachGrouping(examsGroupedByCourseCode.Item1, examMoments, schedules);
-        SetDatesAndPeriodsForEachGrouping(examsGroupedByCourseCode.Item2, practicalMoments, practicalSchedules);        
+        SetDatesAndPeriodsForEachGrouping(examsGroupedByCourseCode.Exams, examMoments, schedules);
+        SetDatesAndPeriodsForEachGrouping(examsGroupedByCourseCode.Practicals, practicalMoments, practicalSchedules);        
         return (schedules, practicalSchedules);
     }
 
-    private static (List<ExamsSchedule>, List<ExamsSchedule>) AssignRooms((List<ExamsSchedule>, List<ExamsSchedule>) schedules, 
+    private static (List<ExamsSchedule>, List<ExamsSchedule>) AssignRooms((List<ExamsSchedule> Exams, List<ExamsSchedule> Practicals) schedules, 
         IEnumerable<ClassRoom> rooms, List<SubClassGroup> subClassGroups, List<DateTime> examDates, 
         List<DateTime> practicalDates, ExamPeriod[] examPeriods)
     {
@@ -98,8 +98,8 @@ public static partial class ExamsTimetableGenerator
         var roomsForGeneralExams = rooms.Where(x => x.IncludeInGeneralAssignment)
                                     .OrderBy(x => x.Capacity).ToList();
 
-        AssignRooms(examDates, schedules.Item1, examPeriods, roomsForGeneralExams, subClassGroups);
-        AssignRooms(practicalDates, schedules.Item2, examPeriods, roomsForGeneralExams, subClassGroups);
+        AssignRooms(examDates, schedules.Exams, examPeriods, roomsForGeneralExams, subClassGroups);
+        AssignRooms(practicalDates, schedules.Practicals, examPeriods, roomsForGeneralExams, subClassGroups);
         return schedules;
     }
 
@@ -164,17 +164,18 @@ public static partial class ExamsTimetableGenerator
         }
     }
 
-    private static List<List<ExamsSchedule>> AssignInvigilators((List<ExamsSchedule>, List<ExamsSchedule>) schedules,
+    private static List<List<ExamsSchedule>> AssignInvigilators((List<ExamsSchedule> Exams, List<ExamsSchedule> Practicals) schedules,
         List<Lecturer> lecturers, List<IncomingCourse> courses)
     {
         AppHelpers.Shuffle(lecturers);
-        var examsAndPracticalSchedules = new List<List<ExamsSchedule>> { schedules.Item1, schedules.Item2 };
+        var examsAndPracticalSchedules = new List<List<ExamsSchedule>> { schedules.Exams, schedules.Practicals };
 
         foreach (var schdules in examsAndPracticalSchedules)
         {
             var groupedSchedules = schdules.GroupBy(x => x.CourseNo).ToList();
             foreach (var groupedSchedule in groupedSchedules)
             {
+                if (groupedSchedule is null) continue;
                 var invigilators = new HashSet<(string, int)>();
                 foreach (var exam in groupedSchedule)
                 {
@@ -193,15 +194,15 @@ public static partial class ExamsTimetableGenerator
         return examsAndPracticalSchedules;
     }
 
-    private static void AssignInvigilators(IGrouping<string, ExamsSchedule>? groupedSchedule,
-        List<Lecturer> lecturers, HashSet<(string, int)> invigilators, int count)
+    private static void AssignInvigilators(IGrouping<string, ExamsSchedule> groupedSchedule,
+        List<Lecturer> lecturers, HashSet<(string Name, int Id)> invigilators, int count)
     {
         foreach (var schedule in groupedSchedule)
         {
             if (schedule.CourseCodes is null) continue;
             foreach (var _ in schedule.CourseCodes)
             {
-                var invigilator = lecturers.First(x => x.Id == invigilators.ElementAt(count).Item2);
+                var invigilator = lecturers.First(x => x.Id == invigilators.ElementAt(count).Id);
                 schedule.ToBeInvigilatedBy(invigilator);
                 count += 1;
             }
@@ -313,7 +314,7 @@ public static partial class ExamsTimetableGenerator
     }
 
     private static void SetDatesAndPeriodsForEachGrouping(List<IGrouping<string, ExamsSchedule>> examsGroupedByCourseCode,
-        List<(DateTime, ExamPeriod, List<int>)> examMoments, List<ExamsSchedule> schedules)
+        List<(DateTime Date, ExamPeriod Period, List<int> AssignedGroups)> examMoments, List<ExamsSchedule> schedules)
     {
         foreach (var grouping in examsGroupedByCourseCode)
         {
@@ -321,17 +322,17 @@ public static partial class ExamsTimetableGenerator
             var count = 0;
             var moments = examMoments;
             AppHelpers.Shuffle(moments);
-            (DateTime, ExamPeriod, List<int>) moment;
+            (DateTime Date, ExamPeriod Period, List<int> AssignedGroups) moment;
             while (classHasExamOnDate)
             {
-                moments = moments.OrderBy(x => x.Item3.Count).ToList();
+                moments = moments.OrderBy(x => x.AssignedGroups.Count).ToList();
                 moment = moments[count];
                 foreach (var exam in grouping)
                 {
                     foreach (var group in exam.SubClassGroups)
                     {
                         classHasExamOnDate =
-                            schedules.Any(x => x.DateOfExam == moment.Item1
+                            schedules.Any(x => x.DateOfExam == moment.Date
                                                && x.SubClassGroups.Any(a => a.Id == group.Id));
                         if (classHasExamOnDate) break;
                     }
@@ -346,12 +347,12 @@ public static partial class ExamsTimetableGenerator
 
                 foreach (var exam in grouping)
                 {
-                    exam.OnPeriod(moment.Item2)
-                        .ToBeWrittenOn(moment.Item1);
+                    exam.OnPeriod(moment.Period)
+                        .ToBeWrittenOn(moment.Date);
                     schedules.Add(exam);
 
                     count = 0;
-                    moment.Item3.AddRange(exam.SubClassGroups.Select(x => x.Id));
+                    moment.AssignedGroups.AddRange(exam.SubClassGroups.Select(x => x.Id));
                 }
             }
 

@@ -67,10 +67,10 @@ public class TimetableProcessor
         }
 
         var result = TimetableGenerator.Generate(schedules, onlineSchedules, lectures);
-        schedules = result.Item1;
-        onlineSchedules = result.Item2;
+        schedules = result.GeneralSchedules;
+        onlineSchedules = result.OnlineSchedules;
 
-        var lecturesNotScheduledCount = GetCountOfLecturesNotScheduled(lectures, result.Item1);
+        var lecturesNotScheduledCount = GetCountOfLecturesNotScheduled(lectures, schedules);
         if (lecturesNotScheduledCount > 0)
         {
             return new LecturesNotScheduledException();
