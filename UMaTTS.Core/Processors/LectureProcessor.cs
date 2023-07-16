@@ -54,7 +54,6 @@ public class LectureProcessor
 	public async Task<PaginatedList<LecturePageDto>> GetPageAsync(PaginatedCommand command) 
 	{
 		var page = await _lectureRepository.GetPageAsync(command);
-		page.HasData(page.Data.OrderBy(x => x.Course?.Name).ToList());
 		return page.Adapt<PaginatedList<LecturePageDto>>(Mapping.GetTypeAdapterConfig());
 	}
 

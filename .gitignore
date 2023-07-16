@@ -1,3 +1,5 @@
 .vs
 .idea
 _content
+.vscode
+package-lock.json

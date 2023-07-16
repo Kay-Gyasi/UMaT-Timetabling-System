@@ -16,11 +16,12 @@
 
         public override Task<PaginatedList<Lecture>> GetPageAsync(PaginatedCommand command, IQueryable<Lecture>? source = null)
         {
+            source = GetBaseQuery().OrderByDescending(x => x.Course!.Name);
             if (!string.IsNullOrWhiteSpace(command.Search))
             {
-                source = GetBaseQuery().Where(x => x.Lecturer!.Name!.Contains(command.Search) 
-                    || x.Course!.Name!.Contains(command.Search) 
-                    || x.SubClassGroups.Any(g => g.Name.Contains(command.Search)));
+                source = source.Where(x => x.Lecturer!.Name!.Contains(command.Search) 
+                            || x.Course!.Name!.Contains(command.Search) 
+                            || x.SubClassGroups.Any(g => g.Name.Contains(command.Search)));
             }
             
             return base.GetPageAsync(command, source);

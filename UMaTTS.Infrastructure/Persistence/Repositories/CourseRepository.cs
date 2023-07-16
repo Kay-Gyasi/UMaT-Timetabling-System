@@ -1,6 +1,4 @@
-﻿using UMaTLMS.Core.Processors;
-
-namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class CourseRepository : Repository<IncomingCourse, int>, ICourseRepository
 {
@@ -22,10 +20,10 @@ public class CourseRepository : Repository<IncomingCourse, int>, ICourseReposito
             var distinctData = data.AsEnumerable().DistinctBy(x => x.Name);
             var count = distinctData.Count();
             var items = distinctData
-                .OrderBy(x => x.Name)
-                .Skip((command.PageNumber - 1) * command.PageSize)
-                .Take(command.PageSize)
-                .ToList();
+                            .OrderBy(x => x.Name)
+                            .Skip((command.PageNumber - 1) * command.PageSize)
+                            .Take(command.PageSize)
+                            .ToList();
             return new PaginatedList<IncomingCourse>(items, count, command.PageNumber, command.PageSize);
         });
     }

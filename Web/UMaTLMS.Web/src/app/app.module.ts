@@ -30,6 +30,13 @@ import { LoadingScreenComponent } from './components/widgets/loading-screen/load
 import { ViewCoursesComponent } from './components/courses/view-courses/view-courses.component';
 import { CourseService } from './services/http/course.service';
 import { EditCourseComponent } from './components/courses/edit-course/edit-course.component';
+import { StoreModule } from '@ngrx/store';
+import { metaReducers, reducers } from './state/store/reducers';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from 'src/environments/environment';
+import { EffectsModule } from '@ngrx/effects';
+import {CourseEffects} from "./state/effects/courses.effects";
+import {TimetableService} from "./services/http/timetable.service";
 @NgModule({
   declarations: [
     AppComponent,
@@ -57,13 +64,21 @@ import { EditCourseComponent } from './components/courses/edit-course/edit-cours
     ReactiveFormsModule,
     HttpClientModule,
     NgSelectModule,
-    ToastrModule.forRoot()
+    StoreModule.forRoot(reducers, {
+      metaReducers
+    }),
+    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),
+    EffectsModule.forRoot(CourseEffects),
+    ToastrModule.forRoot(),
   ],
   providers: [
     { provide:IHttpRequest, useClass: HttpRequest },
-    MetronicJs, CourseService, RoomService, ClassService, NotificationService],
+    MetronicJs, CourseService, RoomService, ClassService, NotificationService,
+    TimetableService
+  ],
   bootstrap: [AppComponent]
 })
+
 export class AppModule {
   constructor(private metronicJs: MetronicJs) {
     this.metronicJs.init();

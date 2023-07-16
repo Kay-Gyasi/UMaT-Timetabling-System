@@ -6,6 +6,9 @@ import { PaginatedQuery } from 'src/app/models/paginated-query';
 import { CourseResponse } from 'src/app/models/responses/course-response';
 import { CourseService } from 'src/app/services/http/course.service';
 import { NotificationService } from 'src/app/services/notification.service';
+import {Store} from "@ngrx/store";
+import {AppState} from "../../../state/store/reducers";
+import {GetCoursesPage} from "../../../state/store/actions/courses/get-course-page.action";
 
 declare var KTMenu: any;
 
@@ -22,8 +25,7 @@ export class ViewCoursesComponent implements OnInit {
   isLoading:boolean = false;
   searchForm:UntypedFormGroup;
   query:PaginatedQuery = PaginatedQuery.Build(0, 1, 20);
-  constructor(private courseService:CourseService, private fb:FormBuilder,
-              private toast: NotificationService) {
+  constructor(private fb:FormBuilder, private toast: NotificationService, private store:Store<AppState>) {
       this.searchForm = this.fb.group({
         "term": ["", [Validators.maxLength(30)]]
       });
@@ -36,23 +38,8 @@ export class ViewCoursesComponent implements OnInit {
   public getCourses(pageNumber:number = 1){
     this.isLoading = true;
     this.buildQuery(pageNumber);
-    this.courseService.getPage(this.query).subscribe({
-      next: data => {
-        if (data == undefined){
-          this.toast.showError("Unable to load courses", "Failed")
-          return;
-        }
-        this.courses = data;
-        for (let i = 1; i <= data.totalPages; i++){
-          this.pages.push(i);
-        }
-        this.isLoading = false;
-      },
-      error: err => {
-        this.toast.showError("Unable to load courses", "Failed");
-        this.isLoading = false;
-      }
-    })
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetCoursesPage({ query: newQuery }));
   }
 
   get term(){
@@ -69,6 +56,28 @@ export class ViewCoursesComponent implements OnInit {
   private initialize(){
     KTMenu.init();
     KTMenu.init();
-    this.getCourses();
+
+    this.store.select((store) => store.courses_page.data).subscribe({
+      next: data => {
+        if (data == undefined){
+          this.toast.showError("Unable to load courses", "Failed")
+          return;
+        }
+        this.courses = data;
+        for (let i = 1; i <= data.totalPages; i++){
+          this.pages.push(i);
+        }
+        this.isLoading = false;
+      },
+      error: err => {
+        this.toast.showError("Unable to load courses", "Failed");
+        this.isLoading = false;
+      }
+    });
+
+    if (this.courses.data.length == 0){
+      const newQuery = Object.assign({}, this.query);
+      this.store.dispatch(GetCoursesPage({ query: newQuery }));
+    }
   }
 }

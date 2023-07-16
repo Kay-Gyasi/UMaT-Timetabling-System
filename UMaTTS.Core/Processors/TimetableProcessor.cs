@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Helpers;
@@ -50,10 +49,7 @@ public class TimetableProcessor
     public async Task<OneOf<bool, Exception>> Generate()
     {
         var fileName = _configuration[_timetableFile] ?? string.Empty;
-        if (File.Exists(fileName))
-        {
-            return new TimetableGeneratedException();
-        }
+        if (File.Exists(fileName)) return new TimetableGeneratedException();
 
         var lectures = await _lectureRepository.GetAllAsync();
         var schedules = await _lectureScheduleRepository.GetAllAsync();
@@ -89,7 +85,6 @@ public class TimetableProcessor
         }
 
         await _lectureScheduleRepository.SaveChanges();
-
         await TimetableGenerator.GetAsync(_excelReader, schedules, onlineSchedules, rooms, fileName);
         return true;
     }

@@ -13,11 +13,11 @@ export class PaginatedQuery {
     this.Search = term;
   }
 
-  Skip!:number;
-  PageNumber!:number;
-  PageSize!:number;
-  Start!:number;
-  Sort!:string;
-  Search!:string;
-  OtherJson!:string;
+  Skip:number;
+  PageNumber:number;
+  PageSize:number;
+  Start:number;
+  Sort:string;
+  Search:string;
+  OtherJson:string;
 }

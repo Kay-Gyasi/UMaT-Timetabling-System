@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import {IHttpRequest} from "./base/ihttp-request";
 import {map, Observable, throwError} from "rxjs";
 import {NotificationService} from "../notification.service";
-import {environment} from "../../../environments/environment";
 import { ExamTimetableRequest } from 'src/app/models/requests/exam-timetable-request';
+import {environment} from "../../../environments/environment";
 
 @Injectable({
   providedIn: 'root'
