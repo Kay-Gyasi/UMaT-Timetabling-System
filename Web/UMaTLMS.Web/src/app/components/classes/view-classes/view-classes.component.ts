@@ -7,6 +7,10 @@ import {NotificationService} from "../../../services/notification.service";
 import {PaginatedQuery} from "../../../models/paginated-query";
 import {FormBuilder, FormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import {Router} from "@angular/router";
+import {Store} from "@ngrx/store";
+import {AppState} from "../../../state/store/reducers";
+import {GetCoursesPage} from "../../../state/store/actions/courses/get-course-page.action";
+import {GetClassGroupPage} from "../../../state/store/actions/classes/get-class-group-page.action";
 
 declare var KTMenu:any;
 @Component({
@@ -25,7 +29,7 @@ export class ViewClassesComponent implements OnInit{
   subClassForm:UntypedFormGroup;
   selectedClass:ClassResponse = new ClassResponse();
   constructor(private classService:ClassService, private toast:NotificationService,
-              private fb:FormBuilder, private router:Router) {
+              private fb:FormBuilder, private router:Router, private store: Store<AppState>) {
     this.searchForm = this.fb.group({
       "term": ["", [Validators.maxLength(30)]]
     });
@@ -42,24 +46,8 @@ export class ViewClassesComponent implements OnInit{
     this.isLoading = true;
     this.buildQuery(pageNumber);
     this.pages = [];
-    this.classService.getPage(this.query).subscribe({
-      next: data => {
-        if (data == undefined){
-          this.toast.showError("Unable to load classes", "Failed")
-          return;
-        }
-        this.classes = data;
-        for (let i = 1; i <= data.totalPages; i++){
-          this.pages.push(i);
-        }
-      },
-      error: err => {
-        this.toast.showError("Unable to load classes", "Failed")
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    })
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetClassGroupPage({ query: newQuery }));
   }
 
   setSubClass(){
@@ -131,6 +119,41 @@ export class ViewClassesComponent implements OnInit{
   private initialize(){
     KTMenu.init();
     KTMenu.init();
-    this.getClasses();
+
+    this.store.select(store => store.class_groups_page.query).subscribe({
+      next: query => {
+        this.query.PageNumber = query.PageNumber;
+        this.searchForm.setValue({
+          term: query.Search ?? ''
+        })
+      },
+      error: _ => console.log('Error while retrieving query state')
+    });
+
+    this.store.select(store => store.class_groups_page.data).subscribe({
+      next: data => {
+        if (data == undefined){
+          this.toast.showError("Unable to load classes", "Failed")
+          return;
+        }
+        this.classes = data;
+        for (let i = 1; i <= data.totalPages; i++){
+          this.pages.push(i);
+        }
+        this.isLoading = false;
+      },
+      error: err => {
+        this.toast.showError("Unable to load classes", "Failed")
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    })
+
+    if (this.classes.data.length == 0){
+      this.isLoading = true;
+      const newQuery = Object.assign({}, this.query);
+      this.store.dispatch(GetClassGroupPage({ query: newQuery }));
+    }
   }
 }

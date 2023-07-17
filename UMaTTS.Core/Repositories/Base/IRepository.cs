@@ -13,7 +13,8 @@ public interface IRepository<T, TKey> where T : Entity
     Task DeleteAllAsync(List<T> entities, bool saveChanges = true);
     Task UpdateAsync(T entity, bool saveChanges = true);
     Task<T?> FindByIdAsync(int id);
-    Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, IQueryable<T>? source = null);
+    Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, IQueryable<T>? source = null, bool cacheEntities = false);
+    Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, List<T> data);
     Task<IDbContextTransaction> BeginTransaction();
     Task<bool> SaveChanges();
 }

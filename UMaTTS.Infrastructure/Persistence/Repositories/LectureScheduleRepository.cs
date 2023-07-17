@@ -1,10 +1,12 @@
-﻿using UMaTLMS.SharedKernel.Helpers;
+﻿using UMaTLMS.Core.Services;
+using UMaTLMS.SharedKernel.Helpers;
 
 namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class LectureScheduleRepository : Repository<LectureSchedule, int>, ILectureScheduleRepository
 {
-    public LectureScheduleRepository(AppDbContext context, ILogger<LectureScheduleRepository> logger) : base(context, logger)
+    public LectureScheduleRepository(AppDbContext context, CacheService cache, ILogger<LectureScheduleRepository> logger) 
+        : base(context, cache, logger)
     {
     }
 

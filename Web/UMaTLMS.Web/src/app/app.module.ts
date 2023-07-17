@@ -37,6 +37,9 @@ import { environment } from 'src/environments/environment';
 import { EffectsModule } from '@ngrx/effects';
 import {CourseEffects} from "./state/effects/courses.effects";
 import {TimetableService} from "./services/http/timetable.service";
+import {ClassGroupEffects} from "./state/effects/class-groups.effects";
+import {LectureEffects} from "./state/effects/lectures.effects";
+import {RoomEffects} from "./state/effects/rooms.effects";
 @NgModule({
   declarations: [
     AppComponent,
@@ -68,7 +71,7 @@ import {TimetableService} from "./services/http/timetable.service";
       metaReducers
     }),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),
-    EffectsModule.forRoot(CourseEffects),
+    EffectsModule.forRoot(CourseEffects, ClassGroupEffects, LectureEffects, RoomEffects),
     ToastrModule.forRoot(),
   ],
   providers: [

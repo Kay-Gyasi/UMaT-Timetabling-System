@@ -1,8 +1,11 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿using UMaTLMS.Core.Services;
+
+namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class OnlineLectureScheduleRepository : Repository<OnlineLectureSchedule, int>, IOnlineLectureScheduleRepository
 {
-    public OnlineLectureScheduleRepository(AppDbContext context, ILogger<OnlineLectureScheduleRepository> logger) : base(context, logger)
+    public OnlineLectureScheduleRepository(AppDbContext context, CacheService cache, ILogger<OnlineLectureScheduleRepository> logger) 
+        : base(context, cache, logger)
     {
     }
 

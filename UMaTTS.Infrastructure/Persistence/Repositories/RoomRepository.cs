@@ -1,9 +1,11 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿using UMaTLMS.Core.Services;
+
+namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class RoomRepository : Repository<ClassRoom, int>, IRoomRepository
 {
-    public RoomRepository(AppDbContext context, ILogger<RoomRepository> logger)
-        : base(context, logger)
+    public RoomRepository(AppDbContext context, CacheService cache, ILogger<RoomRepository> logger)
+        : base(context, cache, logger)
     {
     }
 
@@ -18,7 +20,8 @@ public class RoomRepository : Repository<ClassRoom, int>, IRoomRepository
         return await GetBaseQuery().AnyAsync();
     }
 
-    public override Task<PaginatedList<ClassRoom>> GetPageAsync(PaginatedCommand command, IQueryable<ClassRoom>? source = null)
+    public override Task<PaginatedList<ClassRoom>> GetPageAsync(PaginatedCommand command, IQueryable<ClassRoom>? source = null,
+            bool cacheEntities = false)
     {
         source = GetBaseQuery().OrderBy(x => x.Name);
         if (!string.IsNullOrWhiteSpace(command.Search))

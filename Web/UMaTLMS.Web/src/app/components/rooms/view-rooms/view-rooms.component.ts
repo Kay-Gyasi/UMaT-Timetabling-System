@@ -6,6 +6,11 @@ import {PaginatedQuery} from "../../../models/paginated-query";
 import {NotificationService} from "../../../services/notification.service";
 import {Navigations} from "../../../helpers/navigations";
 import { FormBuilder, FormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {Store} from "@ngrx/store";
+import {AppState} from "../../../state/store/reducers";
+import {GetLecturesPage} from "../../../state/store/actions/lectures/get-lecture-page.action";
+import {GetRoomsPage} from "../../../state/store/actions/rooms/get-room-page.action";
+import {GetCoursesPage} from "../../../state/store/actions/courses/get-course-page.action";
 
 declare var KTMenu:any;
 @Component({
@@ -21,7 +26,7 @@ export class ViewRoomsComponent implements OnInit{
   searchForm:UntypedFormGroup;
   query:PaginatedQuery = PaginatedQuery.Build(0, 1, 20);
   constructor(private roomService:RoomService, private fb:FormBuilder,
-              private toast: NotificationService) {
+              private toast: NotificationService, private store: Store<AppState>) {
       this.searchForm = this.fb.group({
         "term": ["", [Validators.maxLength(30)]]
       });
@@ -34,23 +39,9 @@ export class ViewRoomsComponent implements OnInit{
   public getRooms(pageNumber:number = 1){
     this.isLoading = true;
     this.buildQuery(pageNumber);
-    this.roomService.getPage(this.query).subscribe({
-      next: data => {
-        if (data == undefined){
-          this.toast.showError("Unable to load rooms", "Failed")
-          return;
-        }
-        this.rooms = data;
-        for (let i = 1; i <= data.totalPages; i++){
-          this.pages.push(i);
-        }
-        this.isLoading = false;
-      },
-      error: err => {
-        this.toast.showError("Unable to load rooms", "Failed");
-        this.isLoading = false;
-      }
-    })
+    this.pages = [];
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetRoomsPage({ query: newQuery }));
   }
 
   deleteRoom(room:RoomResponse){
@@ -86,6 +77,39 @@ export class ViewRoomsComponent implements OnInit{
   private initialize(){
     KTMenu.init();
     KTMenu.init();
-    this.getRooms();
+
+    this.store.select(store => store.rooms_page.query).subscribe({
+      next: query => {
+        this.query.PageNumber = query.PageNumber;
+        this.searchForm.setValue({
+          term: query.Search ?? ''
+        })
+      },
+      error: _ => console.log('Error while retrieving query state')
+    });
+
+    this.store.select(store => store.rooms_page.data).subscribe({
+      next: data => {
+        if (data == undefined){
+          this.toast.showError("Unable to load rooms", "Failed")
+          return;
+        }
+        this.rooms = data;
+        for (let i = 1; i <= data.totalPages; i++){
+          this.pages.push(i);
+        }
+        this.isLoading = false;
+      },
+      error: err => {
+        this.toast.showError("Unable to load rooms", "Failed");
+        this.isLoading = false;
+      }
+    });
+
+    if (this.rooms.data.length == 0){
+      this.isLoading = true;
+      const newQuery = Object.assign({}, this.query);
+      this.store.dispatch(GetRoomsPage({ query: newQuery }));
+    }
   }
 }

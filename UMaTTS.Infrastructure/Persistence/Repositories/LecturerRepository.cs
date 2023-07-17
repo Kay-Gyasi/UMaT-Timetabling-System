@@ -1,9 +1,12 @@
 
+using UMaTLMS.Core.Services;
+
 namespace UMaTLMS.Infrastructure.Persistence.Repositories
 {
     public class LecturerRepository : Repository<Lecturer, int>, ILecturerRepository
     {
-        public LecturerRepository(AppDbContext context, ILogger<LecturerRepository> logger) : base(context, logger)
+        public LecturerRepository(AppDbContext context, CacheService cache, ILogger<LecturerRepository> logger) 
+            : base(context, cache, logger)
         {
         }
 

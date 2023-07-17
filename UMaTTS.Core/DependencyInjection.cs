@@ -6,6 +6,7 @@ using System;
 using UMaTLMS.Core.Processors;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Core;
 
@@ -21,7 +22,9 @@ public static class DependencyInjection
         });
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly)
             .AddFluentValidationAutoValidation()
-            .AddFluentValidationClientsideAdapters();
+            .AddFluentValidationClientsideAdapters()
+            .AddMemoryCache()
+            .AddScoped<CacheService>();
         return services;
     }
 

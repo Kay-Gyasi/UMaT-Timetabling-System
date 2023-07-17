@@ -11,7 +11,7 @@ export const GetCoursesPage = createAction(
 
 export const GetCoursePageSuccess = createAction(
   CourseActionType.GET_PAGE_SUCCESS,
-  props<{ payload:PaginatedList<CourseResponse> | undefined }>()
+  props<{ payload:PaginatedList<CourseResponse > | undefined, query:PaginatedQuery }>()
 )
 
 export const GetCoursePageFailure = createAction(

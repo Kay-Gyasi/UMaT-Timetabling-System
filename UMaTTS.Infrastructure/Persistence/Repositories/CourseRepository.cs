@@ -1,12 +1,16 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿using UMaTLMS.Core.Services;
+
+namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class CourseRepository : Repository<IncomingCourse, int>, ICourseRepository
 {
-    public CourseRepository(AppDbContext context, ILogger<CourseRepository> logger) : base(context, logger)
+    public CourseRepository(AppDbContext context, CacheService cache, ILogger<CourseRepository> logger) 
+        : base(context, cache, logger)
     {
     }
 
-    public override async Task<PaginatedList<IncomingCourse>> GetPageAsync(PaginatedCommand command, IQueryable<IncomingCourse>? source = null)
+    public override async Task<PaginatedList<IncomingCourse>> GetPageAsync(PaginatedCommand command, 
+        IQueryable<IncomingCourse>? source = null, bool cacheEntities = false)
     {
         if (!string.IsNullOrWhiteSpace(command.Search))
         {

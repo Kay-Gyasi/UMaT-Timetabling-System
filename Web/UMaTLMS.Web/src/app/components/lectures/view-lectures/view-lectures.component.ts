@@ -6,6 +6,9 @@ import {LectureService} from "../../../services/http/lecture.service";
 import {NotificationService} from "../../../services/notification.service";
 import {PaginatedQuery} from "../../../models/paginated-query";
 import {FormBuilder, FormControl, UntypedFormGroup, Validators} from "@angular/forms";
+import {Store} from "@ngrx/store";
+import {AppState} from "../../../state/store/reducers";
+import {GetLecturesPage} from "../../../state/store/actions/lectures/get-lecture-page.action";
 
 declare var KTMenu:any;
 
@@ -24,7 +27,7 @@ export class ViewLecturesComponent implements OnInit{
   query:PaginatedQuery = PaginatedQuery.Build(0, 1, 20);
 
   constructor(private lectureService:LectureService, private toast:NotificationService,
-              private fb:FormBuilder) {
+              private fb:FormBuilder, private store: Store<AppState>) {
     this.searchForm = this.fb.group({
       "term": ["", [Validators.maxLength(30)]]
     });
@@ -34,32 +37,12 @@ export class ViewLecturesComponent implements OnInit{
     this.initialize();
   }
 
-  deleteLecture(lecture:LecturePageResponse){
-    //
-  }
-
   getLectures(pageNumber:number = 1){
     this.isLoading = true;
     this.buildQuery(pageNumber);
     this.pages = [];
-    this.lectureService.getPage(this.query).subscribe({
-      next: data => {
-        if (data == undefined){
-          this.toast.showError("Unable to load lectures", "Failed")
-          return;
-        }
-        this.lectures = data;
-        for (let i = 1; i <= data.totalPages; i++){
-          this.pages.push(i);
-        }
-      },
-      error: err => {
-        this.toast.showError("Unable to load lectures", "Failed");
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    })
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetLecturesPage({ query: newQuery }));
   }
 
   get term(){
@@ -76,6 +59,41 @@ export class ViewLecturesComponent implements OnInit{
   private initialize(){
     KTMenu.init();
     KTMenu.init();
-    this.getLectures();
+
+    this.store.select(store => store.lectures_page.query).subscribe({
+      next: query => {
+        this.query.PageNumber = query.PageNumber;
+        this.searchForm.setValue({
+          term: query.Search ?? ''
+        })
+      },
+      error: _ => console.log('Error while retrieving query state')
+    });
+
+    this.store.select(store => store.lectures_page.data).subscribe({
+      next: data => {
+        if (data == undefined){
+          this.toast.showError("Unable to load lectures", "Failed")
+          return;
+        }
+        this.lectures = data;
+        for (let i = 1; i <= data.totalPages; i++){
+          this.pages.push(i);
+        }
+        this.isLoading = false;
+      },
+      error: err => {
+        this.toast.showError("Unable to load lectures", "Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
+
+    if (this.lectures.data.length == 0){
+      this.isLoading = true;
+      const newQuery = Object.assign({}, this.query);
+      this.store.dispatch(GetLecturesPage({ query: newQuery }));
+    }
   }
 }

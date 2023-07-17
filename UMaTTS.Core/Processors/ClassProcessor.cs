@@ -1,4 +1,5 @@
-﻿using UMaTLMS.Core.Helpers;
+﻿using Microsoft.Extensions.Caching.Memory;
+using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -9,13 +10,13 @@ public class ClassProcessor
 	private readonly ISubClassGroupRepository _subClassGroupRepository;
 	private readonly ILogger<ClassProcessor> _logger;
 
-	public ClassProcessor(IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
-		ILogger<ClassProcessor> logger)
+    public ClassProcessor(IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
+		ILogger<ClassProcessor> logger, IMemoryCache cache)
 	{
 		_classGroupRepository = classGroupRepository;
 		_subClassGroupRepository = subClassGroupRepository;
 		_logger = logger;
-	}
+    }
 
 	public async Task<OneOf<bool, Exception>> SetLimit(int limit)
 	{

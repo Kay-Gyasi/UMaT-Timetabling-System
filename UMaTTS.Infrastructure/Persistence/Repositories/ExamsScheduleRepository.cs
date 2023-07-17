@@ -1,9 +1,11 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿using UMaTLMS.Core.Services;
+
+namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class ExamsScheduleRepository : Repository<ExamsSchedule, int>, IExamsScheduleRepository
 {
-    public ExamsScheduleRepository(AppDbContext context, ILogger<ExamsScheduleRepository> logger) 
-        : base(context, logger)
+    public ExamsScheduleRepository(AppDbContext context, CacheService cache, ILogger<ExamsScheduleRepository> logger) 
+        : base(context, cache, logger)
     {
     }
 

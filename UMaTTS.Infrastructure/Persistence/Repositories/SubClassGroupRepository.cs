@@ -1,10 +1,13 @@
+using UMaTLMS.Core.Services;
+
 namespace UMaTLMS.Infrastructure.Persistence.Repositories
 {
     public class SubClassGroupRepository : Repository<SubClassGroup, int>, ISubClassGroupRepository
     {
 		private readonly AppDbContext _context;
 
-		public SubClassGroupRepository(AppDbContext context, ILogger<SubClassGroupRepository> logger) : base(context, logger)
+		public SubClassGroupRepository(AppDbContext context, CacheService cache, ILogger<SubClassGroupRepository> logger) 
+			: base(context, cache, logger)
         {
 			_context = context;
 		}

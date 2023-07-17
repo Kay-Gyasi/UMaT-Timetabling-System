@@ -1,9 +1,15 @@
-﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿using UMaTLMS.Core.Services;
+
+namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepository
 {
-    public ClassGroupRepository(AppDbContext context, ILogger<ClassGroupRepository> logger) : base(context, logger)
+    private readonly CacheService _cache;
+
+    public ClassGroupRepository(AppDbContext context, CacheService cache, ILogger<ClassGroupRepository> logger) 
+        : base(context, cache, logger)
     {
+        _cache = cache;
     }
 
     public async Task<List<ClassGroup>> GetAll()
@@ -22,7 +28,8 @@ public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepo
                 .Include(x => x.SubClassGroups);
     }
 
-    public override Task<PaginatedList<ClassGroup>> GetPageAsync(PaginatedCommand command, IQueryable<ClassGroup>? source = null)
+    public override Task<PaginatedList<ClassGroup>> GetPageAsync(PaginatedCommand command, IQueryable<ClassGroup>? source = null,
+            bool cacheEntities = false)
     {
         if (string.IsNullOrEmpty(command.Search))
         {

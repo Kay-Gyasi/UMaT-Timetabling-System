@@ -1202,6 +1202,7 @@
           "LinqKit.Microsoft.EntityFrameworkCore": "7.1.4",
           "Mapster": "7.3.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "7.0.5",
+          "Microsoft.Extensions.Caching.Memory": "7.0.0",
           "OneOf": "3.0.243",
           "UMaTTS.SharedKernel": "1.0.0"
         },

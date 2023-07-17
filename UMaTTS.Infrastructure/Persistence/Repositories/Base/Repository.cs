@@ -1,6 +1,6 @@
-﻿using System.Drawing.Printing;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using UMaTLMS.Core.Repositories.Base;
+using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
 
@@ -8,11 +8,13 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     where T : Entity
 {
     protected readonly AppDbContext Context;
+    private readonly CacheService _cache;
     private readonly ILogger<Repository<T, TKey>> _logger;
     private DbSet<T>? _dbSet;
-    protected Repository(AppDbContext context, ILogger<Repository<T, TKey>> logger)
+    protected Repository(AppDbContext context, CacheService cache, ILogger<Repository<T, TKey>> logger)
     {
         Context = context;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -27,7 +29,8 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         try
         {
             predicate ??= x => true;
-            return await GetBaseQuery().Where(predicate).ToListAsync();
+            var results = await GetBaseQuery().Where(predicate).ToListAsync();
+            return results;
         }
         catch (Exception e)
         {
@@ -41,6 +44,13 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         try
         {
             if (predicate == null) return null;
+            if (_cache.HasKey(typeof(T).Name))
+            {
+                var entities = await _cache.Get<List<T>>(typeof(T).Name)!
+                    .AsQueryable()
+                    .FirstOrDefaultAsync(predicate);
+            }
+
             return await GetBaseQuery().FirstOrDefaultAsync(predicate);
         }
         catch (Exception e)
@@ -54,6 +64,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     {
         try
         {
+            _cache.Remove<T>();
             await Entities.AddAsync(entity);
             if (saveChanges)
                 await Context.SaveChangesAsync();
@@ -69,6 +80,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     {
         try
         {
+            _cache.Remove<T>();
             await Task.Run(() => Entities.Update(entity));
             if (saveChanges) await Context.SaveChangesAsync();
         }
@@ -83,6 +95,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     {
         try
         {
+            _cache.Remove<T>();
             await Task.Run(() => Entities.Remove(entity));
             if (saveChanges) await Context.SaveChangesAsync();
         }
@@ -97,6 +110,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     {
         try
         {
+            _cache.Remove<T>();
             await Task.Run(() =>
             {
                 foreach (var entity in entities)
@@ -118,6 +132,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     {
         try
         {
+            _cache.Remove<T>();
             await Task.Run(() => entity.Audit?.Delete());
             if (saveChanges) await Context.SaveChangesAsync();
         }
@@ -133,9 +148,18 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         try
         {
             if (id == 0) return null;
-            var keyProperty = Context.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties[0];
-            return await GetBaseQuery().FirstOrDefaultAsync(e => EF.Property<int>
-                (e, keyProperty!.Name) == id);
+            var keyProperty = Context.Model
+                                .FindEntityType(typeof(T))?
+                                .FindPrimaryKey()?
+                                .Properties[0];
+
+            if (_cache.HasKey(typeof(T).Name))
+            {
+                return _cache.Get<List<T>>(typeof(T).Name)!
+                    .FirstOrDefault(x => x.Id == id);
+            }
+
+            return await GetBaseQuery().FirstOrDefaultAsync(e => EF.Property<int>(e, keyProperty!.Name) == id);
         }
         catch (Exception e)
         {
@@ -144,12 +168,26 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         }
     }
 
-    public virtual async Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, IQueryable<T>? source = null)
+    public virtual async Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, IQueryable<T>? source = null,
+        bool cacheEntities = false)
     {
         return await Task.Run(() =>
         {
             var data = source is not null ? source.AsSingleQuery() : GetBaseQuery().AsSingleQuery();
             var count = data.Count();
+            var items = data.Skip((command.PageNumber - 1) * command.PageSize)
+                .Take(command.PageSize)
+                .ToList();
+            if (cacheEntities) _cache.StoreEntities(typeof(T).Name, data.ToList());
+            return new PaginatedList<T>(items, count, command.PageNumber, command.PageSize);
+        });
+    }
+    
+    public virtual async Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, List<T> data)
+    {
+        return await Task.Run(() =>
+        {
+            var count = data.Count;
             var items = data.Skip((command.PageNumber - 1) * command.PageSize)
                 .Take(command.PageSize)
                 .ToList();

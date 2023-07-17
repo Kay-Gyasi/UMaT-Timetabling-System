@@ -38,6 +38,7 @@ export class ViewCoursesComponent implements OnInit {
   public getCourses(pageNumber:number = 1){
     this.isLoading = true;
     this.buildQuery(pageNumber);
+    this.pages = [];
     const newQuery = Object.assign({}, this.query);
     this.store.dispatch(GetCoursesPage({ query: newQuery }));
   }
@@ -56,6 +57,16 @@ export class ViewCoursesComponent implements OnInit {
   private initialize(){
     KTMenu.init();
     KTMenu.init();
+
+    this.store.select(store => store.courses_page.query).subscribe({
+      next: query => {
+        this.query.PageNumber = query.PageNumber;
+        this.searchForm.setValue({
+          term: query.Search ?? ''
+        })
+      },
+      error: _ => console.log('Error while retrieving query state')
+    });
 
     this.store.select((store) => store.courses_page.data).subscribe({
       next: data => {
@@ -76,6 +87,7 @@ export class ViewCoursesComponent implements OnInit {
     });
 
     if (this.courses.data.length == 0){
+      this.isLoading = true;
       const newQuery = Object.assign({}, this.query);
       this.store.dispatch(GetCoursesPage({ query: newQuery }));
     }

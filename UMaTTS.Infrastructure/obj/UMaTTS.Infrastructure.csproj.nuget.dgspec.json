@@ -60,6 +60,10 @@
               "target": "Package",
               "version": "[7.0.5, )"
             },
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "OneOf": {
               "target": "Package",
               "version": "[3.0.243, )"

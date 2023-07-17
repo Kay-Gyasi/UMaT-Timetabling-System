@@ -11,7 +11,7 @@ export class CourseEffects {
     this.action$.pipe(
       ofType(GetCoursesPage),
       switchMap((action) => this.courseService.getPage(action.query).pipe(
-          map(data => GetCoursePageSuccess({ payload: data })),
+          map(data => GetCoursePageSuccess({ payload: data, query: action.query })),
           catchError(error => of(GetCoursePageFailure({ error })))
         )
       )
