@@ -121,10 +121,10 @@
 
         <tr *ngFor="let x of lectures.data">
           <td>
-            <a href="#" class="text-dark fw-bolder text-hover-primary fs-6">{{x.lecturer}}</a>
+            <a class="text-dark fw-bolder text-hover-primary fs-6">{{x.lecturer}}</a>
           </td>
           <td>
-            <a href="#" class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.course}}</a>
+            <a class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.course}}</a>
           </td>
           <td>
             <div class="form-check form-check-sm form-check-custom form-check-solid">
@@ -138,7 +138,7 @@
           </td>
           <td>
             <span *ngFor="let c of x.classes">
-              <a href="#" class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{c}}</a>
+              <a class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{c}}</a>
             </span>
           </td>
           <td class="text-end">

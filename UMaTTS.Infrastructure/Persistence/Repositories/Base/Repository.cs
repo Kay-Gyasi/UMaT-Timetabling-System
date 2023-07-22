@@ -1,6 +1,5 @@
 ﻿using System.Linq.Expressions;
 using UMaTLMS.Core.Repositories.Base;
-using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Infrastructure.Persistence.Repositories.Base;
 
@@ -39,12 +38,12 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         }
     }
     
-    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
+    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, bool useCache = true)
     {
         try
         {
             if (predicate == null) return null;
-            if (_cache.HasKey(typeof(T).Name))
+            if (useCache && _cache.HasKey(typeof(T).Name))
             {
                 var entities = await _cache.Get<List<T>>(typeof(T).Name)!
                     .AsQueryable()
@@ -169,16 +168,18 @@ public class Repository<T, TKey> : IRepository<T, TKey>
     }
 
     public virtual async Task<PaginatedList<T>> GetPageAsync(PaginatedCommand command, IQueryable<T>? source = null,
-        bool cacheEntities = false)
+        bool cacheEntities = true)
     {
         return await Task.Run(() =>
         {
-            var data = source is not null ? source.AsSingleQuery() : GetBaseQuery().AsSingleQuery();
+            var data = source is not null ? source.AsNoTracking().AsSingleQuery() : GetBaseQuery().AsNoTracking().AsSingleQuery();
             var count = data.Count();
-            var items = data.Skip((command.PageNumber - 1) * command.PageSize)
-                .Take(command.PageSize)
-                .ToList();
-            if (cacheEntities) _cache.StoreEntities(typeof(T).Name, data.ToList());
+            var items = data
+                            .Skip((command.PageNumber - 1) * command.PageSize)
+                            .Take(command.PageSize)
+                            .ToList();
+
+            if (cacheEntities) _cache.StoreEntities(typeof(T).Name, GetBaseQuery().ToList());
             return new PaginatedList<T>(items, count, command.PageNumber, command.PageSize);
         });
     }
@@ -189,8 +190,8 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         {
             var count = data.Count;
             var items = data.Skip((command.PageNumber - 1) * command.PageSize)
-                .Take(command.PageSize)
-                .ToList();
+                            .Take(command.PageSize)
+                            .ToList();
             return new PaginatedList<T>(items, count, command.PageNumber, command.PageSize);
         });
     }

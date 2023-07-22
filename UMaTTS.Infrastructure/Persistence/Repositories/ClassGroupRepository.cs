@@ -1,6 +1,4 @@
-﻿using UMaTLMS.Core.Services;
-
-namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepository
 {
@@ -14,6 +12,8 @@ public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepo
 
     public async Task<List<ClassGroup>> GetAll()
     {
+        if (_cache.HasKey(nameof(ClassGroup))) 
+            return _cache.Get<List<ClassGroup>>(nameof(ClassGroup)) ?? new List<ClassGroup>();
         return await GetBaseQuery().ToListAsync();
     }
 
@@ -29,14 +29,23 @@ public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepo
     }
 
     public override Task<PaginatedList<ClassGroup>> GetPageAsync(PaginatedCommand command, IQueryable<ClassGroup>? source = null,
-            bool cacheEntities = false)
+            bool cacheEntities = true)
     {
-        if (string.IsNullOrEmpty(command.Search))
+        if (_cache.HasKey(nameof(ClassGroup)))
         {
-            return base.GetPageAsync(command);
+            var classes = _cache.Get<List<ClassGroup>>(nameof(ClassGroup));   
+            if (!string.IsNullOrEmpty(command.Search) && classes is not null)
+            {
+                classes = classes.Where(x => x.Name != null 
+                    && x.Name.Contains(command.Search, StringComparison.OrdinalIgnoreCase)).ToList();
+            }         
+            if (classes is not null) return base.GetPageAsync(command, classes);
         }
+        
+        if (string.IsNullOrEmpty(command.Search)) return base.GetPageAsync(command);
 
-        source = base.GetBaseQuery().Where(x => x.Name.Contains(command.Search ?? ""));
+        source = GetBaseQuery().Where(x => x.Name != null 
+                    && x.Name.ToLower().Contains(command.Search.ToLower()));
         return base.GetPageAsync(command, source);
     }
 }

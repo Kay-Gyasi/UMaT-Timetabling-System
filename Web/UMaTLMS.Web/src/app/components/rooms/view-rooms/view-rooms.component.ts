@@ -81,6 +81,7 @@ export class ViewRoomsComponent implements OnInit{
     this.store.select(store => store.rooms_page.query).subscribe({
       next: query => {
         this.query.PageNumber = query.PageNumber;
+        this.query.thenSearch(query.Search);
         this.searchForm.setValue({
           term: query.Search ?? ''
         })
@@ -106,10 +107,8 @@ export class ViewRoomsComponent implements OnInit{
       }
     });
 
-    if (this.rooms.data.length == 0){
-      this.isLoading = true;
-      const newQuery = Object.assign({}, this.query);
-      this.store.dispatch(GetRoomsPage({ query: newQuery }));
-    }
+    this.isLoading = true;
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetRoomsPage({ query: newQuery }));
   }
 }

@@ -63,6 +63,7 @@ export class ViewLecturesComponent implements OnInit{
     this.store.select(store => store.lectures_page.query).subscribe({
       next: query => {
         this.query.PageNumber = query.PageNumber;
+        this.query.thenSearch(query.Search);
         this.searchForm.setValue({
           term: query.Search ?? ''
         })
@@ -73,7 +74,7 @@ export class ViewLecturesComponent implements OnInit{
     this.store.select(store => store.lectures_page.data).subscribe({
       next: data => {
         if (data == undefined){
-          this.toast.showError("Unable to load lectures", "Failed")
+          this.toast.showError("Unable to load lectures", "Failed");
           return;
         }
         this.lectures = data;
@@ -90,10 +91,8 @@ export class ViewLecturesComponent implements OnInit{
       }
     });
 
-    if (this.lectures.data.length == 0){
-      this.isLoading = true;
-      const newQuery = Object.assign({}, this.query);
-      this.store.dispatch(GetLecturesPage({ query: newQuery }));
-    }
+    this.isLoading = true;
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetLecturesPage({ query: newQuery }));
   }
 }

@@ -1,5 +1,4 @@
-﻿using UMaTLMS.Core.Services;
-using UMaTLMS.SharedKernel.Helpers;
+﻿using UMaTLMS.SharedKernel.Helpers;
 
 namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
@@ -13,7 +12,8 @@ public class LectureScheduleRepository : Repository<LectureSchedule, int>, ILect
     public async Task<int> GetNumberOfLecturesForLecturerInADay(int lecturerId, int day)
     {
         return await GetBaseQuery().CountAsync(x =>
-            x.DayOfWeek == AppHelper.GetDayOfWeek(day) && (x.FirstLecture!.LecturerId == lecturerId || x.SecondLecture!.LecturerId == lecturerId));
+            x.DayOfWeek == AppHelper.GetDayOfWeek(day) 
+            && (x.FirstLecture!.LecturerId == lecturerId || x.SecondLecture!.LecturerId == lecturerId));
     }
 
     protected override IQueryable<LectureSchedule> GetBaseQuery()

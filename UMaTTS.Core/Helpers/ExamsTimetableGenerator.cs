@@ -4,14 +4,14 @@ namespace UMaTLMS.Core.Helpers;
 
 public static partial class ExamsTimetableGenerator
 {
-    public static List<List<ExamsSchedule>> Generate(List<Lecture> examinableLectures, List<ClassRoom> rooms, 
+    public static List<List<ExamsSchedule>> Generate(List<ClassRoom> rooms, 
         List<SubClassGroup> subClassGroups, List<Lecturer> lecturers, List<IncomingCourse> courses, ExamsScheduleCommand command)
     {
-        AppHelpers.Shuffle(examinableLectures);
+        AppHelpers.Shuffle(courses);
         var schedules = new List<ExamsSchedule>();
         var practicalSchedules = new List<ExamsSchedule>();
 
-        var examsGroupedByCourseNumber = GetSchedulesInInitialState(examinableLectures);
+        var examsGroupedByCourseNumber = GetSchedulesInInitialState(courses, subClassGroups, lecturers);
         var examPeriods = Enum.GetValues<ExamPeriod>();
         var examDates = new List<DateTime>();
         var practicalDates = new List<DateTime>();
@@ -25,12 +25,12 @@ public static partial class ExamsTimetableGenerator
     }
     
     private static (List<IGrouping<string, ExamsSchedule>> Exams, List<IGrouping<string, ExamsSchedule>> Practicals) 
-        GetSchedulesInInitialState(List<Lecture> examinableLectures)
+        GetSchedulesInInitialState(List<IncomingCourse> courses, List<SubClassGroup> subClassGroups, List<Lecturer> lecturers)
     {
         var schedules = new List<ExamsSchedule>();
         var practicalSchedules = new List<ExamsSchedule>();
 
-        ExtractSchedules(examinableLectures, schedules, practicalSchedules);
+        ExtractSchedules(courses, subClassGroups, schedules, practicalSchedules, lecturers);
 
         var groupedExamSchedules = schedules.GroupBy(x => x.CourseNo)
                                     .OrderByDescending(a => a.Count())
@@ -41,35 +41,38 @@ public static partial class ExamsTimetableGenerator
         return (groupedExamSchedules, groupedPracticalSchedules);
     }
 
-    private static void ExtractSchedules(List<Lecture> examinableLectures, List<ExamsSchedule> schedules,
-        List<ExamsSchedule> practicalSchedules)
+    private static void ExtractSchedules(List<IncomingCourse> courses, List<SubClassGroup> subClassGroups,
+        List<ExamsSchedule> schedules, List<ExamsSchedule> practicalSchedules, List<Lecturer> lecturers)
     {
-        foreach (var lecture in examinableLectures)
+        foreach (var course in courses)
         {
-            if (lecture.Course?.Code is null) continue;
-            foreach (var group in lecture.SubClassGroups)
+            if (course?.Code is null) continue;
+            var groupsThatTakeCourse = subClassGroups.Where(x => x.Group.Name.StartsWith(course.ProgrammeCode ?? string.Empty) 
+                                                                    && x.Group.Year == course.Year).ToList();
+            foreach (var group in groupsThatTakeCourse)
             {
                 var scheduleHasBeenCreated = schedules.Any(x =>
-                                                x.CourseNo == GetCourseNumber(lecture.Course?.Code ?? string.Empty)
+                                                x.CourseNo == GetCourseNumber(course?.Code ?? string.Empty)
                                                 && x.SubClassGroups.Any(a => a.Id == group.Id));
                 if (scheduleHasBeenCreated) continue;
 
                 var courseCode = string.Join(AppHelpers.WhiteSpace, group.Name.Split(AppHelpers.WhiteSpace)[0],
-                                    GetCourseNumber(lecture.Course?.Code ?? string.Empty));
+                                    GetCourseNumber(course?.Code ?? string.Empty));
 
+                var lecturer = lecturers.First(x => x.UmatId == course?.FirstExaminerStaffId);
                 var schedule = ExamsSchedule.Create(courseCode)
                                 .AddGroup(group)
-                                .HasInfo(lecture.LecturerId, lecture.Lecturer?.Name, lecture.Course?.Name);
+                                .HasInfo(lecturer.Id, lecturer?.Name, course?.Name);
 
                 schedules.Add(schedule);
 
-                if (lecture.Course!.HasPracticalExams)
+                if (course!.HasPracticalExams)
                 {
                     var practicalSchedule = ExamsSchedule.Create(courseCode)
                                 .AddGroup(group)
-                                .HasInfo(lecture.LecturerId, lecture.Lecturer?.Name, lecture.Course?.Name);
+                                .HasInfo(lecturer.Id, lecturer?.Name, course?.Name);
                     practicalSchedules.Add(practicalSchedule);
-                };
+                }
             }
         }
     }
@@ -137,7 +140,7 @@ public static partial class ExamsTimetableGenerator
                 var assignedRooms = new List<int>();
                 foreach (var exam in examsAtMoment)
                 {
-                    var groupSize = subClassGroups.Sum(x => x.Size);
+                    var groupSize = exam.SubClassGroups.Sum(x => x.Size);
                     var room = ClassRoom.Create("", 0);
                     var lastRoomsIndex = rooms.Count - 1;
                     var hasCheckedAllRooms = false;
@@ -176,7 +179,7 @@ public static partial class ExamsTimetableGenerator
             foreach (var groupedSchedule in groupedSchedules)
             {
                 if (groupedSchedule is null) continue;
-                var invigilators = new HashSet<(string, int)>();
+                var invigilators = new HashSet<(string Name, int Id, string Course)>();
                 foreach (var exam in groupedSchedule)
                 {
                     var coursesForExams = GetCoursesForExam(courses, exam);
@@ -195,7 +198,7 @@ public static partial class ExamsTimetableGenerator
     }
 
     private static void AssignInvigilators(IGrouping<string, ExamsSchedule> groupedSchedule,
-        List<Lecturer> lecturers, HashSet<(string Name, int Id)> invigilators, int count)
+        List<Lecturer> lecturers, HashSet<(string Name, int Id, string Course)> invigilators, int count)
     {
         foreach (var schedule in groupedSchedule)
         {
@@ -228,33 +231,37 @@ public static partial class ExamsTimetableGenerator
     }
 
     private static void GetExaminersForEachCourseAndMakeInvigilators(List<IncomingCourse> coursesForExams,
-        List<Lecturer> lecturers, HashSet<(string, int)> invigilators)
+        List<Lecturer> lecturers, HashSet<(string, int, string? Course)> invigilators)
     {
         foreach (var course in coursesForExams)
         {
             var firstExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
             if (firstExaminer?.Name is null) continue;
-            invigilators.Add((firstExaminer.Name, firstExaminer.Id));
+            invigilators.Add((firstExaminer.Name, firstExaminer.Id, course.Name));
 
             var secondExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.SecondExaminerStaffId);
             if (secondExaminer?.Name is null) continue;
-            invigilators.Add((secondExaminer.Name, secondExaminer.Id));
+            invigilators.Add((secondExaminer.Name, secondExaminer.Id, course.Name));
         }
     }
 
-    private static void GetMakeUpInvigilators(HashSet<(string, int)> invigilators, List<Lecturer> lecturers,
+    private static void GetMakeUpInvigilators(HashSet<(string Name, int Id, string? Course)> invigilators, List<Lecturer> lecturers,
         int? numberOfInvigilatorsForExam, int count)
     {
         while (invigilators.Count < numberOfInvigilatorsForExam)
         {
             var selected = lecturers[count % lecturers.Count];
-            if (selected.Name is null || invigilators.Contains((selected.Name, selected.Id)))
+            if (selected is null) continue;
+
+            // TODO:: work on adding title field in lecturers data (FullName_v2)
+            var isProfessor = selected.Name!.Contains("prof", StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(selected.Name) || isProfessor || invigilators.Any(x => x.Name == selected.Name))
             {
                 count += 1;
                 continue;
             }
 
-            invigilators.Add((selected.Name, selected.Id));
+            invigilators.Add((selected.Name, selected.Id, null));
             count += 1;
         }
     }
@@ -331,8 +338,7 @@ public static partial class ExamsTimetableGenerator
                 {
                     foreach (var group in exam.SubClassGroups)
                     {
-                        classHasExamOnDate =
-                            schedules.Any(x => x.DateOfExam == moment.Date
+                        classHasExamOnDate = schedules.Any(x => x.DateOfExam == moment.Date
                                                && x.SubClassGroups.Any(a => a.Id == group.Id));
                         if (classHasExamOnDate) break;
                     }

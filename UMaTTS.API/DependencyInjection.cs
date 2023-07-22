@@ -21,7 +21,7 @@ namespace UMaTLMS.API
         {
             services.AddControllers(options =>
             {
-                options.Filters.Add(typeof(CustomValidationAttribute));
+                options.Filters.Add(typeof(ValidationErrorFilter));
             });
             services.Configure<ApiBehaviorOptions>(options =>
             {

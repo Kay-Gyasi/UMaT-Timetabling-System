@@ -123,6 +123,7 @@ export class ViewClassesComponent implements OnInit{
     this.store.select(store => store.class_groups_page.query).subscribe({
       next: query => {
         this.query.PageNumber = query.PageNumber;
+        this.query.thenSearch(query.Search);
         this.searchForm.setValue({
           term: query.Search ?? ''
         })
@@ -150,10 +151,8 @@ export class ViewClassesComponent implements OnInit{
       }
     })
 
-    if (this.classes.data.length == 0){
-      this.isLoading = true;
-      const newQuery = Object.assign({}, this.query);
-      this.store.dispatch(GetClassGroupPage({ query: newQuery }));
-    }
+    this.isLoading = true;
+    const newQuery = Object.assign({}, this.query);
+    this.store.dispatch(GetClassGroupPage({ query: newQuery }));
   }
 }

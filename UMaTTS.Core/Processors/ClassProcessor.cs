@@ -11,7 +11,7 @@ public class ClassProcessor
 	private readonly ILogger<ClassProcessor> _logger;
 
     public ClassProcessor(IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
-		ILogger<ClassProcessor> logger, IMemoryCache cache)
+		ILogger<ClassProcessor> logger)
 	{
 		_classGroupRepository = classGroupRepository;
 		_subClassGroupRepository = subClassGroupRepository;
@@ -52,7 +52,29 @@ public class ClassProcessor
 		}
 	}
 
-	public async Task<OneOf<bool, Exception>> SetNumberOfSubClasses(int numberOfSubClasses, int classGroupId)
+    public async Task AddSubClassGroups()
+    {
+        var groups = await _classGroupRepository.GetAllAsync()
+            ?? throw new DataNotSyncedWithUmatException();
+
+        var subGroups = await _subClassGroupRepository.GetAllAsync();
+        await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
+
+        foreach (var group in groups)
+        {
+            var sizes = group.Size.GetSubClassSizes(group.NumOfSubClasses);
+            for (int i = 1; i <= group.NumOfSubClasses; i++)
+            {
+                var subName = group.NumOfSubClasses > 1 ? $"{group.Name}{AppHelpers.GetSubClassSuffix(i)}" : group.Name;
+                await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, sizes[i - 1],
+                    subName), saveChanges: false);
+            }
+        }
+
+        await _subClassGroupRepository.SaveChanges();
+    }
+
+    public async Task<OneOf<bool, Exception>> SetNumberOfSubClasses(int numberOfSubClasses, int classGroupId)
 	{
 		var @class = await _classGroupRepository.FindByIdAsync(classGroupId);
 		if (@class is null) return new InvalidIdException();

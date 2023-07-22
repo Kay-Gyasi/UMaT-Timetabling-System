@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
-namespace UMaTLMS.Core.Services;
+namespace UMaTLMS.Infrastructure;
 
 public class CacheService
 {

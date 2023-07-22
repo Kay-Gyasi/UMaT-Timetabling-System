@@ -110,10 +110,10 @@
 
         <tr *ngFor="let x of rooms.data">
           <td>
-            <a href="#" class="text-dark fw-bolder text-hover-primary fs-6">{{x.name}}</a>
+            <a class="text-dark fw-bolder text-hover-primary fs-6">{{x.name}}</a>
           </td>
           <td>
-            <a href="#" class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.capacity}}</a>
+            <a class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.capacity}}</a>
           </td>
           <td>
             <div class="form-check form-check-sm form-check-custom form-check-solid">
@@ -194,5 +194,3 @@
   <!--end::Footer-->
 </div>
 <!--end::Tables Widget 13-->
-
-<app-loading-screen *ngIf="isLoading"></app-loading-screen>

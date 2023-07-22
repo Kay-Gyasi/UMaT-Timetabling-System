@@ -1,6 +1,4 @@
-﻿using UMaTLMS.Core.Services;
-
-namespace UMaTLMS.Infrastructure.Persistence.Repositories;
+﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories;
 
 public class OnlineLectureScheduleRepository : Repository<OnlineLectureSchedule, int>, IOnlineLectureScheduleRepository
 {

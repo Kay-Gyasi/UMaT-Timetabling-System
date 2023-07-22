@@ -60,10 +60,6 @@
               "target": "Package",
               "version": "[7.0.5, )"
             },
-            "Microsoft.Extensions.Caching.Memory": {
-              "target": "Package",
-              "version": "[7.0.0, )"
-            },
             "OneOf": {
               "target": "Package",
               "version": "[3.0.243, )"
@@ -131,6 +127,12 @@
       "frameworks": {
         "net7.0": {
           "targetAlias": "net7.0",
+          "dependencies": {
+            "Microsoft.Extensions.Caching.Memory": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

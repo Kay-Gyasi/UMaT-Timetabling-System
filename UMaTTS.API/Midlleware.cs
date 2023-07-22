@@ -3,7 +3,7 @@ using Serilog;
 
 namespace UMaTLMS.API;
 
-public static class RequestPipeline
+public static class Midlleware
 {
     public static WebApplication BuildApp(this WebApplicationBuilder builder, Serilog.ILogger logger)
     {

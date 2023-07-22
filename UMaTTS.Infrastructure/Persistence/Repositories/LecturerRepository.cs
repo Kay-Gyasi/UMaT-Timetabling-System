@@ -1,6 +1,3 @@
-
-using UMaTLMS.Core.Services;
-
 namespace UMaTLMS.Infrastructure.Persistence.Repositories
 {
     public class LecturerRepository : Repository<Lecturer, int>, ILecturerRepository

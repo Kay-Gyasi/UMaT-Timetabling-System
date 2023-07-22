@@ -22,9 +22,7 @@ public static class DependencyInjection
         });
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly)
             .AddFluentValidationAutoValidation()
-            .AddFluentValidationClientsideAdapters()
-            .AddMemoryCache()
-            .AddScoped<CacheService>();
+            .AddFluentValidationClientsideAdapters();
         return services;
     }
 

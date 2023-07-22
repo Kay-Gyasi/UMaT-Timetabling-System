@@ -20,7 +20,9 @@ public static class DependencyInjection
                 opts.Timeout = TimeSpan.FromMinutes(5);
             });
             services.AddScoped<IUMaTApiService, UMaTApiService>()
-            .AddScoped<IExcelReader, ExcelReader>();
+            .AddScoped<IExcelReader, ExcelReader>()
+            .AddMemoryCache()
+            .AddScoped<CacheService>();
         return services;
     }
 
@@ -65,7 +67,6 @@ public static class DependencyInjection
             .AddScoped<ILectureRepository, LectureRepository>()
             .AddScoped<ILecturerRepository, LecturerRepository>()
             .AddScoped<ILectureScheduleRepository, LectureScheduleRepository>()
-            .AddScoped<IExamsScheduleRepository, ExamsScheduleRepository>()
             .AddScoped<IOnlineLectureScheduleRepository, OnlineLectureScheduleRepository>();
         return services;
     }

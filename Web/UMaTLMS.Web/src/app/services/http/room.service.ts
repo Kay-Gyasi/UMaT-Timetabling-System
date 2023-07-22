@@ -39,10 +39,10 @@ export class RoomService{
     return this.http.postRequestAsync("rooms/save", payload).pipe(
       map(data => {
           if (data.statusCode != 201){
-            this.toast.showError("Unable to add room", "Failed");
+            this.toast.showError("Unable to complete operation", "Failed");
             return;
           }
-          this.toast.showSuccess("Room added", "Succeeded");
+          this.toast.showSuccess("Operation completed", "Succeeded");
         }
       )
     )

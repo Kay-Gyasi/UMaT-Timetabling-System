@@ -7,7 +7,7 @@ namespace UMaTLMS.Core.Helpers;
 
 public static partial class ExamsTimetableGenerator
 {
-    public static async Task GetAsync(IExcelReader excelReader, List<List<ExamsSchedule>> schedules, string fileName)
+    public static async Task GetAsync(IExcelReader excelReader, List<List<ExamsSchedule>> schedules, string fileName, List<ClassRoom> rooms)
     {
         if (string.IsNullOrWhiteSpace(fileName)) return;
         using var excelPackage = excelReader.CreateNew(fileName);
@@ -22,27 +22,27 @@ public static partial class ExamsTimetableGenerator
                 case ExamWorksheets.General:
                     groupedExamsSchedules = schedules[0].OrderBy(x => x.DateOfExam).ToList();
                     worksheet = excelPackage.Workbook.Worksheets.Add(examWorksheet.Humanize());
-                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules);
+                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules, rooms);
                     break;
                 case ExamWorksheets.Courses:
                     groupedExamsSchedules = schedules[0].OrderBy(x => x.CourseName).ToList();
                     worksheet = excelPackage.Workbook.Worksheets.Add(examWorksheet.Humanize());
-                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules);
+                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules, rooms);
                     break;
                 case ExamWorksheets.Examiners:
                     groupedExamsSchedules = schedules[0].OrderBy(x => x.Examiner).ToList();
                     worksheet = excelPackage.Workbook.Worksheets.Add(examWorksheet.Humanize());
-                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules);
+                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules, rooms);
                     break;
                 case ExamWorksheets.Invigilators:
                     groupedExamsSchedules = schedules[0].OrderBy(x => x.Invigilators.FirstOrDefault()?.Name).ToList();
                     worksheet = excelPackage.Workbook.Worksheets.Add(examWorksheet.Humanize());
-                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules);
+                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules, rooms);
                     break;
                 case ExamWorksheets.Practicals:
                     groupedExamsSchedules = schedules[1].OrderBy(x => x.Invigilators.FirstOrDefault()?.Name).ToList();
                     worksheet = excelPackage.Workbook.Worksheets.Add(examWorksheet.Humanize());
-                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules);
+                    await BuildWorksheet(excelPackage, worksheet, groupedExamsSchedules, rooms);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -51,7 +51,7 @@ public static partial class ExamsTimetableGenerator
     }
 
     private static async Task BuildWorksheet(ExcelPackage excelPackage, ExcelWorksheet worksheet,
-    IEnumerable<ExamsSchedule> schedules)
+    IEnumerable<ExamsSchedule> schedules, List<ClassRoom> rooms)
     {
         BuildLayout(worksheet);
         var currentColumn = 5;
@@ -61,13 +61,14 @@ public static partial class ExamsTimetableGenerator
             var groupCount = 0;
             foreach (var code in schedule.CourseCodes)
             {
+                var room = rooms.First(x => x.Id == schedule.RoomId).Name;
                 worksheet.Cells[$"A{currentColumn}"].Value = schedule.DateOfExam.ToLongDateString();
                 worksheet.Cells[$"B{currentColumn}"].Value = code.ToUpper();
                 worksheet.Cells[$"C{currentColumn}"].Value = schedule.CourseName?.ToUpper();
                 worksheet.Cells[$"D{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Name.ToUpper();
                 worksheet.Cells[$"E{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Size;
                 worksheet.Cells[$"F{currentColumn}"].Value = schedule.Examiner?.ToUpper();
-                worksheet.Cells[$"G{currentColumn}"].Value = schedule.Room?.Name.ToUpper();
+                worksheet.Cells[$"G{currentColumn}"].Value = room.ToUpper();
                 worksheet.Cells[$"H{currentColumn}"].Value = schedule.Invigilators[groupCount].Name?.ToUpper();
                 worksheet.Cells[$"I{currentColumn}"].Value = schedule.ExamPeriod switch
                 {

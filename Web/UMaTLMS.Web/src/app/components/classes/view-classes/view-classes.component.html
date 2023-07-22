@@ -182,12 +182,15 @@
   <!--begin::Footer-->
   <div class="card-footer">
     <div class="pagination">
-      <div><a *ngIf="classes.hasPrevious" (click)="getClasses(-1)" class="pagination-link">&laquo;</a></div>
-      <div *ngFor="let x of pages;">
-        <a *ngIf="x == classes.currentPage" (click)="getClasses(x)" class="pagination-link active">{{x}}</a>
-        <a *ngIf="x != classes.currentPage" (click)="getClasses(x)" class="pagination-link">{{x}}</a>
+      <div>
+        <a *ngIf="classes.hasPrevious" (click)="getClasses(-1)" class="pagination-link">&laquo;</a>
       </div>
-      <div><a *ngIf="classes.hasNext" (click)="getClasses(-2)" class="pagination-link">&raquo;</a></div>
+      <div>
+        &nbsp;{{classes.currentPage}}/{{classes.totalPages}}&nbsp;
+      </div>
+      <div>
+        <a *ngIf="classes.hasNext" (click)="getClasses(-2)" class="pagination-link">&raquo;</a>
+      </div>
     </div>
   </div>
   <!--end::Footer-->
@@ -279,5 +282,3 @@
     </div>
   </div>
 </div>
-
-<app-loading-screen *ngIf="isLoading"></app-loading-screen>

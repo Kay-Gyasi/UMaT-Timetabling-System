@@ -25,12 +25,13 @@ public class TimetableProcessor
     private readonly IRoomRepository _roomRepository;
     private readonly IExcelReader _excelReader;
     private readonly IConfiguration _configuration;
+    private readonly ClassProcessor _classProcessor;
 
     public TimetableProcessor(ILogger<TimetableProcessor> logger, ILectureScheduleRepository timetableRepository, 
         ILectureRepository lectureRepository, ILecturerRepository lecturerRepository, IClassGroupRepository classGroupRepository, 
         ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService umatApiService,
         IOnlineLectureScheduleRepository onlineLectureScheduleRepository, IRoomRepository roomRepository,
-        IExcelReader excelReader, IConfiguration configuration)
+        IExcelReader excelReader, IConfiguration configuration, ClassProcessor classProcessor)
     {
         _logger = logger;
         _lectureScheduleRepository = timetableRepository;
@@ -44,6 +45,7 @@ public class TimetableProcessor
         _roomRepository = roomRepository;
         _excelReader = excelReader;
         _configuration = configuration;
+        _classProcessor = classProcessor;
     }
 
     public async Task<OneOf<bool, Exception>> Generate()
@@ -66,11 +68,11 @@ public class TimetableProcessor
         schedules = result.GeneralSchedules;
         onlineSchedules = result.OnlineSchedules;
 
-        var lecturesNotScheduledCount = GetCountOfLecturesNotScheduled(lectures, schedules);
-        if (lecturesNotScheduledCount > 0)
-        {
-            return new LecturesNotScheduledException();
-        }
+        //var lecturesNotScheduledCount = GetCountOfLecturesNotScheduled(lectures, schedules);
+        //if (lecturesNotScheduledCount > 0)
+        //{
+        //    return new LecturesNotScheduledException();
+        //}
 
         foreach (var schedule in schedules)
         {
@@ -94,7 +96,8 @@ public class TimetableProcessor
         try
         {
             await InitializeLectureSchedule();
-            await AddSubClassGroups();
+            var classGroupsIsSeeded = await _subClassGroupRepository.IsSeeded();
+            if (!classGroupsIsSeeded) await _classProcessor.AddSubClassGroups();
             await AddLectures();
             return true;
         }
@@ -229,28 +232,6 @@ public class TimetableProcessor
         }
     }
 
-    private async Task AddSubClassGroups()
-    {
-        var groups = await _classGroupRepository.GetAllAsync() 
-            ?? throw new DataNotSyncedWithUmatException();
-
-        var subGroups = await _subClassGroupRepository.GetAllAsync();
-        await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
-
-        foreach (var group in groups)
-        {
-            var sizes = group.Size.GetSubClassSizes(group.NumOfSubClasses);
-            for (int i = 1; i <= group.NumOfSubClasses; i++)
-            {
-                var subName = group.NumOfSubClasses > 1 ? $"{group.Name}{AppHelpers.GetSubClassSuffix(i)}" : group.Name;
-                await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, sizes[i - 1],
-                    subName), saveChanges: false);
-            }
-        }
-
-        await _subClassGroupRepository.SaveChanges();
-    }
-
     private async Task AddCoursesFromUmatDb(List<CourseResponse>? courses)
     {
         if (courses == null) return;
@@ -347,7 +328,7 @@ public class TimetableProcessor
     {
         int result = 0;
         var lecturesScheduled = lectureSchedules.Select(x => x.Id).ToList();
-        foreach (var lecture in lecturesInDb.Where(x => !x.IsVLE))
+        foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && !x.IsVLE))
         {
             if (!lecturesScheduled.Any(x => x == lecture.Id))
             {
@@ -355,7 +336,7 @@ public class TimetableProcessor
             }
         }
         
-        foreach (var lecture in lecturesInDb.Where(x => x.IsVLE))
+        foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && x.IsVLE))
         {
             if (lecture.OnlineLectureScheduleId == null)
             {
