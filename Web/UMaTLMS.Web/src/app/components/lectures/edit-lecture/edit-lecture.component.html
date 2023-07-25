@@ -76,6 +76,21 @@
       <!--end::Input group-->
 
       <!--begin::Input group-->
+      <div class="row mb-6" data-bs-toggle="tooltip"
+           title="Lecture duration can only be changed in course configuration (teaching/practical hours)">
+        <!--begin::Label-->
+        <label class="col-lg-2 col-form-label fw-bold fs-6 fw-bold">Duration</label>
+        <!--end::Label-->
+        <!--begin::Col-->
+        <div class="col-lg-10 fv-row">
+          <input [(ngModel)]="lecture.duration" type="number" name="duration" class="form-control form-control-lg form-control-solid"
+                 disabled />
+        </div>
+        <!--end::Col-->
+      </div>
+      <!--end::Input group-->
+
+      <!--begin::Input group-->
       <div class="row mb-6">
         <!--begin::Label-->
         <label class="col-lg-1 col-form-label fw-bold fs-6 fw-bold">Is VLE?</label>

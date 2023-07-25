@@ -1,6 +1,5 @@
 ﻿using OfficeOpenXml;
 using UMaTLMS.Core.Services;
-using UMaTLMS.SharedKernel.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -14,15 +13,16 @@ public sealed class Initializer
     private readonly ILectureRepository _lectureRepository;
     private readonly ICourseRepository _courseRepository;
     private readonly ILecturerRepository _lecturerRepository;
+    private readonly IConstraintRepository _constraintRepository;
     private readonly IClassGroupRepository _classGroupRepository;
     private readonly ISubClassGroupRepository _subClassGroupRepository;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
 
     public Initializer(IExcelReader reader, IRoomRepository roomRepository, 
-        ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository, ILectureRepository lectureRepository, 
-        ICourseRepository courseRepository, ILecturerRepository  lecturerRepository, 
-        IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository)
+        ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository, 
+        ILectureRepository lectureRepository, ICourseRepository courseRepository, ILecturerRepository  lecturerRepository, 
+        IConstraintRepository constraintRepository,IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository)
     {
         _reader = reader;
         _roomRepository = roomRepository;
@@ -31,6 +31,7 @@ public sealed class Initializer
         _lectureRepository = lectureRepository;
         _courseRepository = courseRepository;
         _lecturerRepository = lecturerRepository;
+        _constraintRepository = constraintRepository;
         _classGroupRepository = classGroupRepository;
         _subClassGroupRepository = subClassGroupRepository;
     }
@@ -44,6 +45,8 @@ public sealed class Initializer
             await InitializeRooms();
             currentWorksheet += 1;
         }
+
+        await AddBaseConstraints();
     }
 
     public async Task Reset()
@@ -70,6 +73,16 @@ public sealed class Initializer
         await _lectureRepository.DeleteAllAsync(lectures, saveChanges: false);
 
         await _classGroupRepository.SaveChanges();
+    }
+
+    private async Task AddBaseConstraints()
+    {
+        var isInitialized = await _constraintRepository.IsInitialized();
+        if (isInitialized) return;
+
+        var maxLecturesPerDayConstraint = Constraint.Create(ConstraintType.GeneralMaxLecturesPerDay, Enums.TimetableType.Lectures)
+                                    .WithValue("4");
+        await _constraintRepository.AddAsync(maxLecturesPerDayConstraint);
     }
 
     private async Task InitializeRooms()

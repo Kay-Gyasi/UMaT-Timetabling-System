@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using UMaTLMS.Core.Contracts;
+using UMaTLMS.Core.Entities;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
 using UMaTLMS.SharedKernel.Helpers;
@@ -23,15 +24,18 @@ public class TimetableProcessor
     private readonly IUMaTApiService _umatApiService;
     private readonly IOnlineLectureScheduleRepository _onlineLectureScheduleRepository;
     private readonly IRoomRepository _roomRepository;
+    private readonly IPreferenceRepository _preferenceRepository;
     private readonly IExcelReader _excelReader;
     private readonly IConfiguration _configuration;
+    private readonly IConstraintRepository _constraintRepository;
     private readonly ClassProcessor _classProcessor;
 
     public TimetableProcessor(ILogger<TimetableProcessor> logger, ILectureScheduleRepository timetableRepository, 
         ILectureRepository lectureRepository, ILecturerRepository lecturerRepository, IClassGroupRepository classGroupRepository, 
         ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService umatApiService,
         IOnlineLectureScheduleRepository onlineLectureScheduleRepository, IRoomRepository roomRepository,
-        IExcelReader excelReader, IConfiguration configuration, ClassProcessor classProcessor)
+        IPreferenceRepository preferenceRepository, IExcelReader excelReader, IConfiguration configuration, 
+        IConstraintRepository constraintRepository, ClassProcessor classProcessor)
     {
         _logger = logger;
         _lectureScheduleRepository = timetableRepository;
@@ -43,8 +47,10 @@ public class TimetableProcessor
         _umatApiService = umatApiService;
         _onlineLectureScheduleRepository = onlineLectureScheduleRepository;
         _roomRepository = roomRepository;
+        _preferenceRepository = preferenceRepository;
         _excelReader = excelReader;
         _configuration = configuration;
+        _constraintRepository = constraintRepository;
         _classProcessor = classProcessor;
     }
 
@@ -55,6 +61,8 @@ public class TimetableProcessor
 
         var lectures = await _lectureRepository.GetAllAsync();
         var schedules = await _lectureScheduleRepository.GetAllAsync();
+        var preferences = await _preferenceRepository.GetAllAsync();
+        var constraints = await _constraintRepository.GetAllAsync();
 
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
         var rooms = await _roomRepository.GetAllAsync();
@@ -64,31 +72,23 @@ public class TimetableProcessor
             return new LecturesNotGeneratedException();
         }
 
-        var result = TimetableGenerator.Generate(schedules, onlineSchedules, lectures);
-        schedules = result.GeneralSchedules;
-        onlineSchedules = result.OnlineSchedules;
-
-        //var lecturesNotScheduledCount = GetCountOfLecturesNotScheduled(lectures, schedules);
-        //if (lecturesNotScheduledCount > 0)
-        //{
-        //    return new LecturesNotScheduledException();
-        //}
-
-        foreach (var schedule in schedules)
+        try
         {
-            await _lectureScheduleRepository.UpdateAsync(schedule, false)
-                .ConfigureAwait(false);
-        }
-        
-        foreach (var schedule in onlineSchedules)
-        {
-            await _onlineLectureScheduleRepository.UpdateAsync(schedule, false)
-                .ConfigureAwait(false);
-        }
+            var (GeneralSchedules, OnlineSchedules) = TimetableGenerator.Generate(schedules, onlineSchedules, lectures, preferences, constraints);
+            _logger.LogInformation("Done generating lecture schedules");
 
-        await _lectureScheduleRepository.SaveChanges();
-        await TimetableGenerator.GetAsync(_excelReader, schedules, onlineSchedules, rooms, fileName);
-        return true;
+            CheckIfAllLecturesHaveBeenScheduled(lectures, GeneralSchedules, OnlineSchedules);
+            await SaveSchedulesToDatabase(schedules, OnlineSchedules);
+
+            await TimetableGenerator.GetAsync(_excelReader, GeneralSchedules, OnlineSchedules, rooms, fileName);
+            _logger.LogInformation("Done building timetable!");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error while generating timetable. Message: {Message}", ex.Message);
+            return ex;
+        }
     }
 
     public async Task<OneOf<bool, Exception>> GenerateLectures()
@@ -201,8 +201,11 @@ public class TimetableProcessor
                 var lecturerExists = lecturersInDb.Any(x => x.Name == lecturer.Party?.Name?.FullName && x.UmatId == lecturer.Id);
                 if (lecturerExists) continue;
 
-                await _lecturerRepository.AddAsync(Lecturer.Create(lecturer.Id, lecturer.Party?.Name?.FullName), 
-                    saveChanges: false);
+                var title = lecturer.Party?.Name?.FullNamev2?.Split("(")[1][..^1];
+                await _lecturerRepository.AddAsync(
+                    Lecturer.Create(lecturer.Id, 
+                        lecturer.Party?.Name?.FullName, 
+                        lecturer.Party?.Name?.FullNamev2), saveChanges: false);
             }
         }
     }
@@ -276,43 +279,7 @@ public class TimetableProcessor
         var lectures = new List<Lecture>();
         foreach (var course in lecturableCourses)
         {
-            if (course.Code!.StartsWith("EM 411") || course.Code!.StartsWith("EM 413")) continue;
-            if (course.FirstExaminerStaffId is null) continue;
-            var courseCode = course.Code?.Trim().Split(AppHelpers.WhiteSpace)[1];
-
-            var lecturerId = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId)?.Id;
-            var insertedLectures = lectures.Where(x => 
-                x.Course?.Code?.Split(AppHelpers.WhiteSpace)[1] == courseCode 
-                && x.LecturerId == lecturerId).ToList();
-
-            if (insertedLectures.Any()) 
-            {
-                foreach (var lecture in insertedLectures)
-                {
-                    var subs2 = classGroups.FirstOrDefault(x => 
-                        x.Name.StartsWith(course.ProgrammeCode!) 
-                            && x.Year == course.Year)?
-                                .SubClassGroups;
-                    lecture.AddGroups(subs2);
-                }
-                continue;
-            }
-
-            var lecturer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
-            if (lecturer is null) return;
-
-            var subs = classGroups.FirstOrDefault(x => x.Name.StartsWith(course.ProgrammeCode!) && x.Year == course.Year)?
-                    .SubClassGroups;
-
-            var teaching = Lecture.Create(lecturer.Id, course.Id, course.TeachingHours)
-                .ForCourse(course)
-                .AddGroups(subs);
-            
-            var practical = Lecture.Create(lecturer.Id, course.Id, course.PracticalHours, true)
-                .ForCourse(course)
-                .AddGroups(subs);
-
-            lectures.AddRange(new List<Lecture> { teaching, practical });
+            CreateLectures(lecturers, classGroups, lectures, course);
         }
 
         foreach (var lecture in lectures)
@@ -324,27 +291,100 @@ public class TimetableProcessor
         await _lectureRepository.SaveChanges();
     }
 
-    private static int GetCountOfLecturesNotScheduled(List<Lecture> lecturesInDb, List<LectureSchedule> lectureSchedules)
+    private void CreateLectures(List<Lecturer> lecturers, List<ClassGroup> classGroups, List<Lecture> lectures, IncomingCourse course)
+    {
+        if (course.Code!.StartsWith("EM 411") || course.Code!.StartsWith("EM 413")) return;
+        if (course.FirstExaminerStaffId is null) return;
+        var courseCode = course.Code?.Trim().Split(AppHelpers.WhiteSpace)[1];
+        var lecturer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
+        if (lecturer is null) return;
+
+        var isCreated = AddGroupToLectureIfAlreadyCreated(lectures, classGroups, lecturer.Id, course, courseCode);
+        if (isCreated) return;
+
+        var subs = classGroups.FirstOrDefault(x => x.Name.StartsWith(course.ProgrammeCode!) 
+                                                    && x.Year == course.Year)?
+                                                    .SubClassGroups;
+
+        var teaching = Lecture.Create(lecturer.Id, course.Id, course.TeachingHours)
+                                .ForCourse(course)
+                                .AddGroups(subs);
+
+        var practical = Lecture.Create(lecturer.Id, course.Id, course.PracticalHours, true)
+                                .ForCourse(course)
+                                .AddGroups(subs);
+
+        lectures.AddRange(new List<Lecture> { teaching, practical });
+    }
+
+    private bool AddGroupToLectureIfAlreadyCreated(List<Lecture> lectures, List<ClassGroup> classGroups, int lecturerId,
+        IncomingCourse course, string? courseCode)
+    {
+        var insertedLectures = lectures.Where(x =>
+                x.Course?.Code?.Split(AppHelpers.WhiteSpace)[1] == courseCode
+                && x.LecturerId == lecturerId).ToList();
+
+        if (!insertedLectures.Any()) return false;
+
+        foreach (var lecture in insertedLectures)
+        {
+            var subs2 = classGroups.FirstOrDefault(x =>
+                x.Name.StartsWith(course.ProgrammeCode!)
+                    && x.Year == course.Year)?
+                        .SubClassGroups;
+            lecture.AddGroups(subs2);
+        }
+        return true;
+    }
+
+
+    private async Task SaveSchedulesToDatabase(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules)
+    {
+        foreach (var schedule in schedules)
+        {
+            await _lectureScheduleRepository.UpdateAsync(schedule, false)
+                .ConfigureAwait(false);
+        }
+
+        foreach (var schedule in onlineSchedules)
+        {
+            await _onlineLectureScheduleRepository.UpdateAsync(schedule, false)
+                .ConfigureAwait(false);
+        }
+
+        await _lectureScheduleRepository.SaveChanges();
+    }
+
+    private static void CheckIfAllLecturesHaveBeenScheduled(List<Lecture> lecturesInDb, List<LectureSchedule> lectureSchedules,
+        List<OnlineLectureSchedule> onlineLectureSchedules)
     {
         int result = 0;
-        var lecturesScheduled = lectureSchedules.Select(x => x.Id).ToList();
+        List<Lecture> lecturesNotScheduled = new List<Lecture>();
+
         foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && !x.IsVLE))
         {
-            if (!lecturesScheduled.Any(x => x == lecture.Id))
+            var lectureIsScheduled = lectureSchedules.Any(x => x.FirstLectureId == lecture.Id || x.SecondLectureId == lecture.Id);
+            if (!lectureIsScheduled)
             {
+                lecturesNotScheduled.Add(lecture);
                 result++;
             }
         }
         
         foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && x.IsVLE))
         {
-            if (lecture.OnlineLectureScheduleId == null)
+            var onlineLectureIsScheduled = onlineLectureSchedules.Any(x => x.Lectures.Contains(lecture));
+            if (!onlineLectureIsScheduled)
             {
+                lecturesNotScheduled.Add(lecture);
                 result++;
             }
         }
 
-        return result;
+        if (result > 0)
+        {
+            throw new LecturesNotScheduledException();
+        }
     }
 
     private static IEnumerable<string> GetTimeSLots()

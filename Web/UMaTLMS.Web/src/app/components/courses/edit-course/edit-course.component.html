@@ -18,13 +18,58 @@
         <!--begin::Input group-->
         <div class="row mb-6">
           <!--begin::Label-->
-          <label class="col-lg-4 col-form-label required fw-bold fs-6">Name</label>
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Name</label>
           <!--end::Label-->
           <!--begin::Col-->
           <div class="col-lg-8 fv-row">
             <input [value]="course"
                    type="text" name="name" class="form-control form-control-lg form-control-solid"
                    disabled />
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Credit</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input [value]="creditHours"
+                   type="number" name="credit" class="form-control form-control-lg form-control-solid"
+                   disabled />
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Teaching Hours</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input formControlName="teachingHours" [class.is-invalid]="getControl('teachingHours').touched
+                && getControl('teachingHours').invalid" type="number" name="teachingHours"
+                   class="form-control form-control-lg form-control-solid" />
+          </div>
+          <!--end::Col-->
+        </div>
+        <!--end::Input group-->
+
+        <!--begin::Input group-->
+        <div class="row mb-6">
+          <!--begin::Label-->
+          <label class="col-lg-4 col-form-label fw-bold fs-6">Practical Hours</label>
+          <!--end::Label-->
+          <!--begin::Col-->
+          <div class="col-lg-8 fv-row">
+            <input formControlName="practicalHours" [class.is-invalid]="getControl('practicalHours').touched
+                && getControl('practicalHours').invalid" type="number" name="practicalHours"
+                   class="form-control form-control-lg form-control-solid" />
           </div>
           <!--end::Col-->
         </div>

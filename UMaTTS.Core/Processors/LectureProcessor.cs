@@ -59,16 +59,16 @@ public class LectureProcessor
 
 	public async Task<OneOf<LectureDto, Exception>> GetAsync(int id)
 	{
-		var lecture = await _lectureRepository.FindByIdAsync(id);
+		var lecture = await _lectureRepository.FindByIdAsync(id, useCache: true);
 		if (lecture is null) return new InvalidIdException();
 		return lecture.Adapt<LectureDto>(Mapping.GetTypeAdapterConfig());
 	}
 }
 
-public record LectureCommand(int Id, int LecturerId, int CourseId, string? PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 
+public record LectureCommand(int Id, int LecturerId, int CourseId, string? PreferredRoom, int Duration, bool IsPractical, bool IsVLE, 
 	 List<SubClassGroupCommand> SubClassGroups);
 
-public record LectureDto(int Id, int LecturerId, int CourseId, string PreferredRoom, int Duration, bool IsPractical, bool  IsVLE, 
+public record LectureDto(int Id, int LecturerId, int CourseId, string PreferredRoom, int Duration, bool IsPractical, bool IsVLE, 
 	 LecturerDto Lecturer, CourseDto Course, List<SubClassGroupPageDto> SubClassGroups);
 
 public record LecturerDto(int Id, int UmatId, string Name);

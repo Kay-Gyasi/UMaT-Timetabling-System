@@ -14,6 +14,7 @@ export class EditCourseComponent implements OnInit {
   courseForm:UntypedFormGroup;
   courseId:number;
   course:string;
+  creditHours:number;
   isLoading:boolean = false;
   constructor(private fb:FormBuilder, private route:ActivatedRoute,
               private courseService:CourseService, private toast:NotificationService) {
@@ -30,6 +31,8 @@ export class EditCourseComponent implements OnInit {
     request.isExaminable = this.courseForm.get('isExaminable')?.value;
     request.isToHaveWeeklyLectureSchedule = this.courseForm.get('isToHaveWeeklyLectureSchedule')?.value;
     request.hasPracticalExams = this.courseForm.get('hasPracticalExams')?.value;
+    request.teachingHours = this.courseForm.get('teachingHours')?.value;
+    request.practicalHours = this.courseForm.get('practicalHours')?.value;
     return this.courseService.edit(request).subscribe({
       error: err => {
         this.toast.showError("Unable to edit course", "Failed");
@@ -46,19 +49,24 @@ export class EditCourseComponent implements OnInit {
 
   private initialize(){
     this.courseForm = this.fb.group({
-      isExaminable: [true, [Validators.required]],
-      isToHaveWeeklyLectureSchedule: [true, [Validators.required]],
-      hasPracticalExams: [false, [Validators.required]]
+      isExaminable: [false, [Validators.required]],
+      isToHaveWeeklyLectureSchedule: [false, [Validators.required]],
+      hasPracticalExams: [false, [Validators.required]],
+      teachingHours: [0, [Validators.required, Validators.max(10)]],
+      practicalHours: [0, [Validators.required, Validators.max(10)]],
     })
 
     this.courseId = this.route.snapshot.params["id"];
     this.courseService.get(this.courseId).subscribe({
       next: response => {
         this.course = response?.name ?? '';
+        this.creditHours = response?.credit ?? 0;
         this.courseForm.setValue({
           isExaminable: response?.isExaminable,
           isToHaveWeeklyLectureSchedule: response?.isToHaveWeeklyLectureSchedule,
-          hasPracticalExams: response?.hasPracticalExams
+          hasPracticalExams: response?.hasPracticalExams,
+          practicalHours: response?.practicalHours,
+          teachingHours: response?.teachingHours,
         })
       },
       error: err => {

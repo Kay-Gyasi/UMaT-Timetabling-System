@@ -65,7 +65,7 @@ public class RoomProcessor
 
 	public async Task<OneOf<RoomDto, Exception>> GetAsync(int id)
 	{
-		var room = await _roomRepository.FindByIdAsync(id);
+		var room = await _roomRepository.FindByIdAsync(id, useCache: true);
 		if (room is null) return new NullReferenceException();
 
 		return room.Adapt<RoomDto>();

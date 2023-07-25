@@ -86,7 +86,7 @@ public class ClassProcessor
 
 	public async Task<OneOf<ClassGroupDto?, Exception>> GetAsync(int classId)
 	{
-		var @class = await _classGroupRepository.FindByIdAsync(classId);
+		var @class = await _classGroupRepository.FindByIdAsync(classId, useCache: true);
 		if (@class == null) return new InvalidIdException();
 
 		return @class.Adapt<ClassGroupDto>(Mapping.GetTypeAdapterConfig());

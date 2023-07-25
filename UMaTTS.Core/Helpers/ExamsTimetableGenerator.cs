@@ -62,7 +62,7 @@ public static partial class ExamsTimetableGenerator
                 var lecturer = lecturers.First(x => x.UmatId == course?.FirstExaminerStaffId);
                 var schedule = ExamsSchedule.Create(courseCode)
                                 .AddGroup(group)
-                                .HasInfo(lecturer.Id, lecturer?.Name, course?.Name);
+                                .HasInfo(lecturer.Id, lecturer?.TitledName, course?.Name);
 
                 schedules.Add(schedule);
 
@@ -70,7 +70,7 @@ public static partial class ExamsTimetableGenerator
                 {
                     var practicalSchedule = ExamsSchedule.Create(courseCode)
                                 .AddGroup(group)
-                                .HasInfo(lecturer.Id, lecturer?.Name, course?.Name);
+                                .HasInfo(lecturer?.Id, lecturer?.TitledName, course?.Name);
                     practicalSchedules.Add(practicalSchedule);
                 }
             }
@@ -154,7 +154,7 @@ public static partial class ExamsTimetableGenerator
                             if (lastRoomsIndex == 0) break;
                             lastRoomsIndex -= 1;
                             continue;
-                        };
+                        }
 
                         hasCheckedAllRooms = true;
                     }
@@ -180,6 +180,7 @@ public static partial class ExamsTimetableGenerator
             {
                 if (groupedSchedule is null) continue;
                 var invigilators = new HashSet<(string Name, int Id, string Course)>();
+
                 foreach (var exam in groupedSchedule)
                 {
                     var coursesForExams = GetCoursesForExam(courses, exam);
@@ -189,12 +190,43 @@ public static partial class ExamsTimetableGenerator
                 }
 
                 var numberOfInvigilatorsForExam = groupedSchedule.Sum(x => x.CourseCodes?.Count);
+                foreach (var schedule in groupedSchedule)
+                {
+                    foreach (var subClassSize in schedule.SubClassGroups.Select(x => x.Size))
+                    {
+                        var result = subClassSize;
+                        var count = 0;
+                        while (result > 0)
+                        {
+                            result -= 80;
+                            count += 1;
+                        }
+
+                        numberOfInvigilatorsForExam += count - 1;
+                    }
+                }
+
                 GetMakeUpInvigilators(invigilators, lecturers, numberOfInvigilatorsForExam, count: 0);
                 AssignInvigilators(groupedSchedule, lecturers, invigilators, count: 0);
             }
         }
 
         return examsAndPracticalSchedules;
+    }
+
+    private static void GetExaminersForEachCourseAndMakeInvigilators(List<IncomingCourse> coursesForExams,
+        List<Lecturer> lecturers, HashSet<(string, int, string Course)> invigilators)
+    {
+        foreach (var course in coursesForExams)
+        {
+            var firstExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
+            if (firstExaminer?.Name is null) continue;
+            invigilators.Add((firstExaminer.Name, firstExaminer.Id, course.Name ?? string.Empty));
+
+            var secondExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.SecondExaminerStaffId);
+            if (secondExaminer?.Name is null) continue;
+            invigilators.Add((secondExaminer.Name, secondExaminer.Id, course.Name ?? string.Empty));
+        }
     }
 
     private static void AssignInvigilators(IGrouping<string, ExamsSchedule> groupedSchedule,
@@ -209,6 +241,26 @@ public static partial class ExamsTimetableGenerator
                 schedule.ToBeInvigilatedBy(invigilator);
                 count += 1;
             }
+        }
+    }
+
+    private static void GetMakeUpInvigilators(HashSet<(string Name, int Id, string Course)> invigilators, List<Lecturer> lecturers,
+        int? numberOfInvigilatorsForExam, int count)
+    {
+        while (invigilators.Count < numberOfInvigilatorsForExam)
+        {
+            var selected = lecturers[count % lecturers.Count];
+            if (selected is null) continue;
+
+            var isProfessor = selected.TitledName!.Contains("prof", StringComparison.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(selected.Name) || isProfessor || invigilators.Any(x => x.Name == selected.Name))
+            {
+                count += 1;
+                continue;
+            }
+
+            invigilators.Add((selected.Name, selected.Id, string.Empty));
+            count += 1;
         }
     }
 
@@ -228,42 +280,6 @@ public static partial class ExamsTimetableGenerator
         }
 
         return coursesForExams;
-    }
-
-    private static void GetExaminersForEachCourseAndMakeInvigilators(List<IncomingCourse> coursesForExams,
-        List<Lecturer> lecturers, HashSet<(string, int, string? Course)> invigilators)
-    {
-        foreach (var course in coursesForExams)
-        {
-            var firstExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
-            if (firstExaminer?.Name is null) continue;
-            invigilators.Add((firstExaminer.Name, firstExaminer.Id, course.Name));
-
-            var secondExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.SecondExaminerStaffId);
-            if (secondExaminer?.Name is null) continue;
-            invigilators.Add((secondExaminer.Name, secondExaminer.Id, course.Name));
-        }
-    }
-
-    private static void GetMakeUpInvigilators(HashSet<(string Name, int Id, string? Course)> invigilators, List<Lecturer> lecturers,
-        int? numberOfInvigilatorsForExam, int count)
-    {
-        while (invigilators.Count < numberOfInvigilatorsForExam)
-        {
-            var selected = lecturers[count % lecturers.Count];
-            if (selected is null) continue;
-
-            // TODO:: work on adding title field in lecturers data (FullName_v2)
-            var isProfessor = selected.Name!.Contains("prof", StringComparison.OrdinalIgnoreCase);
-            if (string.IsNullOrWhiteSpace(selected.Name) || isProfessor || invigilators.Any(x => x.Name == selected.Name))
-            {
-                count += 1;
-                continue;
-            }
-
-            invigilators.Add((selected.Name, selected.Id, null));
-            count += 1;
-        }
     }
 
     private static void GenerateExamDates(List<DateTime> examDates, DateTime startDate, DateTime endDate, 

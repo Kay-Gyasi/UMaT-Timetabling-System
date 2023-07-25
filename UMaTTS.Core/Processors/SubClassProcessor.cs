@@ -27,7 +27,7 @@ public class SubClassProcessor
 
     public async Task<SubClassGroupDto?> GetAsync(int subClassId)
     {
-        var sub = await _subClassGroupRepository.FindByIdAsync(subClassId);
+        var sub = await _subClassGroupRepository.FindByIdAsync(subClassId, useCache: true);
         if (sub is null) return null;
 
         return sub.Adapt<SubClassGroupDto>(Mapping.GetTypeAdapterConfig());

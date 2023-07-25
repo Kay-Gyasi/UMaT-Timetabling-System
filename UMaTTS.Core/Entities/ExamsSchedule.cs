@@ -71,7 +71,7 @@ public class ExamsSchedule : Entity
         return this;
     }
 
-    public ExamsSchedule HasInfo(int examinerId, string? examiner, string? courseName)
+    public ExamsSchedule HasInfo(int? examinerId, string? examiner, string? courseName)
     {
         CourseName = courseName;
         Examiner = examiner;

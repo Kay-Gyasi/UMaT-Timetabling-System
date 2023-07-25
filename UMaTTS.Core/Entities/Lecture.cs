@@ -22,6 +22,8 @@
         public IncomingCourse? Course { get; private set; }
         private List<SubClassGroup> _subClassGroups = new();
         public IReadOnlyList<SubClassGroup> SubClassGroups => _subClassGroups.AsReadOnly();
+        private List<Preference> _preferences = new();
+        public IReadOnlyList<Preference> Preferences => _preferences.AsReadOnly();
 
         public static Lecture Create(int lecturerId, int courseId, int duration, bool isPractical = false)
             => new (lecturerId, courseId, duration, isPractical);
@@ -62,6 +64,12 @@
         {
             if (string.IsNullOrWhiteSpace(room)) return this;
             PreferredRoom = room;
+            return this;
+        }
+
+        public Lecture SetDuration(int duration)
+        {
+            Duration = duration;
             return this;
         }
     }

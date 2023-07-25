@@ -38,7 +38,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         }
     }
     
-    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, bool useCache = true)
+    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, bool useCache = false)
     {
         try
         {
@@ -142,7 +142,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         }
     }
 
-    public async Task<T?> FindByIdAsync(int id)
+    public async Task<T?> FindByIdAsync(int id, bool useCache = false)
     {
         try
         {
@@ -152,7 +152,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
                                 .FindPrimaryKey()?
                                 .Properties[0];
 
-            if (_cache.HasKey(typeof(T).Name))
+            if (useCache && _cache.HasKey(typeof(T).Name))
             {
                 return _cache.Get<List<T>>(typeof(T).Name)!
                     .FirstOrDefault(x => x.Id == id);
@@ -179,7 +179,7 @@ public class Repository<T, TKey> : IRepository<T, TKey>
                             .Take(command.PageSize)
                             .ToList();
 
-            if (cacheEntities) _cache.StoreEntities(typeof(T).Name, GetBaseQuery().ToList());
+            if (cacheEntities) _cache.StoreEntities(typeof(T).Name, GetBaseQuery().AsNoTracking().ToList());
             return new PaginatedList<T>(items, count, command.PageNumber, command.PageSize);
         });
     }

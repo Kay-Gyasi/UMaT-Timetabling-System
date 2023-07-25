@@ -31,7 +31,9 @@ public class LectureSchedule : Entity
     public LectureSchedule Reset()
     {
         FirstLectureId = null;
+        FirstLecture = null;
         SecondLectureId = null;
+        SecondLecture = null;
         return this;
     }
 }

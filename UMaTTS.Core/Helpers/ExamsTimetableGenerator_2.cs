@@ -69,7 +69,7 @@ public static partial class ExamsTimetableGenerator
                 worksheet.Cells[$"E{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Size;
                 worksheet.Cells[$"F{currentColumn}"].Value = schedule.Examiner?.ToUpper();
                 worksheet.Cells[$"G{currentColumn}"].Value = room.ToUpper();
-                worksheet.Cells[$"H{currentColumn}"].Value = schedule.Invigilators[groupCount].Name?.ToUpper();
+                worksheet.Cells[$"H{currentColumn}"].Value = schedule.Invigilators[groupCount].TitledName?.ToUpper();
                 worksheet.Cells[$"I{currentColumn}"].Value = schedule.ExamPeriod switch
                 {
                     ExamPeriod.Morning => "M",

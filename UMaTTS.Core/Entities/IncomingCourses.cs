@@ -43,6 +43,8 @@ public class IncomingCourse : Entity
     public bool IsExaminable { get; private set; } = true;
     public bool IsToHaveWeeklyLectureSchedule { get; private set; } = true;
     public bool HasPracticalExams { get; private set; }
+    private List<Preference> _preferences = new();
+    public IReadOnlyList<Preference> Preferences => _preferences.AsReadOnly();
 
     public static IncomingCourse Create(string name, int credit, int? yearGroup, int? umatId = null) 
         => new(name, credit, yearGroup, umatId);
@@ -123,7 +125,7 @@ public class IncomingCourse : Entity
 
     public IncomingCourse WithHours(int? teachingHours, int? practicalHours)
     {
-        if(teachingHours is null || practicalHours is null)
+        if(teachingHours is null && practicalHours is null)
         {
             switch (Credit) {
                 case 3:
@@ -142,9 +144,6 @@ public class IncomingCourse : Entity
                     break;
             }
         }
-
-        if (teachingHours > 2) teachingHours = 2;
-        if (practicalHours > 2) practicalHours = 2;
 
         TeachingHours = teachingHours ?? 0;
         PracticalHours = practicalHours ?? 0;

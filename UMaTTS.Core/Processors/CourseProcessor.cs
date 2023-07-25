@@ -6,10 +6,12 @@ namespace UMaTLMS.Core.Processors;
 public class CourseProcessor
 {
     private readonly ICourseRepository _courseRepository;
+    private readonly ILectureRepository _lectureRepository;
 
-    public CourseProcessor(ICourseRepository courseRepository)
+    public CourseProcessor(ICourseRepository courseRepository, ILectureRepository lectureRepository)
     {
         _courseRepository = courseRepository;
+        _lectureRepository = lectureRepository;
     }
 
     public async Task<OneOf<bool, Exception>> UpdateAsync(CourseCommand command)
@@ -20,8 +22,23 @@ public class CourseProcessor
         foreach (var course in courses)
         {
             course.MarkAsNotExaminable(command.IsExaminable)
-            .HasNoWeeklyLectures(command.IsToHaveWeeklyLectureSchedule)
-            .MarkAsHavingPracticalExams(command.HasPracticalExams);
+                .HasNoWeeklyLectures(command.IsToHaveWeeklyLectureSchedule)
+                .MarkAsHavingPracticalExams(command.HasPracticalExams)
+                .WithHours(command.TeachingHours, command.PracticalHours);
+
+            var lecturesForCourse = await _lectureRepository.GetAllAsync(x => x.CourseId == course.Id);
+            foreach (var lecture in lecturesForCourse)
+            {
+                if (lecture.IsPractical)
+                {
+                    lecture.SetDuration(command.PracticalHours);
+                    continue;
+                }
+
+                lecture.SetDuration(command.TeachingHours);
+                await _lectureRepository.UpdateAsync(lecture, saveChanges: false);
+            }
+
             await _courseRepository.UpdateAsync(course, saveChanges: false);
         }
 
@@ -30,11 +47,11 @@ public class CourseProcessor
 
     public async Task<OneOf<CourseDto, Exception>> GetAsync(int id)
     {
-        var course = await _courseRepository.FindByIdAsync(id);
+        var course = await _courseRepository.FindByIdAsync(id, useCache: true);
         if (course is null) return new NullReferenceException();
 
-        return new CourseDto(course.Id, course.Code, course.Name ?? string.Empty, 
-            course.IsExaminable, course.IsToHaveWeeklyLectureSchedule, course.HasPracticalExams);
+        return new CourseDto(course.Id, course.Code, course.Name ?? string.Empty, course.Credit, course.TeachingHours, 
+            course.PracticalHours, course.IsExaminable, course.IsToHaveWeeklyLectureSchedule, course.HasPracticalExams);
     }
 
     public async Task<PaginatedList<CourseDto>> GetPageAsync(PaginatedCommand command)
@@ -60,7 +77,8 @@ public class CourseProcessor
     }
 }
 
-public record CourseCommand(string Name, bool IsExaminable, bool IsToHaveWeeklyLectureSchedule, bool HasPracticalExams);
+public record CourseCommand(string Name, int TeachingHours, int PracticalHours, 
+    bool IsExaminable, bool IsToHaveWeeklyLectureSchedule, bool HasPracticalExams);
 
-public record CourseDto(int Id, string? Code, string Name, bool IsExaminable, 
-    bool IsToHaveWeeklyLectureSchedule, bool HasPracticalExams);
+public record CourseDto(int Id, string? Code, string Name, int Credit, int TeachingHours, 
+    int PracticalHours, bool IsExaminable, bool IsToHaveWeeklyLectureSchedule, bool HasPracticalExams);

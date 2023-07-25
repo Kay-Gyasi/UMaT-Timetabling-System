@@ -40,6 +40,9 @@ import {TimetableService} from "./services/http/timetable.service";
 import {ClassGroupEffects} from "./state/effects/class-groups.effects";
 import {LectureEffects} from "./state/effects/lectures.effects";
 import {RoomEffects} from "./state/effects/rooms.effects";
+import { CoursePreferencesComponent } from './components/courses/course-preferences/course-preferences.component';
+import { ViewLecturersComponent } from './components/lecturers/view-lecturers/view-lecturers.component';
+import { LecturerPreferencesComponent } from './components/lecturers/lecturer-preferences/lecturer-preferences.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -56,7 +59,10 @@ import {RoomEffects} from "./state/effects/rooms.effects";
     EditLectureComponent,
     LoadingScreenComponent,
     ViewCoursesComponent,
-    EditCourseComponent
+    EditCourseComponent,
+    CoursePreferencesComponent,
+    ViewLecturersComponent,
+    LecturerPreferencesComponent
   ],
   imports: [
     BrowserModule,
