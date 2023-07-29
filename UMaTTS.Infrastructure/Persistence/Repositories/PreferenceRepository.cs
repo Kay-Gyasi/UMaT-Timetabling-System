@@ -6,4 +6,16 @@ public class PreferenceRepository : Repository<Preference, int>, IPreferenceRepo
         : base(context, cache, logger)
     {
     }
+
+    public async Task<List<Preference>> GetLecturerPreferences()
+    {
+        return await GetBaseQuery().AsNoTracking().ToListAsync();
+    }
+
+    protected override IQueryable<Preference> GetBaseQuery()
+    {
+        return base.GetBaseQuery()
+                    .Include(x => x.Lecturer)
+                    .Include(x => x.Course);
+    }
 }

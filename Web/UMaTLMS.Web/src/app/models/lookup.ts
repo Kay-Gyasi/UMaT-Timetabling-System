@@ -4,5 +4,6 @@ export class Lookup{
 }
 
 export enum LookupType{
-  Rooms
+  Rooms,
+  Lecturers
 }

@@ -31,6 +31,14 @@ internal class Mapping
 			.MapWith(x => new PaginatedList<CourseDto>(x.Data.Adapt<List<CourseDto>>(),
 				x.TotalCount, x.CurrentPage, x.PageSize));
 		
+		config.NewConfig<PaginatedList<Lecturer>, PaginatedList<LecturerDto>>()
+			.MapWith(x => new PaginatedList<LecturerDto>(x.Data.Adapt<List<LecturerDto>>(),
+				x.TotalCount, x.CurrentPage, x.PageSize));
+		
+		//config.NewConfig<List<Preference>, List<PreferenceDto>>()
+		//	.MapWith(x => x.Select(a => 
+		//	new PreferenceDto(a.Id, a.Type, a.Value, a.TimetableType, a.LecturerId, a.CourseId, a.Lecturer, a.Course)).ToList());
+		
 		config.NewConfig<PaginatedList<Lecture>, PaginatedList<LecturePageDto>>()
 			.MapWith(x => new PaginatedList<LecturePageDto>(x.Data.Select(x => new LecturePageDto(x.Id, 
 			x.Lecturer!.Name ?? "", 

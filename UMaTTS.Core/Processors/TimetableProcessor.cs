@@ -141,7 +141,7 @@ public class TimetableProcessor
         var rooms = await _roomRepository.GetAllAsync();
         if (!rooms.Any()) throw new SystemNotInitializedException();
 
-        var timeSlots = GetTimeSLots().ToList();
+        var timeSlots = AppHelpers.GetTimeSlots().ToList();
 
         var schedules = await _lectureScheduleRepository.GetAllAsync();
         if (schedules.Any())
@@ -385,19 +385,6 @@ public class TimetableProcessor
         {
             throw new LecturesNotScheduledException();
         }
-    }
-
-    private static IEnumerable<string> GetTimeSLots()
-    {
-        return new List<string>()
-        {
-            "6am",
-            "8am",
-            "10am",
-            "12:30pm",
-            "2:30pm",
-            "4:30pm"
-        };
     }
 }
 

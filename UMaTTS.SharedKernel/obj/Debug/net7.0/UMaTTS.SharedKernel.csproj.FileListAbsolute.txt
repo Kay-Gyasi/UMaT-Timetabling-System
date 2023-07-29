@@ -1,0 +1,14 @@
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\bin\Debug\net7.0\UMaTTS.SharedKernel.deps.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\bin\Debug\net7.0\UMaTTS.SharedKernel.runtimeconfig.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\bin\Debug\net7.0\UMaTTS.SharedKernel.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\bin\Debug\net7.0\UMaTTS.SharedKernel.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.csproj.AssemblyReference.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.AssemblyInfoInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.AssemblyInfo.cs
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\refint\UMaTTS.SharedKernel.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.pdb
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.genruntimeconfig.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\ref\UMaTTS.SharedKernel.dll

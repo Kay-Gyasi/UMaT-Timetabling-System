@@ -43,6 +43,9 @@ import {RoomEffects} from "./state/effects/rooms.effects";
 import { CoursePreferencesComponent } from './components/courses/course-preferences/course-preferences.component';
 import { ViewLecturersComponent } from './components/lecturers/view-lecturers/view-lecturers.component';
 import { LecturerPreferencesComponent } from './components/lecturers/lecturer-preferences/lecturer-preferences.component';
+import {LecturerService} from "./services/http/lecturer.service";
+import {LecturerEffects} from "./state/effects/lecturers.effects";
+import {PreferenceService} from "./services/http/preference.service";
 @NgModule({
   declarations: [
     AppComponent,
@@ -77,13 +80,14 @@ import { LecturerPreferencesComponent } from './components/lecturers/lecturer-pr
       metaReducers
     }),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),
-    EffectsModule.forRoot(CourseEffects, ClassGroupEffects, LectureEffects, RoomEffects),
+    EffectsModule.forRoot(CourseEffects, ClassGroupEffects, LectureEffects, RoomEffects,
+      LecturerEffects),
     ToastrModule.forRoot(),
   ],
   providers: [
     { provide:IHttpRequest, useClass: HttpRequest },
     MetronicJs, CourseService, RoomService, ClassService, NotificationService,
-    TimetableService
+    TimetableService, LecturerService, PreferenceService
   ],
   bootstrap: [AppComponent]
 })

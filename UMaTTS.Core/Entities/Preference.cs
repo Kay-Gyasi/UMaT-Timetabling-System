@@ -21,8 +21,6 @@ public class Preference : Entity
     public TimetableType TimetableType { get; private set; }
     public int? LecturerId { get; private set; }
     public Lecturer? Lecturer { get; private set; }
-    public int? LectureId { get; private set; }
-    public Lecture? Lecture { get; private set; }
     public int? CourseId { get; private set; }
     public IncomingCourse? Course { get; private set; }
 
@@ -39,5 +37,6 @@ public class Preference : Entity
 public enum PreferenceType
 {
     DayNotAvailable,
-    TimeNotAvailable
+    TimeNotAvailable,
+    PreferredDayOfWeek
 }

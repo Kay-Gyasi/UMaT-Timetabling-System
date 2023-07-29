@@ -4,4 +4,5 @@ namespace UMaTLMS.Core.Repositories;
 
 public interface IPreferenceRepository : IRepository<Preference, int>
 {
+    Task<List<Preference>> GetLecturerPreferences();
 }

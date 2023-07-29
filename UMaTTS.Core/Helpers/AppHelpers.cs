@@ -64,5 +64,30 @@ public static class AppHelpers
         }
     }
 
+    public static IEnumerable<string> GetTimeSlots()
+    {
+        return new List<string>()
+        {
+            "6am",
+            "8am",
+            "10am",
+            "12:30pm",
+            "2:30pm",
+            "4:30pm"
+        };
+    }
+    
+    public static IEnumerable<string> GetDaysOfWeek()
+    {
+        return new List<string>()
+        {
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        };
+    }
+
     public const string WhiteSpace = " ";
 }

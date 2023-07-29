@@ -203,8 +203,7 @@ namespace UMaTLMS.Core.Helpers
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, Lecture lecture, List<Preference> preferences)
         {
             var requiredPreferences = preferences.Where(x => x.TimetableType == Enums.TimetableType.Lectures
-                                                                    && (x.LectureId == lecture.Id
-                                                                        || x.LecturerId == lecture.LecturerId
+                                                                    && (x.LecturerId == lecture.LecturerId
                                                                         || x.CourseId == lecture.CourseId)).ToList();
 
             foreach (var preference in requiredPreferences)
@@ -214,8 +213,8 @@ namespace UMaTLMS.Core.Helpers
                     case PreferenceType.DayNotAvailable:
                         var value = JsonSerializer.Deserialize<DayNotAvailable>(preference.Value);
                         if (value is null) continue;
-                        builder.And(x => x.DayOfWeek!.Value != value.Day);
-                        onlineBuilder.And(x => x.DayOfWeek!.Value != value.Day);
+                        if (lecture.IsVLE) onlineBuilder.And(x => x.DayOfWeek!.Value != value.Day);
+                        else builder.And(x => x.DayOfWeek!.Value != value.Day);
                         continue;
                     case PreferenceType.TimeNotAvailable:
                         var value1 = JsonSerializer.Deserialize<TimeNotAvailable>(preference.Value);
@@ -223,11 +222,17 @@ namespace UMaTLMS.Core.Helpers
                         if (value1.Day is not null)
                         {
                             if (lecture.IsVLE) onlineBuilder.And(x => x.DayOfWeek!.Value != value1.Day);
-                            builder.And(x => x.DayOfWeek!.Value != value1.Day);
+                            else builder.And(x => x.DayOfWeek!.Value != value1.Day);
                         }
 
-                        if (lecture.IsVLE) onlineBuilder.And(x => value1.TimesNotAvailable!.Contains(x.TimePeriod) == false);
-                        builder.And(x => value1.TimesNotAvailable!.Contains(x.TimePeriod) == false);
+                        if (lecture.IsVLE) onlineBuilder.And(x => value1.Time!.Contains(x.TimePeriod) == false);
+                        else builder.And(x => value1.Time!.Contains(x.TimePeriod) == false);
+                        continue;
+                    case PreferenceType.PreferredDayOfWeek:
+                        var value2 = JsonSerializer.Deserialize<DayNotAvailable>(preference.Value);
+                        if (value2 is null) continue;
+                        if (lecture.IsVLE) onlineBuilder.And(x => x.DayOfWeek!.Value == value2.Day);
+                        else builder.And(x => x.DayOfWeek!.Value == value2.Day);
                         continue;
                     default:
                         continue;

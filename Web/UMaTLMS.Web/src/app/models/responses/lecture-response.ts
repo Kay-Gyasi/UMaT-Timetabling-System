@@ -1,5 +1,6 @@
 import { CourseResponse } from "./course-response";
 import {SubClassResponse} from "./sub-class-response";
+import {LecturerResponse} from "./lecturer-response";
 
 export class LectureResponse{
   id:number;
@@ -12,12 +13,6 @@ export class LectureResponse{
   isPractical:boolean;
   isVLE:boolean;
   subClassGroups:SubClassResponse[];
-}
-
-export class LecturerResponse{
-  id:number;
-  umatId:number;
-  name:string;
 }
 
 export class LecturePageResponse{

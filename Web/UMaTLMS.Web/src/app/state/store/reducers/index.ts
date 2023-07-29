@@ -3,6 +3,7 @@ import { CoursePageState, getCoursePageReducer } from "./courses/get-course-page
 import {ClassGroupPageState, getClassGroupPageReducer} from "./classes/get-class-group-page.reducer";
 import {getLecturePageReducer, LecturePageState} from "./lectures/get-lecture-page.reducer";
 import {getRoomPageReducer, RoomPageState} from "./rooms/get-room-page.reducer";
+import {getLecturerPageReducer, LecturerPageState} from "./lecturers/get-lecturer-page.reducer";
 
 export const rootReducer = {};
 
@@ -11,6 +12,7 @@ export interface AppState {
   class_groups_page: ClassGroupPageState;
   lectures_page: LecturePageState;
   rooms_page: RoomPageState;
+  lecturers_page: LecturerPageState;
 }
 
 export const reducers: ActionReducerMap<any, any> = {
@@ -18,6 +20,7 @@ export const reducers: ActionReducerMap<any, any> = {
   class_groups_page: getClassGroupPageReducer,
   lectures_page: getLecturePageReducer,
   rooms_page: getRoomPageReducer,
+  lecturers_page: getLecturerPageReducer,
 }
 
 export function clearState(reducer: ActionReducer<any>) : ActionReducer<any> {

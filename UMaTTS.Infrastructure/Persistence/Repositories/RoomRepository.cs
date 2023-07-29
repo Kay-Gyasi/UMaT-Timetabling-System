@@ -35,6 +35,7 @@ public class RoomRepository : Repository<ClassRoom, int>, IRoomRepository
         }
 
         source = GetBaseQuery().OrderBy(x => x.Name);
+        _cache.StoreEntities(typeof(ClassRoom).Name, source.AsNoTracking().ToList());
         if (!string.IsNullOrWhiteSpace(command.Search))
         {
             source = source.Where(x => x.Name.ToLower().Contains(command.Search.ToLower()));

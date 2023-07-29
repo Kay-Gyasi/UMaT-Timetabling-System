@@ -37,6 +37,7 @@ namespace UMaTLMS.Infrastructure.Persistence.Repositories
             }
 
             source ??= GetBaseQuery().OrderBy(x => x.Course!.Name);
+            _cache.StoreEntities(typeof(Lecture).Name, source.AsNoTracking().ToList());
             if (!string.IsNullOrWhiteSpace(command.Search))
             {
                 source = source.Where(x => x.Lecturer!.Name!.ToLower().Contains(command.Search.ToLower()) 

@@ -4,17 +4,20 @@
 public class LookupProcessor
 {
     private readonly IRoomRepository _roomRepository;
+    private readonly ILecturerRepository _lecturerRepository;
 
-    public LookupProcessor(IRoomRepository roomRepository)
+    public LookupProcessor(IRoomRepository roomRepository, ILecturerRepository lecturerRepository)
     {
         _roomRepository = roomRepository;
+        _lecturerRepository = lecturerRepository;
     }
 
     public async Task<List<Lookup>> GetAsync(LookupType type)
     {
         return type switch
         {
-            0 => await _roomRepository.GetLookup(),
+            LookupType.Rooms => await _roomRepository.GetLookup(),
+            LookupType.Lecturers => await _lecturerRepository.GetLookup(),
             _ => throw new NotImplementedException()
         };
     }
@@ -22,5 +25,6 @@ public class LookupProcessor
 
 public enum LookupType
 {
-    Rooms
+    Rooms,
+    Lecturers
 }

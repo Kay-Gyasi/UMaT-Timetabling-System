@@ -42,10 +42,10 @@ public class ClassGroupRepository : Repository<ClassGroup, int>, IClassGroupRepo
             if (classes is not null) return base.GetPageAsync(command, classes);
         }
         
-        if (string.IsNullOrEmpty(command.Search)) return base.GetPageAsync(command);
+        if (string.IsNullOrEmpty(command.Search)) return base.GetPageAsync(command, cacheEntities: true);
 
         source = GetBaseQuery().Where(x => x.Name != null 
                     && x.Name.ToLower().Contains(command.Search.ToLower()));
-        return base.GetPageAsync(command, source);
+        return base.GetPageAsync(command, source, cacheEntities: true);
     }
 }

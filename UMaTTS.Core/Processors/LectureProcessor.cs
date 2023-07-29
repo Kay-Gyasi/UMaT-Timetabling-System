@@ -71,5 +71,4 @@ public record LectureCommand(int Id, int LecturerId, int CourseId, string? Prefe
 public record LectureDto(int Id, int LecturerId, int CourseId, string PreferredRoom, int Duration, bool IsPractical, bool IsVLE, 
 	 LecturerDto Lecturer, CourseDto Course, List<SubClassGroupPageDto> SubClassGroups);
 
-public record LecturerDto(int Id, int UmatId, string Name);
 public record LecturePageDto(int Id, string Lecturer, string Course, bool IsPractical, bool IsVLE, List<string> Classes);
