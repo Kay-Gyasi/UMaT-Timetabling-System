@@ -6,6 +6,7 @@ import {PaginatedList} from "../../models/paginated-list";
 import {NotificationService} from "../notification.service";
 import { CourseRequest } from "src/app/models/requests/course-request";
 import { CourseResponse } from "src/app/models/responses/course-response";
+import {PreferenceResponse} from "../../models/responses/preference-response";
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,18 @@ export class CourseService{
         return data.data;
       })
     )
+  }
+
+  getPreferences(query:PaginatedQuery): Observable<PaginatedList<PreferenceResponse> | undefined>{
+    return this.http.getPageRequestAsync<PreferenceResponse>(`courses/getPreferences`, query)
+      .pipe(
+        map(data => {
+          if(data === undefined || (data.statusCode != 200 && data.statusCode != 204 && data.statusCode != 201)){
+            return undefined;
+          }
+          return data.data;
+        })
+      )
   }
 
   getPage(payload:PaginatedQuery): Observable<PaginatedList<CourseResponse> | undefined> {

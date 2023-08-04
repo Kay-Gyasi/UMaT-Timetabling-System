@@ -9,10 +9,12 @@ namespace UMaTLMS.Core.Processors;
 public class PreferenceProcessor
 {
     private readonly IPreferenceRepository _preferenceRepository;
+    private readonly LookupProcessor _lookupProcessor;
 
-    public PreferenceProcessor(IPreferenceRepository preferenceRepository)
+    public PreferenceProcessor(IPreferenceRepository preferenceRepository, LookupProcessor lookupProcessor)
     {
         _preferenceRepository = preferenceRepository;
+        _lookupProcessor = lookupProcessor;
     }
 
 
@@ -49,6 +51,10 @@ public class PreferenceProcessor
                                 var v2 = new PreferredDayOfWeek() { Day = Enum.Parse<DayOfWeek>(value) };
                                 result = JsonSerializer.Serialize(v2);
                                 break;
+                            case PreferenceType.PreferredLectureRoom:
+                                var v4 = new PreferredLectureRoom() { Room = value };
+                                result = JsonSerializer.Serialize(v4);
+                                break;
                             default:
                                 break;
                         }
@@ -81,6 +87,10 @@ public class PreferenceProcessor
                                 var v2 = new PreferredDayOfWeek() { Day = Enum.Parse<DayOfWeek>(value) };
                                 result = JsonSerializer.Serialize(v2);
                                 break;
+                            case PreferenceType.PreferredLectureRoom:
+                                var v4 = new PreferredLectureRoom() { Room = value };
+                                result = JsonSerializer.Serialize(v4);
+                                break;
                             default:
                                 break;
                         }
@@ -100,40 +110,6 @@ public class PreferenceProcessor
         }
     }
 
-    public async Task<PaginatedList<PreferenceDto>> GetPageAsync(PaginatedCommand command)
-    {
-        var page = await _preferenceRepository.GetPageAsync(command);
-        List<PreferenceDto> dtoData = new();
-        foreach (var data in page.Data)
-        {
-            var value = string.Empty;
-            switch (data.Type)
-            {
-                case PreferenceType.DayNotAvailable:
-                    var p1 = JsonSerializer.Deserialize<DayNotAvailable>(data.Value);
-                    if (p1 is null) break;
-                    value = p1.Day.Humanize();
-                    break;
-                case PreferenceType.TimeNotAvailable:
-                    var p2 = JsonSerializer.Deserialize<TimeNotAvailable>(data.Value);
-                    if (p2 is null) break;
-                    value = string.Join(":", p2.Day.Humanize(), p2.Time);
-                    break;
-                case PreferenceType.PreferredDayOfWeek:
-                    var p3 = JsonSerializer.Deserialize<PreferredDayOfWeek>(data.Value);
-                    if (p3 is null) break;
-                    value = p3.Day.Humanize();
-                    break;
-                default:
-                    break;
-            }
-
-            dtoData.Add(new PreferenceDto(data.Id, data.Type.Humanize(), value,
-                            data.TimetableType.Humanize(), data.Lecturer!.Name, data.Course!.Name));
-        }
-        return new PaginatedList<PreferenceDto>(dtoData, page.TotalCount, page.CurrentPage, page.PageSize);
-    }
-
     public async Task DeleteAsync(int id)
     {
         var room = await _preferenceRepository.FindByIdAsync(id);
@@ -142,7 +118,7 @@ public class PreferenceProcessor
         await _preferenceRepository.DeleteAsync(room);
     }
 
-    public static List<Lookup> GetTypeValues(int type)
+    public async Task<List<Lookup>> GetTypeValues(int type)
     {
         var selectedValue = Enum.GetValues<PreferenceType>()[type];
         var index = 0;
@@ -151,6 +127,7 @@ public class PreferenceProcessor
             PreferenceType.DayNotAvailable => AppHelpers.GetDaysOfWeek().Select(x => new Lookup(index++, x)).ToList(),
             PreferenceType.TimeNotAvailable => AppHelpers.GetTimeSlots().Select(x => new Lookup(index++, x)).ToList(),
             PreferenceType.PreferredDayOfWeek => AppHelpers.GetDaysOfWeek().Select(x => new Lookup(index++, x)).ToList(),
+            PreferenceType.PreferredLectureRoom => await _lookupProcessor.GetAsync(LookupType.Rooms),
             _ => throw new NotImplementedException()
         };
     }
@@ -188,4 +165,9 @@ public class TimeNotAvailable : IPreference
 {
     public DayOfWeek? Day { get; set; }
     public string Time { get; set; }
+}
+
+public class PreferredLectureRoom : IPreference
+{
+    public string Room { get; set; }
 }

@@ -1,1 +1,333 @@
-<p>course-preferences works!</p>
+<!--begin::Notice-->
+<div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-6 mb-4">
+  <!--begin::Icon-->
+  <!--begin::Svg Icon | path: icons/duotune/general/gen044.svg-->
+  <span class="svg-icon svg-icon-2tx svg-icon-warning me-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <rect opacity="0.3" x="2" y="2" width="20" height="20" rx="10" fill="black" />
+      <rect x="11" y="14" width="7" height="2" rx="1" transform="rotate(-90 11 14)" fill="black" />
+      <rect x="11" y="17" width="2" height="2" rx="1" transform="rotate(-90 11 17)" fill="black" />
+    </svg>
+  </span>
+  <!--end::Svg Icon-->
+  <!--end::Icon-->
+  <!--begin::Wrapper-->
+  <div class="d-flex flex-stack flex-grow-1">
+    <!--begin::Content-->
+    <div class="fw-bold">
+      <h4 class="text-gray-900 fw-bolder">Set preferences for courses</h4>
+      <div class="fs-6 text-gray-700">Click on the
+        <span class="fw-bolder">
+          <span class="svg-icon svg-icon-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
+              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                <rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
+                <rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
+                <rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
+                <rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
+              </g>
+            </svg>
+				  </span>
+        </span> button to add preferences.</div>
+      <div class="fs-6 text-gray-700">-</div>
+    </div>
+    <!--end::Content-->
+  </div>
+  <!--end::Wrapper-->
+</div>
+<!--end::Notice-->
+
+<!--begin::Form-->
+<form [formGroup]="searchForm" class="form" (ngSubmit)="getPreferences()">
+  <!--begin::Card-->
+  <div class="card mb-7">
+    <!--begin::Card body-->
+    <div class="card-body">
+      <!--begin::Compact form-->
+      <div class="d-flex align-items-center">
+        <!--begin::Input group-->
+        <div class="position-relative w-md-400px me-md-2">
+          <!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
+          <span class="svg-icon svg-icon-3 svg-icon-gray-500 position-absolute top-50 translate-middle ms-6">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+							<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black"/>
+							<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black"/>
+						</svg>
+					</span>
+          <!--end::Svg Icon-->
+          <input type="text" formControlName="term" [class.is-invalid]="term.touched && term.invalid"
+                 class="form-control form-control-solid ps-10" name="search" placeholder="Search" />
+        </div>
+        <!--end::Input group-->
+        <!--begin:Action-->
+        <div class="d-flex align-items-center">
+          <button [disabled]="isLoading" type="submit" class="btn btn-primary me-5">
+            <span *ngIf="!isLoading">Search</span>
+            <span *ngIf="isLoading">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Loading...
+            </span>
+          </button>
+        </div>
+        <!--end:Action-->
+      </div>
+    </div>
+    <!--end::Card body-->
+  </div>
+  <!--end::Card-->
+</form>
+<!--end::Form-->
+
+<!--begin::Tables Widget 13-->
+<div class="card mb-5 mb-xl-8">
+  <!--begin::Header-->
+  <div class="card-header border-0 pt-5">
+    <h3 class="card-title align-items-start flex-column">
+      <span class="card-label fw-bolder fs-3 mb-1">Course Preferences</span>
+    </h3>
+    <div class="card-toolbar">
+      <!--begin::Menu-->
+      <button type="button" class="btn btn-sm btn-icon btn-color-primary btn-active-light-primary" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end">
+        <!--begin::Svg Icon | path: icons/duotune/general/gen024.svg-->
+        <span class="svg-icon svg-icon-2">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24">
+						<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+							<rect x="5" y="5" width="5" height="5" rx="1" fill="#000000" />
+							<rect x="14" y="5" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
+							<rect x="5" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
+							<rect x="14" y="14" width="5" height="5" rx="1" fill="#000000" opacity="0.3" />
+						</g>
+					</svg>
+				</span>
+        <!--end::Svg Icon-->
+      </button>
+      <!--begin::Menu 2-->
+      <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-bold w-200px" data-kt-menu="true">
+        <!--begin::Menu item-->
+        <div class="menu-item px-3">
+          <div class="menu-content fs-6 text-dark fw-bolder px-3 py-4">Quick Actions</div>
+        </div>
+        <!--end::Menu item-->
+        <!--begin::Menu separator-->
+        <div class="separator mb-3 opacity-75"></div>
+        <!--end::Menu separator-->
+        <!--begin::Menu item-->
+        <div class="menu-item px-3">
+          <a data-bs-toggle="modal" data-bs-target="#lecturerPreferenceModal" class="menu-link px-3">New Preference</a>
+        </div>
+        <!--end::Menu item-->
+      </div>
+      <!--end::Menu 2-->
+      <!--end::Menu-->
+    </div>
+  </div>
+  <!--end::Header-->
+
+
+
+  <!--begin::Body-->
+  <div class="card-body py-3">
+    <!--begin::Table container-->
+    <div class="table-responsive">
+      <!--begin::Table-->
+      <table class="table table-row-bordered table-row-gray-100 align-middle gs-0 gy-3">
+        <!--begin::Table head-->
+        <thead>
+        <tr class="fw-bolder text-muted">
+          <th class="min-w-100px">Course</th>
+          <th class="min-w-100px">Type</th>
+          <th class="min-w-140px">Value</th>
+          <th class="min-w-140px">Timetable Type</th>
+          <th class="min-w-100px text-end">Actions</th>
+        </tr>
+        </thead>
+        <!--end::Table head-->
+        <!--begin::Table body-->
+        <tbody>
+
+        <tr *ngFor="let x of preferences.data">
+          <td>
+            <a class="text-dark fw-bolder text-hover-primary fs-6">{{x.course}}</a>
+          </td>
+          <td>
+            <a class="text-dark fw-bolder text-hover-primary fs-6">{{x.type}}</a>
+          </td>
+          <td>
+            <a class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.value}}</a>
+          </td>
+          <td>
+            <a class="text-dark fw-bolder text-hover-primary d-block mb-1 fs-6">{{x.timetableType}}</a>
+          </td>
+          <td class="text-end">
+            <button (click)="deletePreference(x.id)" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm">
+              <!--begin::Svg Icon | path: icons/duotune/general/gen027.svg-->
+              <span class="svg-icon svg-icon-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 9C5 8.44772 5.44772 8 6 8H18C18.5523 8 19 8.44772 19 9V18C19 19.6569 17.6569 21 16 21H8C6.34315 21 5 19.6569 5 18V9Z" fill="black"/>
+                  <path opacity="0.5" d="M5 5C5 4.44772 5.44772 4 6 4H18C18.5523 4 19 4.44772 19 5V5C19 5.55228 18.5523 6 18 6H6C5.44772 6 5 5.55228 5 5V5Z" fill="black"/>
+                  <path opacity="0.5" d="M9 4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V4H9V4Z" fill="black"/>
+                </svg>
+              </span>
+              <!--end::Svg Icon-->
+            </button>
+          </td>
+        </tr>
+
+        </tbody>
+        <!--end::Table body-->
+      </table>
+      <!--end::Table-->
+    </div>
+    <!--end::Table container-->
+  </div>
+  <!--begin::Body-->
+  <!--begin::Footer-->
+  <div class="card-footer">
+    <div class="pagination">
+      <div>
+        <a *ngIf="preferences.hasPrevious" (click)="getPreferences(-1)" class="pagination-link">&laquo;</a>
+      </div>
+      <div>
+        &nbsp;{{preferences.currentPage}}/{{preferences.totalPages}}&nbsp;
+      </div>
+      <div>
+        <a *ngIf="preferences.hasNext" (click)="getPreferences(-2)" class="pagination-link">&raquo;</a>
+      </div>
+    </div>
+  </div>
+  <!--end::Footer-->
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="lecturerPreferenceModal" tabindex="-1" role="dialog" aria-labelledby="lecturerPreferenceModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="lecturerPreferenceModalLabel">Create preference for courses</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="preferenceForm" (ngSubmit)="setPreference()">
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-3 col-form-label fw-bold fs-6 fw-bold">Preference Type</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-9 fv-row">
+              <ng-select formControlName="type" name="preferenceTypes"
+                         class="form-control form-control-lg form-control-solid"
+                         [items]="preferenceLookups.preferenceTypes"
+                         bindLabel="name"
+                         bindValue="id"
+                         (change)="getPreferenceValues()"
+                         appendTo="">
+              </ng-select>
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-3 col-form-label fw-bold fs-6 fw-bold">Timetable Type</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-9 fv-row">
+              <ng-select formControlName="timetableType" name="timetableTypes"
+                         class="form-control form-control-lg form-control-solid"
+                         [items]="preferenceLookups.timetableTypes"
+                         bindLabel="name"
+                         bindValue="id"
+                         appendTo="">
+              </ng-select>
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-3 col-form-label fw-bold fs-6 fw-bold">Courses</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-9 fv-row">
+              <ng-select formControlName="courses" name="courses"
+                         class="form-control form-control-lg form-control-solid"
+                         [items]="courses"
+                         bindLabel="name"
+                         bindValue="id"
+                         [searchable]="true"
+                         [multiple]="true"
+                         appendTo="">
+              </ng-select>
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6" *ngIf="isTimeNotAvailable()">
+            <!--begin::Label-->
+            <label class="col-lg-3 col-form-label fw-bold fs-6 fw-bold">Day</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-9 fv-row">
+              <ng-select [(ngModel)]="dayForTimeNotAvailable" [ngModelOptions]="{standalone:true}" name="dayForTimeNotAvailable"
+                         class="form-control form-control-lg form-control-solid"
+                         [items]="daysOfWeek"
+                         bindLabel="name"
+                         bindValue="name"
+                         [searchable]="true"
+                         appendTo="">
+              </ng-select>
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Input group-->
+          <div class="row mb-6">
+            <!--begin::Label-->
+            <label class="col-lg-3 col-form-label fw-bold fs-6 fw-bold">Values</label>
+            <!--end::Label-->
+            <!--begin::Col-->
+            <div class="col-lg-9 fv-row">
+              <ng-select formControlName="values" name="value"
+                         class="form-control form-control-lg form-control-solid"
+                         [items]="preferenceTypeValues"
+                         bindLabel="name"
+                         bindValue="name"
+                         [searchable]="true"
+                         [multiple]="true"
+                         appendTo="">
+              </ng-select>
+            </div>
+            <!--end::Col-->
+          </div>
+          <!--end::Input group-->
+
+          <!--begin::Actions-->
+          <div class="card-footer d-flex justify-content-end py-6 px-9">
+            <button type="reset" class="btn btn-light btn-active-light-primary me-2">Discard</button>
+            <button type="submit" class="btn btn-primary" [disabled]="preferenceForm.invalid">
+              <span *ngIf="!isLoading">Submit</span>
+              <span *ngIf="isLoading">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Working on it...
+              </span>
+            </button>
+          </div>
+          <!--end::Actions-->
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-loading-screen *ngIf="isLoading"></app-loading-screen>

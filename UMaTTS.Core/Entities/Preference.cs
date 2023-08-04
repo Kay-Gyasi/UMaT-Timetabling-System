@@ -38,5 +38,6 @@ public enum PreferenceType
 {
     DayNotAvailable,
     TimeNotAvailable,
-    PreferredDayOfWeek
+    PreferredDayOfWeek,
+    PreferredLectureRoom
 }

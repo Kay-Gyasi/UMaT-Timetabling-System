@@ -29,9 +29,9 @@ public class IncomingCourse : Entity
     public string? Code { get; private set; }
     public string? Name { get; private set; }
     public int Credit { get; private set; }
-	public int TeachingHours { get; private set; }
-	public int PracticalHours { get; private set; }
-	public int? Year { get; private set; }
+    public int TeachingHours { get; private set; }
+    public int PracticalHours { get; private set; }
+    public int? Year { get; private set; }
     public int CourseGroup { get; private set; }
     public int CourseCategory { get; private set; }
     public int CourseType { get; private set; }
@@ -46,7 +46,7 @@ public class IncomingCourse : Entity
     private List<Preference> _preferences = new();
     public IReadOnlyList<Preference> Preferences => _preferences.AsReadOnly();
 
-    public static IncomingCourse Create(string name, int credit, int? yearGroup, int? umatId = null) 
+    public static IncomingCourse Create(string name, int credit, int? yearGroup, int? umatId = null)
         => new(name, credit, yearGroup, umatId);
 
     public IncomingCourse ForAcademicPeriod(AcademicPeriodResponse academicPeriod)
@@ -72,13 +72,13 @@ public class IncomingCourse : Entity
         CourseGroup = courseGroup;
         return this;
     }
-    
+
     public IncomingCourse HasCategory(int courseCategory)
     {
         CourseCategory = courseCategory;
         return this;
     }
-    
+
     public IncomingCourse HasType(int courseType)
     {
         CourseType = courseType;
@@ -110,13 +110,13 @@ public class IncomingCourse : Entity
         IsExaminable = isExaminable;
         return this;
     }
-    
+
     public IncomingCourse MarkAsHavingPracticalExams(bool hasPracticals = true)
     {
         HasPracticalExams = hasPracticals;
         return this;
     }
-    
+
     public IncomingCourse HasNoWeeklyLectures(bool hasWeeklyLectures = false)
     {
         IsToHaveWeeklyLectureSchedule = hasWeeklyLectures;
@@ -125,20 +125,21 @@ public class IncomingCourse : Entity
 
     public IncomingCourse WithHours(int? teachingHours, int? practicalHours)
     {
-        if(teachingHours is null && practicalHours is null)
+        if (teachingHours is null && practicalHours is null)
         {
-            switch (Credit) {
+            switch (Credit)
+            {
                 case 3:
-					teachingHours = 2;
-					practicalHours = 2;
+                    teachingHours = 2;
+                    practicalHours = 2;
                     break;
                 case 2:
-					teachingHours = 2;
-					practicalHours = 1;
+                    teachingHours = 2;
+                    practicalHours = 1;
                     break;
                 case 1:
-					teachingHours = 1;
-					practicalHours = 1;
+                    teachingHours = 1;
+                    practicalHours = 1;
                     break;
                 default:
                     break;

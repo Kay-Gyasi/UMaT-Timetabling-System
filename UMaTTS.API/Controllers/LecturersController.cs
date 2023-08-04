@@ -17,11 +17,11 @@ public class LecturersController : Controller
         return new ObjectResult(SuccessResponse(page));
     }
 
-    [HttpGet]
-    [ProducesDefaultResponseType(typeof(List<PreferenceDto>))]
-    public async Task<IActionResult> GetPreferences()
+    [HttpPost]
+    [ProducesDefaultResponseType(typeof(PaginatedList<PreferenceDto>))]
+    public async Task<IActionResult> GetPreferences([FromBody] PaginatedCommand command)
     {
-        var preferences = await _processor.GetPreferences();
+        var preferences = await _processor.GetPreferences(command);
         return new ObjectResult(SuccessResponse(preferences));
     }
 }

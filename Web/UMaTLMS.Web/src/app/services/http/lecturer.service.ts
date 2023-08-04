@@ -7,6 +7,7 @@ import {Injectable} from "@angular/core";
 import {PreferenceResponse} from "../../models/responses/preference-response";
 import {PreferenceLookups} from "../../models/responses/preference-lookups";
 import {Lookup} from "../../models/lookup";
+import {ApiResponse} from "../../models/api-response";
 
 @Injectable({
   providedIn: 'root'
@@ -26,8 +27,8 @@ export class LecturerService{
     );
   }
 
-  getPreferences(): Observable<PreferenceResponse[] | undefined>{
-    return this.http.getRequestAsync<PreferenceResponse[]>(`lecturers/getPreferences`)
+  getPreferences(query:PaginatedQuery): Observable<PaginatedList<PreferenceResponse> | undefined>{
+    return this.http.getPageRequestAsync<PreferenceResponse>(`lecturers/getPreferences`, query)
       .pipe(
         map(data => {
           if(data === undefined || (data.statusCode != 200 && data.statusCode != 204 && data.statusCode != 201)){

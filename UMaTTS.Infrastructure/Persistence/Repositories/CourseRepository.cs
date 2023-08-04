@@ -10,6 +10,11 @@ public class CourseRepository : Repository<IncomingCourse, int>, ICourseReposito
         _cache = cache;
     }
 
+    public async Task<List<Lookup>> GetLookup()
+    {
+        return await GetBaseQuery().Select(x => new Lookup(x.Id, x.Name ?? string.Empty)).ToListAsync();
+    }
+
     public override async Task<PaginatedList<IncomingCourse>> GetPageAsync(PaginatedCommand command, 
         IQueryable<IncomingCourse>? source = null, bool cacheEntities = true)
     {

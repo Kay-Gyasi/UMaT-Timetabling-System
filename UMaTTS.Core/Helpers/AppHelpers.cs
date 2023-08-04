@@ -53,7 +53,8 @@ public static class AppHelpers
 
         return sizes;
     }
-    public static void Shuffle<T>(List<T> list)
+
+    public static void Shuffle<T>(this List<T> list)
     {
         var random = new Random();
 

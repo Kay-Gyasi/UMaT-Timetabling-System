@@ -54,7 +54,7 @@ namespace UMaTLMS.API
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "UMaT Lecture Management API",
+                    Title = "UMaT Timetabling System API",
                     Contact = new OpenApiContact
                     {
                         Email = "kofigyasidev@gmail.com",

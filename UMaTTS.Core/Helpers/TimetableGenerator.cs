@@ -1,6 +1,5 @@
 ﻿using LinqKit;
 using System.Text.Json;
-using UMaTLMS.Core.Entities;
 using UMaTLMS.Core.Processors;
 using UMaTLMS.SharedKernel.Helpers;
 
@@ -12,8 +11,8 @@ namespace UMaTLMS.Core.Helpers
             List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, List<Preference> preferences, List<Constraint> constraints)
         {
             ResetSchedules(schedules, onlineSchedules);
-            AppHelpers.Shuffle(schedules);
-            AppHelpers.Shuffle(lectures);
+            schedules.Shuffle();
+            lectures.Shuffle();
 
             AssignLecturesToSchedules(schedules, onlineSchedules, lectures, preferences, constraints);
             return (schedules, onlineSchedules);
@@ -22,6 +21,7 @@ namespace UMaTLMS.Core.Helpers
         private static void AssignLecturesToSchedules(List<LectureSchedule> schedules, 
             List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, List<Preference> preferences, List<Constraint> constraints)
         {
+            AddPreferredRoomsFromPreferences(lectures, preferences);
             lectures = lectures
                         .OrderByDescending(x => x.PreferredRoom is not null)
                         .ToList();
@@ -173,38 +173,37 @@ namespace UMaTLMS.Core.Helpers
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules,
             List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints)
         {
-            for (var i = 0; i < 5; i++)
+            for (var day = 0; day < 5; day++)
             {
                 builder.And(x => x.Room.IncludeInGeneralAssignment);
                 builder.Or(x => x.Room.Name == lecture.PreferredRoom);
 
-                CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, schedules, onlineSchedules, lecture, day: i);                
+                CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, schedules, onlineSchedules, lecture, day);                
 
-                var numOfLecturesForLecturer = GetNumberOfLecturesForLecturerToday(schedules, onlineSchedules, lecture, day: i);
+                var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(schedules, onlineSchedules, lecture, day);
                 var maxNumberOfLecturesPerDayForLecturer = constraints.FirstOrDefault(x =>
                                                                 x.Type == ConstraintType.MaxLecturesPerDayForLecturer
                                                                 && x.LecturerId == lecture.LecturerId)?.Value;
                 maxNumberOfLecturesPerDayForLecturer ??= constraints.SingleOrDefault(x => x.Type == ConstraintType.GeneralMaxLecturesPerDay)?.Value;
                 maxNumberOfLecturesPerDayForLecturer ??= "4";
-                if (numOfLecturesForLecturer <= Convert.ToInt32(maxNumberOfLecturesPerDayForLecturer)) continue;
-
-                var i1 = i;
-                if (lecture.IsVLE)
+                if (numOfLecturesForLecturerToday > Convert.ToInt32(maxNumberOfLecturesPerDayForLecturer))
                 {
-                    onlineBuilder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(i1));
-                    continue;
-                }
+                    if (lecture.IsVLE)
+                    {
+                        onlineBuilder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(day));
+                        continue;
+                    }
 
-                builder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(i1));
+                    builder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(day));
+                }
             }
         }
 
         private static void AddPreferencesToBuilder(ExpressionStarter<LectureSchedule> builder,
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, Lecture lecture, List<Preference> preferences)
         {
-            var requiredPreferences = preferences.Where(x => x.TimetableType == Enums.TimetableType.Lectures
-                                                                    && (x.LecturerId == lecture.LecturerId
-                                                                        || x.CourseId == lecture.CourseId)).ToList();
+            var requiredPreferences = preferences.Where(x => x.LecturerId == lecture.LecturerId
+                                                                || (x.Course != null && x.Course.Name == lecture.Course!.Name)).ToList();
 
             foreach (var preference in requiredPreferences)
             {
@@ -221,8 +220,10 @@ namespace UMaTLMS.Core.Helpers
                         if (value1 is null) continue;
                         if (value1.Day is not null)
                         {
-                            if (lecture.IsVLE) onlineBuilder.And(x => x.DayOfWeek!.Value != value1.Day);
-                            else builder.And(x => x.DayOfWeek!.Value != value1.Day);
+                            if (lecture.IsVLE) onlineBuilder.And(x => x.DayOfWeek!.Value == value1.Day ? 
+                                                                        value1.Time!.Contains(x.TimePeriod) == false : true);
+                            else builder.And(x => x.DayOfWeek!.Value == value1.Day ? value1.Time!.Contains(x.TimePeriod) == false : true);
+                            continue;
                         }
 
                         if (lecture.IsVLE) onlineBuilder.And(x => value1.Time!.Contains(x.TimePeriod) == false);
@@ -234,8 +235,29 @@ namespace UMaTLMS.Core.Helpers
                         if (lecture.IsVLE) onlineBuilder.And(x => x.DayOfWeek!.Value == value2.Day);
                         else builder.And(x => x.DayOfWeek!.Value == value2.Day);
                         continue;
+                    case PreferenceType.PreferredLectureRoom:
+                        continue;
                     default:
                         continue;
+                }
+            }
+        }
+
+        private static void AddPreferredRoomsFromPreferences(List<Lecture> lectures, List<Preference> preferences)
+        {
+            foreach (var lecture in lectures)
+            {
+                var requiredPreferences = preferences.Where(x => x.LecturerId == lecture.LecturerId || (x.Course != null && x.Course.Name == lecture.Course!.Name)).ToList();
+
+                foreach (var preference in requiredPreferences)
+                {
+                    var value = JsonSerializer.Deserialize<PreferredLectureRoom>(preference.Value);
+                    if (value is null || lecture.IsVLE) continue;
+
+                    if (string.IsNullOrWhiteSpace(lecture.PreferredRoom))
+                    {
+                        lecture.HasPreferredRoom(value.Room);
+                    }
                 }
             }
         }

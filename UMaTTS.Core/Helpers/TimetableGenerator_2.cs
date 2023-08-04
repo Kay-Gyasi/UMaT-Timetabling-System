@@ -299,11 +299,23 @@ public static partial class TimetableGenerator
     private static void SetCellValue(Lecture lecture, StringBuilder builder, ExcelWorksheet worksheet,
         string first, string? second = null)
     {
-        var names = lecture.SubClassGroups.Select(x => x.Name);
-        builder.Append(string.Join(",", names));
+        var names = lecture.SubClassGroups.Select(x => x.Name).ToList();
+        var modifiedNames = new List<string>();
+        foreach (var name in names)
+        {
+            if (int.TryParse(name[^1].ToString(), out _))
+            {
+                modifiedNames.Add(name.Split(AppHelpers.WhiteSpace)[0]);
+                continue;
+            }
+
+            modifiedNames.Add(name);
+        }
+
+        builder.Append(string.Join(", ", modifiedNames));
         builder.Append(' ');
         builder.Append(lecture.Course?.Code!.Split(AppHelpers.WhiteSpace)[1]);
-        builder.Append(lecture.IsPractical == true ? " (P)" : "");
+        builder.Append(lecture.IsPractical ? " (P)" : "");
         builder.Append(Environment.NewLine);
         builder.Append(lecture.Lecturer?.Name?.Split(",").First());
 

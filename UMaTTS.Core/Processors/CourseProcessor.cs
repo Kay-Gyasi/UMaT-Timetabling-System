@@ -1,4 +1,7 @@
-﻿using UMaTLMS.Core.Helpers;
+﻿using Humanizer;
+using System.Text.Json;
+using UMaTLMS.Core.Helpers;
+using UMaTLMS.Core.Repositories;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -7,11 +10,14 @@ public class CourseProcessor
 {
     private readonly ICourseRepository _courseRepository;
     private readonly ILectureRepository _lectureRepository;
+    private readonly IPreferenceRepository _preferenceRepository;
 
-    public CourseProcessor(ICourseRepository courseRepository, ILectureRepository lectureRepository)
+    public CourseProcessor(ICourseRepository courseRepository, ILectureRepository lectureRepository,
+        IPreferenceRepository preferenceRepository)
     {
         _courseRepository = courseRepository;
         _lectureRepository = lectureRepository;
+        _preferenceRepository = preferenceRepository;
     }
 
     public async Task<OneOf<bool, Exception>> UpdateAsync(CourseCommand command)
@@ -59,6 +65,47 @@ public class CourseProcessor
         var page = await _courseRepository.GetPageAsync(command);
         return page.Adapt<PaginatedList<CourseDto>>(Mapping.GetTypeAdapterConfig());
     }
+
+    public async Task<PaginatedList<PreferenceDto>> GetPreferences(PaginatedCommand command)
+    {
+        var preferences = await _preferenceRepository.GetCoursePreferences(command);
+        List<PreferenceDto> dtoData = new();
+        foreach (var data in preferences.Data)
+        {
+            var value = string.Empty;
+            switch (data.Type)
+            {
+                case PreferenceType.DayNotAvailable:
+                    var p1 = JsonSerializer.Deserialize<DayNotAvailable>(data.Value);
+                    if (p1 is null) break;
+                    value = p1.Day.Humanize();
+                    break;
+                case PreferenceType.TimeNotAvailable:
+                    var p2 = JsonSerializer.Deserialize<TimeNotAvailable>(data.Value);
+                    if (p2 is null) break;
+                    value = string.Join(":", p2.Day.Humanize(), p2.Time);
+                    break;
+                case PreferenceType.PreferredDayOfWeek:
+                    var p3 = JsonSerializer.Deserialize<PreferredDayOfWeek>(data.Value);
+                    if (p3 is null) break;
+                    value = p3.Day.Humanize();
+                    break;
+                case PreferenceType.PreferredLectureRoom:
+                    var p4 = JsonSerializer.Deserialize<PreferredLectureRoom>(data.Value);
+                    if (p4 is null) break;
+                    value = p4.Room.Humanize();
+                    break;
+                default:
+                    break;
+            }
+
+            dtoData.Add(new PreferenceDto(data.Id, data.Type.Humanize(), value,
+                            data.TimetableType.Humanize(), null, data.Course!.Name));
+        }
+
+        return new PaginatedList<PreferenceDto>(dtoData, preferences.TotalCount, preferences.CurrentPage, preferences.PageSize);
+    }
+
 
     public async Task DeleteAsync(int id)
     {

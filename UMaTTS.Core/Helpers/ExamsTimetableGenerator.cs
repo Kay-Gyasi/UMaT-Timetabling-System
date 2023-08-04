@@ -7,7 +7,7 @@ public static partial class ExamsTimetableGenerator
     public static List<List<ExamsSchedule>> Generate(List<ClassRoom> rooms, 
         List<SubClassGroup> subClassGroups, List<Lecturer> lecturers, List<IncomingCourse> courses, ExamsScheduleCommand command)
     {
-        AppHelpers.Shuffle(courses);
+        courses.Shuffle();
         var schedules = new List<ExamsSchedule>();
         var practicalSchedules = new List<ExamsSchedule>();
 
@@ -170,7 +170,7 @@ public static partial class ExamsTimetableGenerator
     private static List<List<ExamsSchedule>> AssignInvigilators((List<ExamsSchedule> Exams, List<ExamsSchedule> Practicals) schedules,
         List<Lecturer> lecturers, List<IncomingCourse> courses)
     {
-        AppHelpers.Shuffle(lecturers);
+        lecturers.Shuffle();
         var examsAndPracticalSchedules = new List<List<ExamsSchedule>> { schedules.Exams, schedules.Practicals };
 
         foreach (var schdules in examsAndPracticalSchedules)
@@ -344,7 +344,7 @@ public static partial class ExamsTimetableGenerator
             var classHasExamOnDate = true;
             var count = 0;
             var moments = examMoments;
-            AppHelpers.Shuffle(moments);
+            moments.Shuffle();
             (DateTime Date, ExamPeriod Period, List<int> AssignedGroups) moment;
             while (classHasExamOnDate)
             {

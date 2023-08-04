@@ -21,7 +21,7 @@ public static class Midlleware
 
         app.UseSwaggerUI(options =>
         {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "UMaT Lecture Management API v1");
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "UMaT Timetabling System API v1");
             if (!app.Environment.IsDevelopment()) options.RoutePrefix = string.Empty;
         });
 

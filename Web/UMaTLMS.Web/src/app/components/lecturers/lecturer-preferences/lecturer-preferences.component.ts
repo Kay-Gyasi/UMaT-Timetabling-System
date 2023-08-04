@@ -6,10 +6,13 @@ import {LecturerService} from "../../../services/http/lecturer.service";
 import {NotificationService} from "../../../services/notification.service";
 import {PreferenceLookups} from "../../../models/responses/preference-lookups";
 import {PreferenceService} from "../../../services/http/preference.service";
-import {FormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
+import {FormBuilder, FormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import {Lookup, LookupType} from "../../../models/lookup";
 import {LookupService} from "../../../services/http/lookup.service";
 import {PreferenceRequest} from "../../../models/requests/preference-request";
+import {PaginatedQuery} from "../../../models/paginated-query";
+import {PaginatedList} from "../../../models/paginated-list";
+import {AppHelper} from "../../../helpers/app-helper";
 
 declare var KTMenu:any;
 @Component({
@@ -21,17 +24,23 @@ export class LecturerPreferencesComponent implements OnInit {
 
   lecturer: LecturerResponse;
   preferenceLookups: PreferenceLookups = new PreferenceLookups();
-  preferences:PreferenceResponse[];
+  preferences:PaginatedList<PreferenceResponse> = new PaginatedList<PreferenceResponse>();
   preferenceRequest:PreferenceRequest = new PreferenceRequest();
+  query = PaginatedQuery.Build(0, 1, 20);
+  pages:number[] = [];
   preferenceTypeValues: Lookup[] = [];
   lecturers:Lookup[];
   preferenceForm:UntypedFormGroup;
   isLoading = false;
   daysOfWeek:Lookup[];
   dayForTimeNotAvailable:string;
+  searchForm:UntypedFormGroup;
   constructor(private route:ActivatedRoute, private lecturerService:LecturerService,
               private toast:NotificationService, private preferenceService:PreferenceService,
               private fb:FormBuilder, private lookupService:LookupService) {
+    this.searchForm = this.fb.group({
+      "term": ["", [Validators.maxLength(30)]]
+    });
   }
 
   ngOnInit(): void {
@@ -48,29 +57,7 @@ export class LecturerPreferencesComponent implements OnInit {
     this.getPreferences();
     this.getPreferenceLookups();
     this.getLecturersLookup();
-
-    this.daysOfWeek = [
-      {
-        id:1,
-        name:'Monday'
-      },
-      {
-        id:2,
-        name:'Tuesday'
-      },
-      {
-        id:3,
-        name:'Wednesday'
-      },
-      {
-        id:4,
-        name:'Thursday'
-      },
-      {
-        id:5,
-        name:'Friday'
-      },
-    ]
+    this.daysOfWeek = AppHelper.DaysOfWeek;
   }
 
   setPreference(){
@@ -121,7 +108,6 @@ export class LecturerPreferencesComponent implements OnInit {
     })
   }
 
-
   deletePreference(preferenceId:number){
     this.isLoading = true;
     this.preferenceService.delete(preferenceId).subscribe({
@@ -132,7 +118,7 @@ export class LecturerPreferencesComponent implements OnInit {
           return;
         }
 
-        this.preferences = this.preferences.filter(x => x.id != preferenceId);
+        this.preferences.data = this.preferences.data.filter(x => x.id != preferenceId);
         this.isLoading = false;
         this.toast.showSuccess('', 'Success');
       },
@@ -143,8 +129,11 @@ export class LecturerPreferencesComponent implements OnInit {
     })
   }
 
-  getPreferences(){
-    this.lecturerService.getPreferences().subscribe({
+  getPreferences(pageNumber:number = 1){
+    this.isLoading = true;
+    this.buildQuery(pageNumber);
+    this.pages = [];
+    this.lecturerService.getPreferences(this.query).subscribe({
       next: data => {
         if (data === undefined){
           this.toast.showError('Unable to retrieve preferences', 'Failed');
@@ -152,12 +141,19 @@ export class LecturerPreferencesComponent implements OnInit {
         }
 
         this.preferences = data;
+        for (let i = 1; i <= data.totalPages; i++){
+          this.pages.push(i);
+        }
+        this.isLoading = false;
       },
-      error: _ => this.toast.showError('Unable to retrieve preferences', 'Failed')
+      error: _ => {
+        this.isLoading = false;
+        this.toast.showError('Unable to retrieve preferences', 'Failed');
+      }
     })
   }
   isTimeNotAvailable(){
-    return this.preferenceTypeValues.some(x => x.name.includes('6'));
+    return this.preferenceTypeValues.some(x => x.name.includes('8am'));
   }
   private getLecturersLookup(){
     this.lookupService.get(LookupType.Lecturers).subscribe({
@@ -176,5 +172,15 @@ export class LecturerPreferencesComponent implements OnInit {
       },
       error: _ => console.log('Error while loading lookups')
     })
+  }
+  get term() {
+    return this.searchForm.get('term') as FormControl;
+  }
+
+  private buildQuery(pageNumber:number){
+    if (pageNumber == -1) this.query.PageNumber -= 1;
+    else if (pageNumber == -2) this.query.PageNumber += 1;
+    else this.query.PageNumber = pageNumber;
+    this.query.thenSearch(this.searchForm.get('term')?.value);
   }
 }

@@ -33,4 +33,12 @@ public class CoursesController : Controller
             ? new ObjectResult(SuccessResponse(result.AsT0))
             : new ObjectResult(ErrorResponse(result.AsT1));
     }
+
+    [HttpPost]
+    [ProducesDefaultResponseType(typeof(PaginatedList<PreferenceDto>))]
+    public async Task<IActionResult> GetPreferences([FromBody] PaginatedCommand command)
+    {
+        var preferences = await _processor.GetPreferences(command);
+        return new ObjectResult(SuccessResponse(preferences));
+    }
 }

@@ -29,7 +29,7 @@ public class PreferencesController : Controller
     [ProducesDefaultResponseType(typeof(List<Lookup>))]
     public async Task<IActionResult> GetTypeValues(int type)
     {
-        var values = await Task.Run(() => PreferenceProcessor.GetTypeValues(type));
+        var values = await Task.Run(() => _processor.GetTypeValues(type));
         return new ObjectResult(SuccessResponse(values));
     }
 

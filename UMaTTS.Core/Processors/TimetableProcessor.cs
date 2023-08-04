@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using UMaTLMS.Core.Contracts;
-using UMaTLMS.Core.Entities;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
 using UMaTLMS.SharedKernel.Helpers;
@@ -12,8 +11,6 @@ namespace UMaTLMS.Core.Processors;
 public class TimetableProcessor
 {
     private const string _timetableFile = "Timetable:File";
-    private const string _timetableType = "Timetable:Type";
-    private const string _timetableDownload = "Timetable:DownloadName";
     private readonly ILogger<TimetableProcessor> _logger;
     private readonly ILectureScheduleRepository _lectureScheduleRepository;
     private readonly ILectureRepository _lectureRepository;
@@ -61,8 +58,8 @@ public class TimetableProcessor
 
         var lectures = await _lectureRepository.GetAllAsync();
         var schedules = await _lectureScheduleRepository.GetAllAsync();
-        var preferences = await _preferenceRepository.GetAllAsync();
-        var constraints = await _constraintRepository.GetAllAsync();
+        var preferences = await _preferenceRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
+        var constraints = await _constraintRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
 
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
         var rooms = await _roomRepository.GetAllAsync();
@@ -74,12 +71,19 @@ public class TimetableProcessor
 
         try
         {
-            var (GeneralSchedules, OnlineSchedules) = TimetableGenerator.Generate(schedules, onlineSchedules, lectures, preferences, constraints);
-            _logger.LogInformation("Done generating lecture schedules");
+            bool allLecturesHaveBeenScheduled = false;
+            List<LectureSchedule> GeneralSchedules = new(); 
+            List<OnlineLectureSchedule> OnlineSchedules = new();
+            while (!allLecturesHaveBeenScheduled)
+            {
+                (GeneralSchedules, OnlineSchedules) = TimetableGenerator.Generate(schedules, onlineSchedules, lectures, preferences, constraints);
+                _logger.LogInformation("Done generating lecture schedules");
 
-            CheckIfAllLecturesHaveBeenScheduled(lectures, GeneralSchedules, OnlineSchedules);
+                var numOfLecturesNotScheduled = GetNumberOfLecturesNotScheduled(lectures, GeneralSchedules, OnlineSchedules);
+                if (numOfLecturesNotScheduled == 0) allLecturesHaveBeenScheduled = true;
+            }
+
             await SaveSchedulesToDatabase(schedules, OnlineSchedules);
-
             await TimetableGenerator.GetAsync(_excelReader, GeneralSchedules, OnlineSchedules, rooms, fileName);
             _logger.LogInformation("Done building timetable!");
             return true;
@@ -355,7 +359,7 @@ public class TimetableProcessor
         await _lectureScheduleRepository.SaveChanges();
     }
 
-    private static void CheckIfAllLecturesHaveBeenScheduled(List<Lecture> lecturesInDb, List<LectureSchedule> lectureSchedules,
+    private static int GetNumberOfLecturesNotScheduled(List<Lecture> lecturesInDb, List<LectureSchedule> lectureSchedules,
         List<OnlineLectureSchedule> onlineLectureSchedules)
     {
         int result = 0;
@@ -381,10 +385,7 @@ public class TimetableProcessor
             }
         }
 
-        if (result > 0)
-        {
-            throw new LecturesNotScheduledException();
-        }
+        return result;
     }
 }
 

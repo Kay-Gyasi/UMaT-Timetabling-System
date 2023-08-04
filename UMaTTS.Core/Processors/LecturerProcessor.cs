@@ -22,11 +22,11 @@ public class LecturerProcessor
         return page.Adapt<PaginatedList<LecturerDto>>(Mapping.GetTypeAdapterConfig());
     }
 
-    public async Task<List<PreferenceDto>> GetPreferences()
+    public async Task<PaginatedList<PreferenceDto>> GetPreferences(PaginatedCommand command)
     {
-        var preferences = await _preferenceRepository.GetLecturerPreferences();
+        var preferences = await _preferenceRepository.GetLecturerPreferences(command);
         List<PreferenceDto> dtoData = new();
-        foreach (var data in preferences)
+        foreach (var data in preferences.Data)
         {
             var value = string.Empty;
             switch (data.Type)
@@ -46,6 +46,11 @@ public class LecturerProcessor
                     if (p3 is null) break;
                     value = p3.Day.Humanize();
                     break;
+                case PreferenceType.PreferredLectureRoom:
+                    var p4 = JsonSerializer.Deserialize<PreferredLectureRoom>(data.Value);
+                    if (p4 is null) break;
+                    value = p4.Room.Humanize();
+                    break;
                 default:
                     break;
             }
@@ -53,7 +58,8 @@ public class LecturerProcessor
             dtoData.Add(new PreferenceDto(data.Id, data.Type.Humanize(), value,
                             data.TimetableType.Humanize(), data.Lecturer!.Name, null));
         }
-        return dtoData;
+
+        return new PaginatedList<PreferenceDto>(dtoData, preferences.TotalCount, preferences.CurrentPage, preferences.PageSize);
     }
 }
 
