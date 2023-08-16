@@ -7,8 +7,9 @@ namespace UMaTLMS.Core.Helpers
 {
     public static partial class TimetableGenerator
     {
-        public static (List<LectureSchedule> GeneralSchedules, List<OnlineLectureSchedule> OnlineSchedules) Generate(List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, List<Preference> preferences, List<Constraint> constraints)
+        public static (List<LectureSchedule> GeneralSchedules, List<OnlineLectureSchedule> OnlineSchedules) 
+            Generate(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, 
+            List<Preference> preferences, List<Constraint> constraints)
         {
             ResetSchedules(schedules, onlineSchedules);
             schedules.Shuffle();
@@ -173,18 +174,19 @@ namespace UMaTLMS.Core.Helpers
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules,
             List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints)
         {
+            builder.And(x => x.Room.IncludeInGeneralAssignment);
+            builder.Or(x => x.Room.Name == lecture.PreferredRoom);
+
             for (var day = 0; day < 5; day++)
             {
-                builder.And(x => x.Room.IncludeInGeneralAssignment);
-                builder.Or(x => x.Room.Name == lecture.PreferredRoom);
-
                 CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, schedules, onlineSchedules, lecture, day);                
 
                 var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(schedules, onlineSchedules, lecture, day);
                 var maxNumberOfLecturesPerDayForLecturer = constraints.FirstOrDefault(x =>
                                                                 x.Type == ConstraintType.MaxLecturesPerDayForLecturer
                                                                 && x.LecturerId == lecture.LecturerId)?.Value;
-                maxNumberOfLecturesPerDayForLecturer ??= constraints.SingleOrDefault(x => x.Type == ConstraintType.GeneralMaxLecturesPerDay)?.Value;
+                maxNumberOfLecturesPerDayForLecturer ??= constraints.SingleOrDefault(x => 
+                                                            x.Type == ConstraintType.GeneralMaxLecturesPerDay)?.Value;
                 maxNumberOfLecturesPerDayForLecturer ??= "4";
                 if (numOfLecturesForLecturerToday > Convert.ToInt32(maxNumberOfLecturesPerDayForLecturer))
                 {
@@ -247,12 +249,14 @@ namespace UMaTLMS.Core.Helpers
         {
             foreach (var lecture in lectures)
             {
-                var requiredPreferences = preferences.Where(x => x.LecturerId == lecture.LecturerId || (x.Course != null && x.Course.Name == lecture.Course!.Name)).ToList();
+                if (lecture.IsVLE) continue;
+                var requiredPreferences = preferences.Where(x => x.LecturerId == lecture.LecturerId 
+                                            || (x.Course != null && x.Course.Name == lecture.Course!.Name)).ToList();
 
                 foreach (var preference in requiredPreferences)
                 {
                     var value = JsonSerializer.Deserialize<PreferredLectureRoom>(preference.Value);
-                    if (value is null || lecture.IsVLE) continue;
+                    if (value is null) continue;
 
                     if (string.IsNullOrWhiteSpace(lecture.PreferredRoom))
                     {

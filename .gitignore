@@ -3,3 +3,4 @@
 _content
 .vscode
 package-lock.json
+appsettings.json

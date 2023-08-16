@@ -17,7 +17,7 @@ public class ClassRoom : Entity
     public bool IsExaminationCenter { get; private set; }
     public bool IncludeInGeneralAssignment { get; private set; }
     public static ClassRoom Create(string name, int capacity)
-        => new ClassRoom(name, capacity);
+        => new(name, capacity);
 
     public ClassRoom WithName(string name)
     {

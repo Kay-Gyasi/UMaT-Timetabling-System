@@ -19,7 +19,7 @@ public static partial class ExamsTimetableGenerator
         (schedules, practicalSchedules) = SetInitialDatesAndPeriods(command, examDates, practicalDates,
                                             examPeriods, schedules, examsGroupedByCourseNumber, practicalSchedules);
         (schedules, practicalSchedules) = AssignRooms((schedules, practicalSchedules), rooms, 
-                                            subClassGroups, examDates, practicalDates, examPeriods);
+                                            examDates, practicalDates, examPeriods);
 
         return AssignInvigilators((schedules, practicalSchedules), lecturers, courses);
     }
@@ -93,21 +93,21 @@ public static partial class ExamsTimetableGenerator
         return (schedules, practicalSchedules);
     }
 
-    private static (List<ExamsSchedule>, List<ExamsSchedule>) AssignRooms((List<ExamsSchedule> Exams, List<ExamsSchedule> Practicals) schedules, 
-        IEnumerable<ClassRoom> rooms, List<SubClassGroup> subClassGroups, List<DateTime> examDates, 
-        List<DateTime> practicalDates, ExamPeriod[] examPeriods)
+    private static (List<ExamsSchedule>, List<ExamsSchedule>) AssignRooms((List<ExamsSchedule> Exams, 
+        List<ExamsSchedule> Practicals) schedules, IEnumerable<ClassRoom> rooms, 
+        List<DateTime> examDates, List<DateTime> practicalDates, ExamPeriod[] examPeriods)
     {
         // TODO: Work on preferred rooms for practical exams
         var roomsForGeneralExams = rooms.Where(x => x.IncludeInGeneralAssignment)
                                     .OrderBy(x => x.Capacity).ToList();
 
-        AssignRooms(examDates, schedules.Exams, examPeriods, roomsForGeneralExams, subClassGroups);
-        AssignRooms(practicalDates, schedules.Practicals, examPeriods, roomsForGeneralExams, subClassGroups);
+        AssignRooms(examDates, schedules.Exams, examPeriods, roomsForGeneralExams);
+        AssignRooms(practicalDates, schedules.Practicals, examPeriods, roomsForGeneralExams);
         return schedules;
     }
 
     private static void AssignRooms(List<DateTime> examDates, List<ExamsSchedule> schedules, ExamPeriod[] examPeriods,
-    List<ClassRoom> rooms, List<SubClassGroup> subClassGroups)
+    List<ClassRoom> rooms)
     {
         foreach (var date in examDates)
         {
@@ -120,9 +120,9 @@ public static partial class ExamsTimetableGenerator
                 while (examsAtMoment.Count > rooms.Count)
                 {
                     var orderedExamsAtMoment = examsAtMoment
-                        .OrderBy(x => x.CourseCodes?.Count)
-                        .ThenBy(x => x.Examiner)
-                        .ThenBy(x => x.SerializedCourseCodes).ToList();
+                                                .OrderBy(x => x.CourseCodes?.Count)
+                                                .ThenBy(x => x.Examiner)
+                                                .ThenBy(x => x.SerializedCourseCodes).ToList();
                     var second = examsAtMoment.First(a => a == orderedExamsAtMoment[1]);
                     var first = examsAtMoment.First(a => a == orderedExamsAtMoment[0]);
                     foreach (var group in second.SubClassGroups)
@@ -214,21 +214,6 @@ public static partial class ExamsTimetableGenerator
         return examsAndPracticalSchedules;
     }
 
-    private static void GetExaminersForEachCourseAndMakeInvigilators(List<IncomingCourse> coursesForExams,
-        List<Lecturer> lecturers, HashSet<(string, int, string Course)> invigilators)
-    {
-        foreach (var course in coursesForExams)
-        {
-            var firstExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
-            if (firstExaminer?.Name is null) continue;
-            invigilators.Add((firstExaminer.Name, firstExaminer.Id, course.Name ?? string.Empty));
-
-            var secondExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.SecondExaminerStaffId);
-            if (secondExaminer?.Name is null) continue;
-            invigilators.Add((secondExaminer.Name, secondExaminer.Id, course.Name ?? string.Empty));
-        }
-    }
-
     private static void AssignInvigilators(IGrouping<string, ExamsSchedule> groupedSchedule,
         List<Lecturer> lecturers, HashSet<(string Name, int Id, string Course)> invigilators, int count)
     {
@@ -241,6 +226,21 @@ public static partial class ExamsTimetableGenerator
                 schedule.ToBeInvigilatedBy(invigilator);
                 count += 1;
             }
+        }
+    }
+
+    private static void GetExaminersForEachCourseAndMakeInvigilators(List<IncomingCourse> coursesForExams,
+        List<Lecturer> lecturers, HashSet<(string, int, string Course)> invigilators)
+    {
+        foreach (var course in coursesForExams)
+        {
+            var firstExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
+            if (firstExaminer?.Name is null) continue;
+            invigilators.Add((firstExaminer.Name, firstExaminer.Id, course.Name ?? string.Empty));
+
+            var secondExaminer = lecturers.FirstOrDefault(x => x.UmatId == course.SecondExaminerStaffId);
+            if (secondExaminer?.Name is null) continue;
+            invigilators.Add((secondExaminer.Name, secondExaminer.Id, course.Name ?? string.Empty));
         }
     }
 

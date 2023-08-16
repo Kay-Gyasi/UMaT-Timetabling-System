@@ -57,9 +57,9 @@ public class UMaTApiService : IUMaTApiService
         if (groupsExist)
         {
             var data = await File.ReadAllTextAsync("_content/classGroups.json");
-            return JsonSerializer.Deserialize<List<Group>>(data, new JsonSerializerOptions 
-            { 
-                PropertyNameCaseInsensitive = true 
+            return JsonSerializer.Deserialize<List<Group>>(data, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
             });
         }
 
