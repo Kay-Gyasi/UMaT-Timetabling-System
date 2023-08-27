@@ -61,24 +61,28 @@ public static partial class ExamsTimetableGenerator
             var groupCount = 0;
             foreach (var code in schedule.CourseCodes)
             {
-                var room = rooms.First(x => x.Id == schedule.RoomId).Name;
-                worksheet.Cells[$"A{currentColumn}"].Value = schedule.DateOfExam.ToLongDateString();
-                worksheet.Cells[$"B{currentColumn}"].Value = code.ToUpper();
-                worksheet.Cells[$"C{currentColumn}"].Value = schedule.CourseName?.ToUpper();
-                worksheet.Cells[$"D{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Name.ToUpper();
-                worksheet.Cells[$"E{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Size;
-                worksheet.Cells[$"F{currentColumn}"].Value = schedule.Examiner?.ToUpper();
-                worksheet.Cells[$"G{currentColumn}"].Value = room.ToUpper();
-                worksheet.Cells[$"H{currentColumn}"].Value = schedule.Invigilators[groupCount].TitledName?.ToUpper();
-                worksheet.Cells[$"I{currentColumn}"].Value = schedule.ExamPeriod switch
+                foreach (var invigilator in schedule.Invigilators)
                 {
-                    ExamPeriod.Morning => "M",
-                    ExamPeriod.Afternoon => "A",
-                    ExamPeriod.Evening => "E",
-                    _ => "-"
-                };
+                    var room = rooms.First(x => x.Id == schedule.RoomId).Name;
+                    worksheet.Cells[$"A{currentColumn}"].Value = schedule.DateOfExam.ToLongDateString();
+                    worksheet.Cells[$"B{currentColumn}"].Value = code.ToUpper();
+                    worksheet.Cells[$"C{currentColumn}"].Value = schedule.CourseName?.ToUpper();
+                    worksheet.Cells[$"D{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Name.ToUpper();
+                    worksheet.Cells[$"E{currentColumn}"].Value = schedule.SubClassGroups[groupCount].Size;
+                    worksheet.Cells[$"F{currentColumn}"].Value = schedule.Examiner?.ToUpper();
+                    worksheet.Cells[$"G{currentColumn}"].Value = room.ToUpper();
+                    worksheet.Cells[$"H{currentColumn}"].Value = invigilator.TitledName?.ToUpper();
+                    worksheet.Cells[$"I{currentColumn}"].Value = schedule.ExamPeriod switch
+                    {
+                        ExamPeriod.Morning => "M",
+                        ExamPeriod.Afternoon => "A",
+                        ExamPeriod.Evening => "E",
+                        _ => "-"
+                    };
+                    
+                    currentColumn += 1;
+                }
                 groupCount += 1;
-                currentColumn += 1;
             }
         }
 

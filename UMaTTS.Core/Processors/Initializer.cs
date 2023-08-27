@@ -16,13 +16,15 @@ public sealed class Initializer
     private readonly IConstraintRepository _constraintRepository;
     private readonly IClassGroupRepository _classGroupRepository;
     private readonly ISubClassGroupRepository _subClassGroupRepository;
+    private readonly IPreferenceRepository _preferenceRepository;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
 
     public Initializer(IExcelReader reader, IRoomRepository roomRepository, 
         ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository, 
         ILectureRepository lectureRepository, ICourseRepository courseRepository, ILecturerRepository  lecturerRepository, 
-        IConstraintRepository constraintRepository,IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository)
+        IConstraintRepository constraintRepository,IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
+        IPreferenceRepository preferenceRepository)
     {
         _reader = reader;
         _roomRepository = roomRepository;
@@ -34,6 +36,7 @@ public sealed class Initializer
         _constraintRepository = constraintRepository;
         _classGroupRepository = classGroupRepository;
         _subClassGroupRepository = subClassGroupRepository;
+        _preferenceRepository = preferenceRepository;
     }
 
     public async Task Initialize()
@@ -51,28 +54,42 @@ public sealed class Initializer
 
     public async Task Reset()
     {
-        var lectureSchedules = await _lectureScheduleRepository.GetAllAsync();
-        await _lectureScheduleRepository.DeleteAllAsync(lectureSchedules, saveChanges:false);
+        try
+        {
+            var lectureSchedules = await _lectureScheduleRepository.GetAllAsync();
+            await _lectureScheduleRepository.DeleteAllAsync(lectureSchedules, saveChanges: false);
 
-        var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
-        await _onlineLectureScheduleRepository.DeleteAllAsync(onlineSchedules, saveChanges: false);
+            var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
+            await _onlineLectureScheduleRepository.DeleteAllAsync(onlineSchedules, saveChanges: false);
 
-        var subGroups = await _subClassGroupRepository.GetAllAsync();
-        await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
+            var preferences = await _preferenceRepository.GetAllAsync();
+            await _preferenceRepository.DeleteAllAsync(preferences, saveChanges: false);
 
-        var groups = await _classGroupRepository.GetAllAsync();
-        await _classGroupRepository.DeleteAllAsync(groups, saveChanges: false);
+            var constraints = await _constraintRepository.GetAllAsync();
+            await _constraintRepository.DeleteAllAsync(constraints, saveChanges: false);
 
-        var courses = await _courseRepository.GetAllAsync();
-        await _courseRepository.DeleteAllAsync(courses, saveChanges: false);
+            var subGroups = await _subClassGroupRepository.GetAllAsync();
+            await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
 
-        var lecturers = await _lecturerRepository.GetAllAsync();
-        await _lecturerRepository.DeleteAllAsync(lecturers, saveChanges: false);
-        
-        var lectures = await _lectureRepository.GetAllAsync();
-        await _lectureRepository.DeleteAllAsync(lectures, saveChanges: false);
+            var groups = await _classGroupRepository.GetAllAsync();
+            await _classGroupRepository.DeleteAllAsync(groups, saveChanges: false);
 
-        await _classGroupRepository.SaveChanges();
+            var courses = await _courseRepository.GetAllAsync();
+            await _courseRepository.DeleteAllAsync(courses, saveChanges: false);
+
+            var lecturers = await _lecturerRepository.GetAllAsync();
+            await _lecturerRepository.DeleteAllAsync(lecturers, saveChanges: false);
+
+            var lectures = await _lectureRepository.GetAllAsync();
+            await _lectureRepository.DeleteAllAsync(lectures, saveChanges: false);
+
+            await _classGroupRepository.SaveChanges();
+        }
+        catch (Exception)
+        {
+
+            throw;
+        }
     }
 
     private async Task AddBaseConstraints()

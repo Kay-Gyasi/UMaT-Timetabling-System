@@ -8,6 +8,7 @@ public static partial class ExamsTimetableGenerator
         List<SubClassGroup> subClassGroups, List<Lecturer> lecturers, List<IncomingCourse> courses, ExamsScheduleCommand command)
     {
         courses.Shuffle();
+        courses = courses.OrderByDescending(x => x.Name!.Contains("drawing", StringComparison.OrdinalIgnoreCase)).ToList();
         var schedules = new List<ExamsSchedule>();
         var practicalSchedules = new List<ExamsSchedule>();
 
@@ -99,7 +100,11 @@ public static partial class ExamsTimetableGenerator
     {
         // TODO: Work on preferred rooms for practical exams
         var roomsForGeneralExams = rooms.Where(x => x.IncludeInGeneralAssignment)
-                                    .OrderBy(x => x.Capacity).ToList();
+                                    .OrderBy(x => x.Capacity)
+                                    .ThenBy(x => x.Name.Contains("auditorium", StringComparison.OrdinalIgnoreCase))
+                                    .ToList();
+
+        // Cl 2
 
         AssignRooms(examDates, schedules.Exams, examPeriods, roomsForGeneralExams);
         AssignRooms(practicalDates, schedules.Practicals, examPeriods, roomsForGeneralExams);
@@ -220,12 +225,14 @@ public static partial class ExamsTimetableGenerator
         foreach (var schedule in groupedSchedule)
         {
             if (schedule.CourseCodes is null) continue;
-            foreach (var _ in schedule.CourseCodes)
+            var size = schedule.SubClassGroups.Sum(x => x.Size);
+            while (size > 0)
             {
+                size -= 80;
                 var invigilator = lecturers.First(x => x.Id == invigilators.ElementAt(count).Id);
                 schedule.ToBeInvigilatedBy(invigilator);
                 count += 1;
-            }
+            }            
         }
     }
 
@@ -339,12 +346,21 @@ public static partial class ExamsTimetableGenerator
     private static void SetDatesAndPeriodsForEachGrouping(List<IGrouping<string, ExamsSchedule>> examsGroupedByCourseCode,
         List<(DateTime Date, ExamPeriod Period, List<int> AssignedGroups)> examMoments, List<ExamsSchedule> schedules)
     {
+        examsGroupedByCourseCode.Shuffle();
         foreach (var grouping in examsGroupedByCourseCode)
         {
             var classHasExamOnDate = true;
             var count = 0;
             var moments = examMoments;
             moments.Shuffle();
+            moments = moments.OrderBy(x => x.Period == ExamPeriod.Evening).ToList(); // an attempt to get low evening assignments
+
+            if (grouping.Any(x => x.CourseName!.Contains("drawing", StringComparison.OrdinalIgnoreCase)))
+            {
+                moments = moments.OrderByDescending(x => x.Date.DayOfWeek == DayOfWeek.Saturday && x.Period != ExamPeriod.Evening)
+                                    .ToList();
+            }
+
             (DateTime Date, ExamPeriod Period, List<int> AssignedGroups) moment;
             while (classHasExamOnDate)
             {

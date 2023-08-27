@@ -53,6 +53,7 @@ public static class Exceptions
             InvalidIdException => StatusCodes.Status400BadRequest,
             InvalidLoginException => StatusCodes.Status400BadRequest,
             LecturesNotScheduledException => StatusCodes.Status206PartialContent,
+            ExamNotScheduledException => StatusCodes.Status206PartialContent,
             _ => StatusCodes.Status500InternalServerError
         };
     }

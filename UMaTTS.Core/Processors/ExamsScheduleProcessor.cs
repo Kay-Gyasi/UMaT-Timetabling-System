@@ -54,8 +54,8 @@ public class ExamsScheduleProcessor
         if (!groups.Any()) return new EmptyGroupsDataException();
         if (!courses.Any()) return new EmptyCoursesDataException();
 
-        var schedules = await Task.Run(() =>
-            ExamsTimetableGenerator.Generate(rooms, groups, lecturers, courses, command));
+        var schedules = await Task.Run(() => ExamsTimetableGenerator.Generate(rooms, groups, lecturers, courses, command));
+        if (!AllCoursesHaveBeenScheduled(schedules, courses)) return new ExamNotScheduledException();
         
         var fileName = _configuration[_timetableFile] ?? string.Empty;
         if (string.IsNullOrWhiteSpace(fileName)) return new TimetableGeneratedException();
@@ -63,6 +63,18 @@ public class ExamsScheduleProcessor
 
         await ExamsTimetableGenerator.GetAsync(_excelReader, schedules, fileName, rooms);
         return true;
+    }
+
+    private static bool AllCoursesHaveBeenScheduled(List<List<ExamsSchedule>> schedules, List<IncomingCourse> courses)
+    {
+        var unscheduledCourses = new List<IncomingCourse>();
+        foreach (var course in courses)
+        {
+            var courseHasBeenScheduled = schedules.Any(x => x.Any(a => a.CourseName == course.Name));
+            if (!courseHasBeenScheduled) unscheduledCourses.Add(course);
+        }
+
+        return unscheduledCourses.Count == 0;
     }
 }
 

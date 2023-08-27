@@ -7,3 +7,11 @@ public class LecturesNotScheduledException : Exception
 
     }
 }
+
+public class ExamNotScheduledException : Exception
+{
+    public ExamNotScheduledException(string message = "Some exams have not been scheduled") : base(message)
+    {
+
+    }
+}
