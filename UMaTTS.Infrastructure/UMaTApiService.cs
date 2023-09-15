@@ -3,6 +3,8 @@ using System.Text.Json;
 using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Processors;
 using UMaTLMS.Core.Services;
+using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
 
 namespace UMaTLMS.Infrastructure;
 
@@ -11,10 +13,13 @@ public class UMaTApiService : IUMaTApiService
     private readonly ILogger<UMaTApiService> _logger;
     private readonly HttpClient _client;
 
-    public UMaTApiService(IHttpClientFactory factory, ILogger<UMaTApiService> logger)
+    public UMaTApiService(IHttpClientFactory factory, ILogger<UMaTApiService> logger,
+        IConfiguration configuration)
     {
         _logger = logger;
         _client = factory.CreateClient("UMaT");
+        var authToken = GetAuthTokenAsync().GetAwaiter().GetResult();
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
     }
 
     /// <summary>
@@ -139,6 +144,40 @@ public class UMaTApiService : IUMaTApiService
         var request = await _client.GetAsync("academicPeriod/get");
         return (await request.Content.ReadFromJsonAsync<AcademicPeriod>())?.Result.Semester;
     }
+
+    // TODO:: Use configuration
+    private async Task<string?> GetAuthTokenAsync()
+    {
+        var formData = new List<KeyValuePair<string, string>>
+        {
+            new KeyValuePair<string, string>("grant_type", "password"),
+            new KeyValuePair<string, string>("client_id", "Auth_Token_Proxy"),
+            new KeyValuePair<string, string>("client_secret", "2e817a7b-abe2-9da0-7782-35883b9c24e5"),
+            new KeyValuePair<string, string>("username", "timetable@umat.edu.gh"),
+            new KeyValuePair<string, string>("password", "UMaTApp$#78")
+        };
+        var formContent = new FormUrlEncodedContent(formData);
+
+        var request = await _client.PostAsync("https://portal.umat.edu.gh/auth/connect/token", 
+            formContent, new CancellationToken());
+        var response = await request.Content.ReadFromJsonAsync<UMaTIdentityLoginResponse>();
+        return response?.AccessToken ?? string.Empty;
+    }
+}
+
+internal class UMaTIdentityLoginResponse
+{
+    [JsonPropertyName("access_token")]
+    public string AccessToken { get; set; }
+
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; }
+
+    [JsonPropertyName("token_type")]
+    public string TokenType { get; set; }
+
+    [JsonPropertyName("expires_in")]
+    public int ExpiresIn { get; set; }
 }
 
 internal record ApiDomainResponse(string Version, int StatusCode, string Message, int Result);

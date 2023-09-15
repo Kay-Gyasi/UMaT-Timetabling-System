@@ -1,4 +1,5 @@
 ﻿using OfficeOpenXml;
+using UMaTLMS.Core.Repositories.Base;
 using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Core.Processors;
@@ -17,6 +18,7 @@ public sealed class Initializer
     private readonly IClassGroupRepository _classGroupRepository;
     private readonly ISubClassGroupRepository _subClassGroupRepository;
     private readonly IPreferenceRepository _preferenceRepository;
+    private readonly ILogger<Initializer> _logger;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
 
@@ -24,7 +26,7 @@ public sealed class Initializer
         ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository, 
         ILectureRepository lectureRepository, ICourseRepository courseRepository, ILecturerRepository  lecturerRepository, 
         IConstraintRepository constraintRepository,IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
-        IPreferenceRepository preferenceRepository)
+        IPreferenceRepository preferenceRepository, ILogger<Initializer> logger) 
     {
         _reader = reader;
         _roomRepository = roomRepository;
@@ -37,6 +39,7 @@ public sealed class Initializer
         _classGroupRepository = classGroupRepository;
         _subClassGroupRepository = subClassGroupRepository;
         _preferenceRepository = preferenceRepository;
+        _logger = logger;
     }
 
     public async Task Initialize()
@@ -56,40 +59,27 @@ public sealed class Initializer
     {
         try
         {
-            var lectureSchedules = await _lectureScheduleRepository.GetAllAsync();
-            await _lectureScheduleRepository.DeleteAllAsync(lectureSchedules, saveChanges: false);
-
-            var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
-            await _onlineLectureScheduleRepository.DeleteAllAsync(onlineSchedules, saveChanges: false);
-
-            var preferences = await _preferenceRepository.GetAllAsync();
-            await _preferenceRepository.DeleteAllAsync(preferences, saveChanges: false);
-
-            var constraints = await _constraintRepository.GetAllAsync();
-            await _constraintRepository.DeleteAllAsync(constraints, saveChanges: false);
-
-            var subGroups = await _subClassGroupRepository.GetAllAsync();
-            await _subClassGroupRepository.DeleteAllAsync(subGroups, saveChanges: false);
-
-            var groups = await _classGroupRepository.GetAllAsync();
-            await _classGroupRepository.DeleteAllAsync(groups, saveChanges: false);
-
-            var courses = await _courseRepository.GetAllAsync();
-            await _courseRepository.DeleteAllAsync(courses, saveChanges: false);
-
-            var lecturers = await _lecturerRepository.GetAllAsync();
-            await _lecturerRepository.DeleteAllAsync(lecturers, saveChanges: false);
-
-            var lectures = await _lectureRepository.GetAllAsync();
-            await _lectureRepository.DeleteAllAsync(lectures, saveChanges: false);
-
-            await _classGroupRepository.SaveChanges();
+            await DeleteAllAsync(_lectureScheduleRepository);
+            await DeleteAllAsync(_onlineLectureScheduleRepository);
+            await DeleteAllAsync(_preferenceRepository);
+            await DeleteAllAsync(_constraintRepository);
+            await DeleteAllAsync(_subClassGroupRepository);
+            await DeleteAllAsync(_classGroupRepository);
+            await DeleteAllAsync(_courseRepository);
+            await DeleteAllAsync(_lecturerRepository);
+            await DeleteAllAsync(_lectureRepository, saveChanges: true);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-
+            _logger.LogError("Error: {Error}", ex.ToString());
             throw;
         }
+    }
+
+    private async Task DeleteAllAsync<T>(IRepository<T, int> repository, bool saveChanges = false) where T : Entity
+    {
+        var entities = await repository.GetAllAsync();
+        await repository.DeleteAllAsync(entities, saveChanges);
     }
 
     private async Task AddBaseConstraints()
@@ -97,8 +87,10 @@ public sealed class Initializer
         var isInitialized = await _constraintRepository.IsInitialized();
         if (isInitialized) return;
 
-        var maxLecturesPerDayConstraint = Constraint.Create(ConstraintType.GeneralMaxLecturesPerDay, Enums.TimetableType.Lectures)
-                                    .WithValue("4");
+        var maxLecturesPerDayConstraint = Constraint
+                                            .Create(ConstraintType.GeneralMaxLecturesPerDay, 
+                                                        Enums.TimetableType.Lectures)
+                                            .WithValue("4");
         await _constraintRepository.AddAsync(maxLecturesPerDayConstraint);
     }
 

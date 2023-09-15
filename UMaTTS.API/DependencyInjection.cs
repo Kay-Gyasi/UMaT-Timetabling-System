@@ -14,7 +14,8 @@ namespace UMaTLMS.API
                 .AddHttpContextAccessor()
                 .InstallSwagger(configuration)
                 .AddCore(configuration)
-                .AddInfrastructure(configuration, hostEnvironment);
+                .AddInfrastructure(configuration, hostEnvironment)
+                .AddScoped<GlobalExceptionHandler>();
         }
 
         private static IServiceCollection InstallDefaults(this IServiceCollection services)

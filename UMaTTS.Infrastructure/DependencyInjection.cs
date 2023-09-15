@@ -20,9 +20,9 @@ public static class DependencyInjection
                 opts.Timeout = TimeSpan.FromMinutes(5);
             });
             services.AddScoped<IUMaTApiService, UMaTApiService>()
-            .AddScoped<IExcelReader, ExcelReader>()
-            .AddMemoryCache()
-            .AddScoped<CacheService>();
+                    .AddScoped<IExcelReader, ExcelReader>()
+                    .AddMemoryCache()
+                    .AddScoped<CacheService>();
         return services;
     }
 

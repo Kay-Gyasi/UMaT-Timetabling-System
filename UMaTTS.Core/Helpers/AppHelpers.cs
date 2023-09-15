@@ -56,8 +56,7 @@ public static class AppHelpers
 
     public static void Shuffle<T>(this List<T> list)
     {
-        var random = new Random();
-
+        var random = new Random(24);
         for (var i = list.Count - 1; i > 0; i--)
         {
             var j = random.Next(i + 1);
