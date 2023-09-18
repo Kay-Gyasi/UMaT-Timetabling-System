@@ -20,4 +20,10 @@ public class SubClassGroup : Entity
 
     public static SubClassGroup Create(int groupId, int? size, string name) 
         => new(groupId, size, name);
+
+    public SubClassGroup HasSize(int size)
+    {
+        Size = size;
+        return this;
+    }
 }

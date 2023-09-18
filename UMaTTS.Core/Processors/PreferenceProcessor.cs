@@ -135,7 +135,7 @@ public class PreferenceProcessor
 
         return selectedValue switch
         {
-            PreferenceType.DayNotAvailable =>daysOfWeek.Select(x => new Lookup(index++, x)).ToList(),
+            PreferenceType.DayNotAvailable => daysOfWeek.Select(x => new Lookup(index++, x)).ToList(),
             PreferenceType.TimeNotAvailable => timeSlots.Select(x => new Lookup(index++, x)).ToList(),
             PreferenceType.PreferredDayOfWeek => daysOfWeek.Select(x => new Lookup(index++, x)).ToList(),
             PreferenceType.PreferredLectureRoom => await _lookupProcessor.GetAsync(LookupType.Rooms),

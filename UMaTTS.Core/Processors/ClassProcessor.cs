@@ -21,7 +21,9 @@ public class ClassProcessor
 
 	public async Task<OneOf<bool, Exception>> SetLimit(int limit)
 	{
-		var groupsInDb = await _classGroupRepository.GetAll();
+		var groupsInDb = await _classGroupRepository.GetAllAsync();
+		var subClasses = await _subClassGroupRepository.GetAllAsync();
+		await _subClassGroupRepository.DeleteAllAsync(subClasses, saveChanges: false);
 
 		try
 		{
@@ -33,8 +35,6 @@ public class ClassProcessor
 
 				group.HasNoOfSubClasses(newNumberOfSubClasses);
 				await _classGroupRepository.UpdateAsync(group, saveChanges: false);
-
-				await _subClassGroupRepository.DeleteAllAsync(group.SubClassGroups.ToList(), saveChanges: false);
 
 				var sizes = group.Size.GetSubClassSizes(newNumberOfSubClasses);
 				for (int i =  0; i < newNumberOfSubClasses; i++)
@@ -113,21 +113,25 @@ public class ClassProcessor
 
     public async Task<OneOf<bool, Exception>> SetClassSize(int classSize, int classGroupId)
     {
-        var @class = await _classGroupRepository.FindByIdAsync(classGroupId, useCache: true);
-        if (@class == null) return new InvalidIdException();
+        var group = await _classGroupRepository.FindByIdAsync(classGroupId);
+        if (group == null) return new InvalidIdException();
 
-		@class.HasSize(classSize);
+		var generalClassLimit = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.GeneralClassSizeLimit);
+		var numOfSubClasses = (classSize / Convert.ToInt32(generalClassLimit?.Value)) + 1;
+        group.HasSize(classSize)
+			.HasNoOfSubClasses(numOfSubClasses);
 
-		// TODO:: Save class limit and use to determine NumOfSubClasses
+		var subClasses = await _subClassGroupRepository.GetAllAsync(x => x.GroupId == group.Id);
+		await _subClassGroupRepository.DeleteAllAsync(subClasses, saveChanges: false);
 
-        //var sizes = @class.Size.GetSubClassSizes(@class.NumOfSubClasses);
-        //for (int i = 1; i <= @class.NumOfSubClasses; i++)
-        //{
-        //    var subName = group.NumOfSubClasses > 1 ? $"{group.Name}{AppHelpers.GetSubClassSuffix(i)}" : group.Name;
-        //    await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, sizes[i - 1],
-        //        subName), saveChanges: false);
-        //}
-        await _classGroupRepository.UpdateAsync(@class);
+		var sizes = group.Size.GetSubClassSizes(group.NumOfSubClasses);
+		for (int i = 1; i <= group.NumOfSubClasses; i++)
+		{
+			var subName = group.NumOfSubClasses > 1 ? $"{group.Name}{AppHelpers.GetSubClassSuffix(i)}" : group.Name;
+			await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, sizes[i - 1],
+				subName), saveChanges: false);
+		}
+		await _classGroupRepository.UpdateAsync(group);
         return true;
     }
 
@@ -138,9 +142,28 @@ public class ClassProcessor
 		output ??= new List<SubClassGroupDto>(0);
 		return output;
     }
+
+    public async Task<OneOf<bool, Exception>> UpdateSubClasses(List<SubClassGroupCommand> commands)
+    {
+        var group = await _classGroupRepository.GetAsync(x => x.Id == commands[0].GroupId);
+		if (group is null) return new InvalidIdException();
+
+        var combinedCommandSize = commands.Sum(x => x.Size);
+		if (combinedCommandSize != group.Size) return new InvalidSubClassSizesException();
+		
+		foreach (var command in commands)
+		{
+			var sub = group.SubClassGroups.FirstOrDefault(x => x.Id == command.Id);
+			if (sub is null) continue;
+			sub.HasSize(command.Size);
+		}
+
+		await _classGroupRepository.UpdateAsync(group);
+		return true;
+    }
 }
 
-public record SubClassGroupCommand(int? Id, int GroupId, int? Size, string Name);
+public record SubClassGroupCommand(int? Id, int GroupId, int Size, string Name);
 public record SubClassGroupDto(int Id, int GroupId, int? Size, string Name, List<LectureDto> Lectures);
 public record SubClassGroupPageDto(int Id, int GroupId, int? Size, string Name);
 public record ClassGroupDto(int Id, int UmatId, int? Size, int NumOfSubClasses, string Name, List<SubClassGroupDto> SubClassGroups);

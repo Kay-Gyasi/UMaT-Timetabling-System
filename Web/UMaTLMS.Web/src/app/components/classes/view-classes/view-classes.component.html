@@ -67,16 +67,6 @@
           </button>
         </div>
         <!--end:Action-->
-
-        <div class="d-flex align-items-center">
-          <button [disabled]="isLoading" type="button" class="btn btn-primary me-5">
-            <span *ngIf="!isLoading">Generate sub-class groups</span>
-            <span *ngIf="isLoading">
-              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              Loading...
-            </span>
-          </button>
-        </div>
       </div>
     </div>
     <!--end::Card body-->
@@ -183,7 +173,7 @@
                  aria-labelledby="dropdownMenuButton">
               <!--begin::Menu item-->
               <div class="menu-item px-3 mt-3 mb-3">
-                <a href="" class="menu-link px-3">View sub-classes ({{x.name}})</a>
+                <a href="" class="menu-link px-3" data-bs-toggle="modal" data-bs-target="#subClassesModal">View sub-classes ({{x.name}})</a>
               </div>
               <!--end::Menu item-->
               <!--begin::Menu separator-->
@@ -364,6 +354,40 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Sub-Classes Modal -->
+<div class="modal fade" id="subClassesModal" tabindex="-1" role="dialog" aria-labelledby="subClassesModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="subClassesModalLabel">Set class sizes for subclasses</h5>
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="row mb-6" *ngFor="let x of subClassesForSelected">
+          <div class="col-4 fv-row">{{x.name}}</div>
+          <div class="col-8 fv-row">
+            <input type="number" class="form-control form-control-lg form-control-solid" [(ngModel)]="x.size" name="sizeInput" />
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading" (click)="setSubGroupSizes()">
+          <span *ngIf="!isLoading">Set sizes</span>
+          <span *ngIf="isLoading">
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Working on it...
+            </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

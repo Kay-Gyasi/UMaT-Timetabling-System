@@ -128,7 +128,9 @@ public class TimetableProcessor
             await AddGroups(groupsTask.Result);
             await AddCoursesFromUmatDb(coursesTask.Result);
 
-            return await _courseRepository.SaveChanges();
+            var isSaved = await _courseRepository.SaveChanges();
+            await _classProcessor.AddSubClassGroups();
+            return isSaved;
         }
         catch (Exception e)
         {
@@ -166,10 +168,9 @@ public class TimetableProcessor
                 {
                     foreach (var timeSlot in timeSlots)
                     {
-                        var isDow = Enum.TryParse(typeof(DayOfWeek), dayOfWeek, ignoreCase: true, out var output);
+                        var isDow = Enum.TryParse<DayOfWeek>(dayOfWeek, ignoreCase: true, out var dow);
                         if (!isDow) continue;
 
-                        var dow = output as DayOfWeek?;
                         var schedule = LectureSchedule.Create(dow, timeSlot, room.Id);
                         if (dow == DayOfWeek.Friday && timeSlot is "4:30pm" or "6:30pm") continue;
                         await _lectureScheduleRepository.AddAsync(schedule, saveChanges: false);
@@ -192,10 +193,9 @@ public class TimetableProcessor
             {
                 foreach (var timeSlot in timeSlots)
                 {
-                    var isDow = Enum.TryParse(typeof(DayOfWeek), dayOfWeek, ignoreCase: true, out var output);
+                    var isDow = Enum.TryParse<DayOfWeek>(dayOfWeek, ignoreCase: true, out var dow);
                     if (!isDow) continue;
 
-                    var dow = output as DayOfWeek?;
                     var online = OnlineLectureSchedule.Create(dow, timeSlot);
                     if (dow == DayOfWeek.Friday && timeSlot is "4:30pm" or "6:30pm") continue;
                     await _onlineLectureScheduleRepository.AddAsync(online, saveChanges: false);

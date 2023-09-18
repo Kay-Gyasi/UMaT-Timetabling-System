@@ -365,7 +365,14 @@ public static partial class ExamsTimetableGenerator
             while (classHasExamOnDate)
             {
                 moments = moments.OrderBy(x => x.AssignedGroups.Count).ToList();
-                moment = moments[count];
+                try
+                {
+                    moment = moments[count];
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
                 foreach (var exam in grouping)
                 {
                     foreach (var group in exam.SubClassGroups)

@@ -21,9 +21,16 @@ public class ClassGroup : Entity
     public static ClassGroup Create(int umatId, int? size, string name) 
         => new(umatId, size, name);
 
-    public ClassGroup HasNoOfSubClasses(int number)
+    public ClassGroup HasNoOfSubClasses(int? number)
     {
-        NumOfSubClasses = number;
+        if (number is null) return this;
+        if (number == 0)
+        {
+            NumOfSubClasses = 1;
+            return this;
+        }
+
+        NumOfSubClasses = number.Value;
         return this;
     }
     

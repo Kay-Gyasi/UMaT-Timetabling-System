@@ -5,6 +5,8 @@ import {map, Observable} from "rxjs";
 import {PaginatedList} from "../../models/paginated-list";
 import {RoomResponse} from "../../models/responses/room-response";
 import {ClassResponse} from "../../models/responses/class-response";
+import {SubClassResponse} from "../../models/responses/sub-class-response";
+import {SubClassRequest} from "../../models/requests/sub-class-request";
 
 @Injectable({
   providedIn: 'root'
@@ -44,8 +46,30 @@ export class ClassService {
     );
   }
 
+  getSubClasses(classGroupId:number): Observable<SubClassResponse[] | undefined> {
+    return this.http.getRequestAsync<SubClassResponse[]>(`classes/GetSubClassGroups/${classGroupId}`).pipe(
+      map(data => {
+        if(data === undefined || (data.statusCode != 200 && data.statusCode != 204 && data.statusCode != 201)){
+          return undefined;
+        }
+        return data.data;
+      })
+    );
+  }
+
   setLimit(limit:number) : Observable<boolean | undefined>{
     return this.http.putRequestAsync(`classes/setLimit/${limit}`, null).pipe(
+      map(data => {
+        if (data == undefined || data.statusCode != 204 && data.statusCode != 200){
+          return undefined;
+        }
+        return true;
+      })
+    )
+  }
+
+  updateSubClasses(subClassRequests:SubClassRequest[]) : Observable<boolean | undefined> {
+    return this.http.putRequestAsync(`classes/UpdateSubClasses`, subClassRequests).pipe(
       map(data => {
         if (data == undefined || data.statusCode != 204 && data.statusCode != 200){
           return undefined;

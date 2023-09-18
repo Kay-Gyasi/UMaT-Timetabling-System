@@ -33,6 +33,15 @@ public class ClassesController : Controller
         var result = await _processor.GetPageAsync(command);
         return new ObjectResult(SuccessResponse(result));
     }
+    
+    [HttpPut]
+    public async Task<IActionResult> UpdateSubClasses([FromBody] List<SubClassGroupCommand> commands)
+    {
+        var result = await _processor.UpdateSubClasses(commands);
+        return result.IsT0 && result.AsT0 == true
+            ? new ObjectResult(SuccessResponse(result.AsT0, StatusCodes.Status204NoContent))
+            : new ObjectResult(ErrorResponse(result.AsT1));
+    }
 
     [HttpPut("{classGroupId}/{numberOfSubClasses}")]
     public async Task<IActionResult> SetNumberOfSubClasses(int classGroupId, int numberOfSubClasses)
