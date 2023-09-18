@@ -27,6 +27,7 @@ export class ViewClassesComponent implements OnInit{
   classes:PaginatedList<ClassResponse> = new PaginatedList<ClassResponse>();
   searchForm:UntypedFormGroup;
   subClassForm:UntypedFormGroup;
+  classSizeForm:UntypedFormGroup;
   selectedClass:ClassResponse = new ClassResponse();
   constructor(private classService:ClassService, private toast:NotificationService,
               private fb:FormBuilder, private router:Router, private store: Store<AppState>) {
@@ -35,6 +36,9 @@ export class ViewClassesComponent implements OnInit{
     });
     this.subClassForm = this.fb.group({
       "numOfSubClasses": [1, [Validators.required, Validators.max(10)]]
+    });
+    this.classSizeForm = this.fb.group({
+      "size": [1, [Validators.required, Validators.max(100000)]]
     });
   }
 
@@ -54,15 +58,14 @@ export class ViewClassesComponent implements OnInit{
     this.isLoading = true;
     return this.classService.setNumOfSubClasses(this.subClassForm.get('numOfSubClasses')?.value,
       this.selectedClass.id).subscribe({
-      next: async response => {
+      next: response => {
         if (response == undefined) {
           this.toast.showError("Unable to complete operation", "Failed");
           return;
         }
 
-        this.selectedClass.numOfSubClasses = this.subClassForm.get('numOfSubClasses')?.value;
         this.toast.showSuccess("", "Succeeded");
-        await this.router.navigateByUrl(this.navigator.classes);
+        this.getClasses();
       },
       error: err => {
         this.toast.showError("Unable to complete operation", "Failed");
@@ -99,6 +102,32 @@ export class ViewClassesComponent implements OnInit{
         this.toast.showError("Failed to adjust class sizes to limit", "Failed");
       }
     })
+  }
+
+  setClassSize(){
+    this.isLoading = true;
+    return this.classService.setSize(this.classSizeForm.get('size')?.value,
+      this.selectedClass.id).subscribe({
+      next: response => {
+        if (response == undefined) {
+          this.toast.showError("Unable to complete operation", "Failed");
+          return;
+        }
+
+        this.toast.showSuccess("", "Succeeded");
+        this.getClasses();
+      },
+      error: _ => {
+        this.toast.showError("Unable to complete operation", "Failed");
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    })
+  }
+
+  get classSize(){
+    return this.classSizeForm.get('size') as FormControl;
   }
 
   get term(){

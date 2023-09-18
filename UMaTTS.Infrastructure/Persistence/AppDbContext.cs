@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<ExamsSchedule> ExamsSchedules { get; set; }
     public DbSet<Preference> Preferences { get; set; }
     public DbSet<Constraint> Constraints { get; set; }
+    public DbSet<AdminSettings> AdminSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

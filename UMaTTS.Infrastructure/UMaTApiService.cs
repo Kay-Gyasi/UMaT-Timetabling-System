@@ -3,38 +3,31 @@ using System.Text.Json;
 using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Processors;
 using UMaTLMS.Core.Services;
-using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
 
 namespace UMaTLMS.Infrastructure;
 
 public class UMaTApiService : IUMaTApiService
 {
     private readonly ILogger<UMaTApiService> _logger;
+    private readonly IConfiguration _configuration;
+    private readonly LoginFormOptions _loginFormOptions;
     private readonly HttpClient _client;
 
     public UMaTApiService(IHttpClientFactory factory, ILogger<UMaTApiService> logger,
-        IConfiguration configuration)
+        IOptions<LoginFormOptions> loginFormOptions, IConfiguration configuration)
     {
         _logger = logger;
+        _configuration = configuration;
+        _loginFormOptions = loginFormOptions.Value;
         _client = factory.CreateClient("UMaT");
         var authToken = GetAuthTokenAsync().GetAwaiter().GetResult();
         _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {authToken}");
     }
 
-    /// <summary>
-    /// Gets courses being offered at UMaT Main campus
-    /// </summary>
-    /// <returns>List of all courses being offered at the UMaT main campus</returns>
     public async Task<List<CourseResponse>?> GetCourses()
     {
-        var coursesExists = File.Exists("_content/courses.json");
-        if (coursesExists)
-        {
-            var data = await File.ReadAllTextAsync("_content/courses.json");
-            return JsonSerializer.Deserialize<List<CourseResponse>>(data);
-        }
-
         var request = await _client.PostAsJsonAsync("course/getPage", new
         {
             PageSize = 2000,
@@ -43,8 +36,9 @@ public class UMaTApiService : IUMaTApiService
         var courses = (await request.Content.ReadFromJsonAsync<PaginatedList<CourseResponse>>())?.Data;
         var semester = await GetCurrentSemester();
         var filteredCourses = courses?.Where(x => x.AcademicPeriod.UpperYear == DateTime.UtcNow.Year
-            && x.AcademicPeriod.Semester == semester && x.Programme!.Department.Faculty.SchoolCentre.Campus.Id == 2
-            && !x.Programme!.Code!.Contains("Cert")).ToList();
+                                                    && x.AcademicPeriod.Semester == semester 
+                                                    && x.Programme!.Department.Faculty.SchoolCentre.Campus.Id == 2
+                                                    && !x.Programme!.Code!.Contains("Cert")).ToList();
         await File.WriteAllTextAsync("_content/courses.json", JsonSerializer.Serialize(filteredCourses, new JsonSerializerOptions
         {
             WriteIndented = true
@@ -52,22 +46,8 @@ public class UMaTApiService : IUMaTApiService
         return filteredCourses;
     }
 
-    /// <summary>
-    /// Retrieves list of undergraduate courses
-    /// </summary>
-    /// <returns></returns>
     public async Task<List<Group>?> GetClasses()
     {
-        var groupsExist = File.Exists("_content/classGroups.json");
-        if (groupsExist)
-        {
-            var data = await File.ReadAllTextAsync("_content/classGroups.json");
-            return JsonSerializer.Deserialize<List<Group>>(data, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-        }
-
         var groups = new List<Group>();
         var courses = (await GetCourses())?.ToList();
         if (courses is null) return null;
@@ -109,33 +89,10 @@ public class UMaTApiService : IUMaTApiService
         return result.ToList();
     }
 
-    public async Task<List<Staff>?> GetLecturers()
-    {
-        var lecturersExists = File.Exists("_content/lecturers.json");
-        if (lecturersExists)
-        {
-            var data = await File.ReadAllTextAsync("_content/lecturers.json");
-            return JsonSerializer.Deserialize<List<Staff>>(data);
-        }
-
-        var request = await _client.PostAsJsonAsync("staff/getPage", new
-        {
-            PageSize = 500,
-            PageNumber = 1
-        });
-        var lecturers = (await request.Content.ReadFromJsonAsync<PaginatedList<Staff>>())?.Data;
-        await File.WriteAllTextAsync("_content/lecturers.json", JsonSerializer.Serialize(lecturers, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        }));
-        return lecturers;    
-    }
-
     private async Task<int> GetClassSize(int yearGroup, int programmeId)
     {
-        var request = await _client.PostAsync(
-            $"Student/ClassSize?yearGroup={yearGroup}&programmeId={programmeId}",
-            null, new CancellationToken());
+        var request = await _client.PostAsync($"Student/ClassSize?yearGroup={yearGroup}&programmeId={programmeId}",
+                                                    null, new CancellationToken());
         return (await request.Content.ReadFromJsonAsync<ApiDomainResponse>())?.Result ?? 0;
     }
 
@@ -145,24 +102,39 @@ public class UMaTApiService : IUMaTApiService
         return (await request.Content.ReadFromJsonAsync<AcademicPeriod>())?.Result.Semester;
     }
 
-    // TODO:: Use configuration
     private async Task<string?> GetAuthTokenAsync()
     {
         var formData = new List<KeyValuePair<string, string>>
         {
-            new KeyValuePair<string, string>("grant_type", "password"),
-            new KeyValuePair<string, string>("client_id", "Auth_Token_Proxy"),
-            new KeyValuePair<string, string>("client_secret", "2e817a7b-abe2-9da0-7782-35883b9c24e5"),
-            new KeyValuePair<string, string>("username", "timetable@umat.edu.gh"),
-            new KeyValuePair<string, string>("password", "UMaTApp$#78")
+            new KeyValuePair<string, string>("grant_type", _loginFormOptions.GrantType),
+            new KeyValuePair<string, string>("client_id", _loginFormOptions.ClientId),
+            new KeyValuePair<string, string>("client_secret", _loginFormOptions.ClientSecret),
+            new KeyValuePair<string, string>("username", _loginFormOptions.Username),
+            new KeyValuePair<string, string>("password", _loginFormOptions.Password)
         };
         var formContent = new FormUrlEncodedContent(formData);
 
-        var request = await _client.PostAsync("https://portal.umat.edu.gh/auth/connect/token", 
-            formContent, new CancellationToken());
-        var response = await request.Content.ReadFromJsonAsync<UMaTIdentityLoginResponse>();
-        return response?.AccessToken ?? string.Empty;
+        try
+        {
+            var request = await _client.PostAsync(_configuration["UMaTAuthTokenUrl"] ?? string.Empty, formContent, new CancellationToken());
+            var response = await request.Content.ReadFromJsonAsync<UMaTIdentityLoginResponse>();
+            return response?.AccessToken ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error while trying to get auth token. Error: {Error}", ex);
+            return null;
+        }
     }
+}
+
+public class LoginFormOptions
+{
+    public string GrantType { get; set; }
+    public string ClientId { get; set; }
+    public string ClientSecret { get; set; }
+    public string Username { get; set; }
+    public string Password { get; set; }
 }
 
 internal class UMaTIdentityLoginResponse

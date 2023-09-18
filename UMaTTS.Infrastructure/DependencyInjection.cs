@@ -23,6 +23,7 @@ public static class DependencyInjection
                     .AddScoped<IExcelReader, ExcelReader>()
                     .AddMemoryCache()
                     .AddScoped<CacheService>();
+        services.Configure<LoginFormOptions>(configuration.GetSection(nameof(LoginFormOptions)));
         return services;
     }
 
@@ -69,6 +70,7 @@ public static class DependencyInjection
             .AddScoped<ILectureScheduleRepository, LectureScheduleRepository>()
             .AddScoped<IPreferenceRepository, PreferenceRepository>()
             .AddScoped<IConstraintRepository, ConstraintRepository>()
+            .AddScoped<IAdminSettingsRepository, AdminSettingsRepository>()
             .AddScoped<IOnlineLectureScheduleRepository, OnlineLectureScheduleRepository>();
         return services;
     }

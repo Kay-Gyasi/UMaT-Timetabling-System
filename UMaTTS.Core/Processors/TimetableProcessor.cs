@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using UMaTLMS.Core.Contracts;
+using UMaTLMS.Core.Entities;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
 using UMaTLMS.SharedKernel.Helpers;
@@ -25,6 +27,7 @@ public class TimetableProcessor
     private readonly IExcelReader _excelReader;
     private readonly IConfiguration _configuration;
     private readonly IConstraintRepository _constraintRepository;
+    private readonly IAdminSettingsRepository _adminSettingsRepository;
     private readonly ClassProcessor _classProcessor;
 
     public TimetableProcessor(ILogger<TimetableProcessor> logger, ILectureScheduleRepository timetableRepository, 
@@ -32,7 +35,7 @@ public class TimetableProcessor
         ICourseRepository courseRepository, ISubClassGroupRepository subClassGroupRepository, IUMaTApiService umatApiService,
         IOnlineLectureScheduleRepository onlineLectureScheduleRepository, IRoomRepository roomRepository,
         IPreferenceRepository preferenceRepository, IExcelReader excelReader, IConfiguration configuration, 
-        IConstraintRepository constraintRepository, ClassProcessor classProcessor)
+        IConstraintRepository constraintRepository, IAdminSettingsRepository adminSettingsRepository, ClassProcessor classProcessor)
     {
         _logger = logger;
         _lectureScheduleRepository = timetableRepository;
@@ -48,6 +51,7 @@ public class TimetableProcessor
         _excelReader = excelReader;
         _configuration = configuration;
         _constraintRepository = constraintRepository;
+        _adminSettingsRepository = adminSettingsRepository;
         _classProcessor = classProcessor;
     }
 
@@ -114,28 +118,21 @@ public class TimetableProcessor
 
     public async Task<OneOf<bool, Exception>> SyncWithUMaT()
     {
-        var lecturersTask = _umatApiService.GetLecturers();
         var groupsTask = _umatApiService.GetClasses();
         var coursesTask = _umatApiService.GetCourses();
 
         try
         {
-            // TODO:: remove reading from files when going to production
-            await Task.WhenAll(lecturersTask, groupsTask, coursesTask);
+            await Task.WhenAll(groupsTask, coursesTask);
 
-            var lecturers = lecturersTask.Result;
-            var groups = groupsTask.Result;
-            var courses = coursesTask.Result;
+            await AddGroups(groupsTask.Result);
+            await AddCoursesFromUmatDb(coursesTask.Result);
 
-            await AddLecturers(lecturers);
-            await AddGroups(groups);
-            await AddCoursesFromUmatDb(courses);
-
-            return await _lecturerRepository.SaveChanges();
+            return await _courseRepository.SaveChanges();
         }
         catch (Exception e)
         {
-            _logger.LogError("Error while pulling data from UMaT API. Message: {Message}", e.Message);
+            _logger.LogError("Error while pulling data from UMaT API. Exception: {Exception}", e);
             return e;
         }
     }
@@ -145,7 +142,13 @@ public class TimetableProcessor
         var rooms = await _roomRepository.GetAllAsync();
         if (!rooms.Any()) throw new SystemNotInitializedException();
 
-        var timeSlots = AppHelpers.GetTimeSlots().ToList();
+        var timeSlotSetting = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.LectureTimeSlots);
+        if (timeSlotSetting is null) throw new SystemNotInitializedException("Timeslots not set");
+        var timeSlots = JsonSerializer.Deserialize<List<string>>(timeSlotSetting.Value) ?? new List<string>();
+        
+        var dayOfWeekSetting = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.DaysOfWeek);
+        if (dayOfWeekSetting is null) throw new SystemNotInitializedException("Days of week not set");
+        var daysOfWeek = JsonSerializer.Deserialize<List<string>>(dayOfWeekSetting.Value) ?? new List<string>();
 
         var schedules = await _lectureScheduleRepository.GetAllAsync();
         if (schedules.Any())
@@ -157,14 +160,18 @@ public class TimetableProcessor
         }
         else
         {
-            for (var i = 0; i < 5; i++)
+            foreach (var dayOfWeek in daysOfWeek)
             {
                 foreach (var room in rooms)
                 {
                     foreach (var timeSlot in timeSlots)
                     {
-                        var schedule = LectureSchedule.Create(AppHelper.GetDayOfWeek(i), timeSlot, room.Id);
-                        if (i == 4 && timeSlot is "4:30pm" or "6:30pm") continue;
+                        var isDow = Enum.TryParse(typeof(DayOfWeek), dayOfWeek, ignoreCase: true, out var output);
+                        if (!isDow) continue;
+
+                        var dow = output as DayOfWeek?;
+                        var schedule = LectureSchedule.Create(dow, timeSlot, room.Id);
+                        if (dow == DayOfWeek.Friday && timeSlot is "4:30pm" or "6:30pm") continue;
                         await _lectureScheduleRepository.AddAsync(schedule, saveChanges: false);
                     }
                 }
@@ -181,37 +188,22 @@ public class TimetableProcessor
         }
         else
         {
-            for (var i = 0; i < 5; i++)
+            foreach (var dayOfWeek in daysOfWeek)
             {
                 foreach (var timeSlot in timeSlots)
                 {
-                    var online = OnlineLectureSchedule.Create(AppHelper.GetDayOfWeek(i), timeSlot);
-                    if (i == 4 && timeSlot is "4:30pm" or "6:30pm") continue;
+                    var isDow = Enum.TryParse(typeof(DayOfWeek), dayOfWeek, ignoreCase: true, out var output);
+                    if (!isDow) continue;
+
+                    var dow = output as DayOfWeek?;
+                    var online = OnlineLectureSchedule.Create(dow, timeSlot);
+                    if (dow == DayOfWeek.Friday && timeSlot is "4:30pm" or "6:30pm") continue;
                     await _onlineLectureScheduleRepository.AddAsync(online, saveChanges: false);
                 }
             }
         }
 
         await _lectureScheduleRepository.SaveChanges();
-    }
-
-    private async Task AddLecturers(List<Staff>? lecturers)
-    {
-        var lecturersInDb = await _lecturerRepository.GetAllAsync();
-        if (lecturers is not null)
-        {
-            foreach (var lecturer in lecturers)
-            {
-                var lecturerExists = lecturersInDb.Any(x => x.Name == lecturer.Party?.Name?.FullName && x.UmatId == lecturer.Id);
-                if (lecturerExists) continue;
-
-                var title = lecturer.Party?.Name?.FullNamev2?.Split("(")[1][..^1];
-                await _lecturerRepository.AddAsync(
-                    Lecturer.Create(lecturer.Id, 
-                        lecturer.Party?.Name?.FullName, 
-                        lecturer.Party?.Name?.FullNamev2), saveChanges: false);
-            }
-        }
     }
 
     private async Task AddGroups(List<Group>? groups)
@@ -227,13 +219,13 @@ public class TimetableProcessor
                 if (groupExists is not null)
                 {
                     groupExists.HasSize(group.Size)
-                        .HasNoOfSubClasses((group.Size / 80) + 1);
+                                .HasNoOfSubClasses((group.Size / 80) + 1);
                     await _classGroupRepository.UpdateAsync(groupExists, saveChanges: false);
                     continue;
                 }
 
                 var entity = ClassGroup.Create(group.Id, group.Size, group.Name)
-                    .HasNoOfSubClasses((group.Size / 80) + 1);
+                                        .HasNoOfSubClasses((group.Size / 80) + 1);
                 await _classGroupRepository.AddAsync(entity, saveChanges: false);
             }
         }
@@ -243,10 +235,16 @@ public class TimetableProcessor
     {
         if (courses == null) return;
         var coursesInDb = await _courseRepository.GetAllAsync();
-        if (coursesInDb.Any()) return;
+        var lecturersInDb = await _lecturerRepository.GetAllAsync();
 
         foreach (var course in courses)
         {
+            if (coursesInDb.Any(x => x.YearGroup == course.YearGroup && x.UmatId == course.Id)) 
+                continue;
+
+            await AddCourseExaminer(course.FirstExaminerStaff, lecturersInDb);
+            await AddCourseExaminer(course.SecondExaminerStaff, lecturersInDb);
+
             var c = IncomingCourse.Create(course.Name?.Trim() ?? "", course.Credit, course.YearGroup, course.Id);
             c.ForAcademicPeriod(new AcademicPeriodResponse
             {
@@ -341,6 +339,18 @@ public class TimetableProcessor
         return true;
     }
 
+    private async Task AddCourseExaminer(Staff? staff, List<Lecturer> lecturersInDb)
+    {
+        if (staff is null) return;
+        var lecturerExists = lecturersInDb.Any(x => x.UmatId == staff?.Id);
+        if (!lecturerExists)
+        {
+            var title = staff?.Party?.Name?.FullNamev2?.Split("(")[1][..^1];
+            await _lecturerRepository.AddAsync(
+                Lecturer.Create(staff!.Id, staff?.Party?.Name?.FullName, staff?.Party?.Name?.FullNamev2),
+                                    saveChanges: false);
+        }
+    }
 
     private async Task SaveSchedulesToDatabase(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules)
     {

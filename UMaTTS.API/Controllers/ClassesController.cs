@@ -1,4 +1,6 @@
-﻿namespace UMaTLMS.API.Controllers;
+﻿using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+
+namespace UMaTLMS.API.Controllers;
 
 public class ClassesController : Controller
 {
@@ -18,6 +20,13 @@ public class ClassesController : Controller
             : new ObjectResult(ErrorResponse(result.AsT1));
     }
 
+    [HttpGet("{classGroupId}")]
+    public async Task<IActionResult> GetSubClassGroups(int classGroupId)
+    {
+        var result = await _processor.GetSubClassGroups(classGroupId);
+        return new ObjectResult(SuccessResponse(result));
+    }
+
     [HttpPost]
     public async Task<IActionResult> GetPage(PaginatedCommand command)
     {
@@ -32,6 +41,16 @@ public class ClassesController : Controller
         return result.IsT0 && result.AsT0 == true
             ? new ObjectResult(SuccessResponse(result.AsT0, StatusCodes.Status204NoContent))
             : new ObjectResult(ErrorResponse(result.AsT1));
+    }
+
+    [HttpPut("{classGroupId}/{classSize}")]
+    public async Task<IActionResult> SetClassSize(int classGroupId, int classSize)
+    {
+        var result = await _processor.SetClassSize(classSize, classGroupId);
+        return result.IsT0 && result.AsT0 == true
+            ? new ObjectResult(SuccessResponse(result.AsT0, StatusCodes.Status204NoContent))
+            : new ObjectResult(ErrorResponse(result.AsT1));
+
     }
 
     [HttpPut("{limit}")]

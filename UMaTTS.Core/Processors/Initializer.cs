@@ -1,4 +1,6 @@
-﻿using OfficeOpenXml;
+﻿using Humanizer;
+using OfficeOpenXml;
+using System.Text.Json;
 using UMaTLMS.Core.Repositories.Base;
 using UMaTLMS.Core.Services;
 
@@ -18,6 +20,7 @@ public sealed class Initializer
     private readonly IClassGroupRepository _classGroupRepository;
     private readonly ISubClassGroupRepository _subClassGroupRepository;
     private readonly IPreferenceRepository _preferenceRepository;
+    private readonly IAdminSettingsRepository _adminSettingsRepository;
     private readonly ILogger<Initializer> _logger;
     private ExcelWorksheet _firstSemesterWorksheet;
     private const string _firstSemFile = "_content/DRAFT TIME TABLE SEM ONE 2022_2023.xlsx";
@@ -26,7 +29,7 @@ public sealed class Initializer
         ILectureScheduleRepository lectureScheduleRepository, IOnlineLectureScheduleRepository onlineLectureScheduleRepository, 
         ILectureRepository lectureRepository, ICourseRepository courseRepository, ILecturerRepository  lecturerRepository, 
         IConstraintRepository constraintRepository,IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
-        IPreferenceRepository preferenceRepository, ILogger<Initializer> logger) 
+        IPreferenceRepository preferenceRepository, IAdminSettingsRepository adminSettingsRepository, ILogger<Initializer> logger) 
     {
         _reader = reader;
         _roomRepository = roomRepository;
@@ -39,6 +42,7 @@ public sealed class Initializer
         _classGroupRepository = classGroupRepository;
         _subClassGroupRepository = subClassGroupRepository;
         _preferenceRepository = preferenceRepository;
+        _adminSettingsRepository = adminSettingsRepository;
         _logger = logger;
     }
 
@@ -53,6 +57,9 @@ public sealed class Initializer
         }
 
         await AddBaseConstraints();
+        await AddAdminSettings();
+
+        await _adminSettingsRepository.SaveChanges();
     }
 
     public async Task Reset()
@@ -91,7 +98,61 @@ public sealed class Initializer
                                             .Create(ConstraintType.GeneralMaxLecturesPerDay, 
                                                         Enums.TimetableType.Lectures)
                                             .WithValue("4");
-        await _constraintRepository.AddAsync(maxLecturesPerDayConstraint);
+        await _constraintRepository.AddAsync(maxLecturesPerDayConstraint, saveChanges: false);
+    }
+
+    private async Task AddAdminSettings()
+    {
+        var isInitialized = (await _adminSettingsRepository.GetAllAsync()).Count > 0;
+        if (isInitialized) return;
+
+        var keys = Enum.GetValues<AdminConfigurationKeys>();
+        foreach (var key in keys)
+        {
+            switch (key)
+            {
+                case AdminConfigurationKeys.GeneralClassSizeLimit:
+                    await _adminSettingsRepository.AddAsync(AdminSettings.Create(key, "80"), saveChanges: false);
+                    break;
+                case AdminConfigurationKeys.LectureTimeSlots:
+                    await AddLectureTimeSlots(key);
+                    break;
+                case AdminConfigurationKeys.DaysOfWeek:
+                    await AddDaysOfWeek(key);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private async Task AddLectureTimeSlots(AdminConfigurationKeys key)
+    {
+        var timeSlots = new List<string>()
+        {
+            "6am",
+            "8am",
+            "10am",
+            "12:30pm",
+            "2:30pm",
+            "4:30pm"
+        };
+        await _adminSettingsRepository.AddAsync(AdminSettings.Create(key, 
+            JsonSerializer.Serialize(timeSlots)), saveChanges: false);
+    }
+    
+    private async Task AddDaysOfWeek(AdminConfigurationKeys key)
+    {
+        var daysOfWeek = new List<string>()
+        {
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        };
+        await _adminSettingsRepository.AddAsync(AdminSettings.Create(key, 
+            JsonSerializer.Serialize(daysOfWeek)), saveChanges: false);
     }
 
     private async Task InitializeRooms()

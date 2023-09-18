@@ -1,7 +1,6 @@
 ﻿using Humanizer;
 using System.Text.Json;
 using UMaTLMS.Core.Enums;
-using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -9,11 +8,14 @@ namespace UMaTLMS.Core.Processors;
 public class PreferenceProcessor
 {
     private readonly IPreferenceRepository _preferenceRepository;
+    private readonly IAdminSettingsRepository _adminSettingsRepository;
     private readonly LookupProcessor _lookupProcessor;
 
-    public PreferenceProcessor(IPreferenceRepository preferenceRepository, LookupProcessor lookupProcessor)
+    public PreferenceProcessor(IPreferenceRepository preferenceRepository, 
+        IAdminSettingsRepository adminSettingsRepository, LookupProcessor lookupProcessor)
     {
         _preferenceRepository = preferenceRepository;
+        _adminSettingsRepository = adminSettingsRepository;
         _lookupProcessor = lookupProcessor;
     }
 
@@ -122,11 +124,20 @@ public class PreferenceProcessor
     {
         var selectedValue = Enum.GetValues<PreferenceType>()[type];
         var index = 0;
+
+        var timeSlotSetting = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.LectureTimeSlots);
+        if (timeSlotSetting is null) throw new SystemNotInitializedException("Timeslots not set");
+        var timeSlots = JsonSerializer.Deserialize<List<string>>(timeSlotSetting.Value) ?? new List<string>();
+
+        var dayOfWeekSetting = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.DaysOfWeek);
+        if (dayOfWeekSetting is null) throw new SystemNotInitializedException("Days of week not set");
+        var daysOfWeek = JsonSerializer.Deserialize<List<string>>(dayOfWeekSetting.Value) ?? new List<string>();
+
         return selectedValue switch
         {
-            PreferenceType.DayNotAvailable => AppHelpers.GetDaysOfWeek().Select(x => new Lookup(index++, x)).ToList(),
-            PreferenceType.TimeNotAvailable => AppHelpers.GetTimeSlots().Select(x => new Lookup(index++, x)).ToList(),
-            PreferenceType.PreferredDayOfWeek => AppHelpers.GetDaysOfWeek().Select(x => new Lookup(index++, x)).ToList(),
+            PreferenceType.DayNotAvailable =>daysOfWeek.Select(x => new Lookup(index++, x)).ToList(),
+            PreferenceType.TimeNotAvailable => timeSlots.Select(x => new Lookup(index++, x)).ToList(),
+            PreferenceType.PreferredDayOfWeek => daysOfWeek.Select(x => new Lookup(index++, x)).ToList(),
             PreferenceType.PreferredLectureRoom => await _lookupProcessor.GetAsync(LookupType.Rooms),
             _ => throw new NotImplementedException()
         };

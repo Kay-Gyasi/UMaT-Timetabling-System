@@ -23,6 +23,16 @@ export class ClassService {
      }))
  }
 
+ setSize(size:number, classId:number): Observable<boolean | undefined>{
+   return this.http.putRequestAsync(`classes/setClassSize/${classId}/${size}`, null)
+     .pipe(map(data => {
+       if (data.statusCode != 204){
+         return undefined;
+       }
+       return true;
+     }))
+ }
+
   getPage(payload:PaginatedQuery): Observable<PaginatedList<ClassResponse> | undefined> {
     return this.http.getPageRequestAsync<ClassResponse>("classes/getpage", payload).pipe(
       map(data => {

@@ -1,4 +1,6 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using UMaTLMS.API.Attributes;
@@ -16,6 +18,16 @@ namespace UMaTLMS.API
                 .AddCore(configuration)
                 .AddInfrastructure(configuration, hostEnvironment)
                 .AddScoped<GlobalExceptionHandler>();
+
+            services.AddAuthentication()
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.Authority = "https://portal.umat.edu.gh/auth";
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateAudience = false
+                    };
+                });
         }
 
         private static IServiceCollection InstallDefaults(this IServiceCollection services)

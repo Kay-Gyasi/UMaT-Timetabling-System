@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using UMaTLMS.Core.Helpers;
+﻿using UMaTLMS.Core.Helpers;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -8,14 +7,16 @@ public class ClassProcessor
 {
 	private readonly IClassGroupRepository _classGroupRepository;
 	private readonly ISubClassGroupRepository _subClassGroupRepository;
-	private readonly ILogger<ClassProcessor> _logger;
+    private readonly IAdminSettingsRepository _adminSettingsRepository;
+    private readonly ILogger<ClassProcessor> _logger;
 
     public ClassProcessor(IClassGroupRepository classGroupRepository, ISubClassGroupRepository subClassGroupRepository,
-		ILogger<ClassProcessor> logger)
+		IAdminSettingsRepository adminSettingsRepository, ILogger<ClassProcessor> logger)
 	{
 		_classGroupRepository = classGroupRepository;
 		_subClassGroupRepository = subClassGroupRepository;
-		_logger = logger;
+        _adminSettingsRepository = adminSettingsRepository;
+        _logger = logger;
     }
 
 	public async Task<OneOf<bool, Exception>> SetLimit(int limit)
@@ -43,7 +44,17 @@ public class ClassProcessor
 				}
 			}
 
-			return await _classGroupRepository.SaveChanges();
+			var limitSettings = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.GeneralClassSizeLimit);
+			if (limitSettings is null)
+			{
+                await _adminSettingsRepository.AddAsync(AdminSettings
+					.Create(AdminConfigurationKeys.GeneralClassSizeLimit, limit.ToString()));
+				return true;
+            }
+
+			limitSettings.HasValue(limit.ToString());
+			await _adminSettingsRepository.UpdateAsync(limitSettings);
+			return true;
 		}
 		catch (Exception e)
 		{
@@ -99,6 +110,34 @@ public class ClassProcessor
 		result.HasData(result.Data.OrderBy(x => x.Name).ToList());
 		return result;
 	}
+
+    public async Task<OneOf<bool, Exception>> SetClassSize(int classSize, int classGroupId)
+    {
+        var @class = await _classGroupRepository.FindByIdAsync(classGroupId, useCache: true);
+        if (@class == null) return new InvalidIdException();
+
+		@class.HasSize(classSize);
+
+		// TODO:: Save class limit and use to determine NumOfSubClasses
+
+        //var sizes = @class.Size.GetSubClassSizes(@class.NumOfSubClasses);
+        //for (int i = 1; i <= @class.NumOfSubClasses; i++)
+        //{
+        //    var subName = group.NumOfSubClasses > 1 ? $"{group.Name}{AppHelpers.GetSubClassSuffix(i)}" : group.Name;
+        //    await _subClassGroupRepository.AddAsync(SubClassGroup.Create(group.Id, sizes[i - 1],
+        //        subName), saveChanges: false);
+        //}
+        await _classGroupRepository.UpdateAsync(@class);
+        return true;
+    }
+
+    public async Task<List<SubClassGroupDto>> GetSubClassGroups(int classGroupId)
+    {
+        var subs = await _subClassGroupRepository.GetAllAsync(x => x.GroupId == classGroupId);
+		var output = subs.Adapt<List<SubClassGroupDto>>();
+		output ??= new List<SubClassGroupDto>(0);
+		return output;
+    }
 }
 
 public record SubClassGroupCommand(int? Id, int GroupId, int? Size, string Name);
