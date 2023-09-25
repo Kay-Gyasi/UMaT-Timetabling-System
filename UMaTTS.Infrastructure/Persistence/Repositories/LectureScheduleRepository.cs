@@ -21,6 +21,8 @@ public class LectureScheduleRepository : Repository<LectureSchedule, int>, ILect
         return base.GetBaseQuery()
             .Include(x => x.Room)
             .Include(x => x.FirstLecture)
-            .Include(x => x.SecondLecture);
+            .ThenInclude(x => x.SubClassGroups)
+            .Include(x => x.SecondLecture)
+            .ThenInclude(x => x.SubClassGroups);
     }
 }

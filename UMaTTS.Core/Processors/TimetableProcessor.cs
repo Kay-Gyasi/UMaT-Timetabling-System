@@ -64,31 +64,29 @@ public class TimetableProcessor
         var schedules = await _lectureScheduleRepository.GetAllAsync();
         var preferences = await _preferenceRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
         var constraints = await _constraintRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
+        var daysOfWeekSettings = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.DaysOfWeek);
+        var daysOfWeekForLectures = JsonSerializer.Deserialize<List<string>>(daysOfWeekSettings?.Value ?? "[]");
 
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
         var rooms = await _roomRepository.GetAllAsync();
 
-        if (!lectures.Any() || !schedules.Any() || !onlineSchedules.Any() || !rooms.Any())
+        if (!lectures.Any() || !schedules.Any() || !onlineSchedules.Any() || !rooms.Any() || daysOfWeekForLectures is null)
         {
             return new LecturesNotGeneratedException();
         }
 
         try
         {
-            bool allLecturesHaveBeenScheduled = false;
-            List<LectureSchedule> GeneralSchedules = new(); 
-            List<OnlineLectureSchedule> OnlineSchedules = new();
-            while (!allLecturesHaveBeenScheduled)
-            {
-                (GeneralSchedules, OnlineSchedules) = TimetableGenerator.Generate(schedules, onlineSchedules, lectures, preferences, constraints);
-                _logger.LogInformation("Done generating lecture schedules");
+          
+            _ = TimetableGenerator.Generate(schedules, onlineSchedules, lectures, preferences,
+                                                            constraints, daysOfWeekForLectures);
+            _logger.LogInformation("Done generating lecture schedules");
 
-                var numOfLecturesNotScheduled = GetNumberOfLecturesNotScheduled(lectures, GeneralSchedules, OnlineSchedules);
-                if (numOfLecturesNotScheduled == 0) allLecturesHaveBeenScheduled = true;
-            }
+            var numOfLecturesNotScheduled = GetNumberOfLecturesNotScheduled(lectures, schedules, onlineSchedules);
+            if (numOfLecturesNotScheduled > 0) return new LecturesNotScheduledException();
 
-            await SaveSchedulesToDatabase(schedules, OnlineSchedules);
-            await TimetableGenerator.GetAsync(_excelReader, GeneralSchedules, OnlineSchedules, rooms, fileName);
+            await SaveSchedulesToDatabase(schedules, onlineSchedules);
+            await TimetableGenerator.GetAsync(_excelReader, schedules, onlineSchedules, rooms, fileName);
             _logger.LogInformation("Done building timetable!");
             return true;
         }
@@ -236,15 +234,25 @@ public class TimetableProcessor
         if (courses == null) return;
         var coursesInDb = await _courseRepository.GetAllAsync();
         var lecturersInDb = await _lecturerRepository.GetAllAsync();
+        var addedLecturerIds = new List<int>();
 
         foreach (var course in courses)
         {
             if (coursesInDb.Any(x => x.YearGroup == course.YearGroup && x.UmatId == course.Id)) 
                 continue;
 
-            await AddCourseExaminer(course.FirstExaminerStaff, lecturersInDb);
-            await AddCourseExaminer(course.SecondExaminerStaff, lecturersInDb);
-
+            if (course.FirstExaminerStaff?.Id != null && !addedLecturerIds.Contains(course.FirstExaminerStaff.Id))
+            {
+                await AddCourseExaminer(course.FirstExaminerStaff, lecturersInDb);
+                addedLecturerIds.Add(course.FirstExaminerStaff.Id);
+            }
+            
+            if (course.SecondExaminerStaff?.Id != null && !addedLecturerIds.Contains(course.SecondExaminerStaff.Id))
+            {
+                await AddCourseExaminer(course.SecondExaminerStaff, lecturersInDb);
+                addedLecturerIds.Add(course.SecondExaminerStaff.Id);
+            }
+            
             var c = IncomingCourse.Create(course.Name?.Trim() ?? "", course.Credit, course.YearGroup, course.Id);
             c.ForAcademicPeriod(new AcademicPeriodResponse
             {
@@ -373,7 +381,7 @@ public class TimetableProcessor
         List<OnlineLectureSchedule> onlineLectureSchedules)
     {
         int result = 0;
-        List<Lecture> lecturesNotScheduled = new List<Lecture>();
+        List<Lecture> lecturesNotScheduled = new();
 
         foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && !x.IsVLE))
         {

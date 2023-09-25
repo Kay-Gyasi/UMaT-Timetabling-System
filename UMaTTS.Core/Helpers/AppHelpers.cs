@@ -54,40 +54,15 @@ public static class AppHelpers
         return sizes;
     }
 
-    public static void Shuffle<T>(this List<T> list)
+    public static void Shuffle<T>(this List<T> list, int seed = 82)
     {
-        var random = new Random(24);
+        var random = new Random(seed);
         for (var i = list.Count - 1; i > 0; i--)
         {
             var j = random.Next(i + 1);
             (list[i], list[j]) = (list[j], list[i]);
         }
     }
-
-    //public static IEnumerable<string> GetTimeSlots()
-    //{
-    //    return new List<string>()
-    //    {
-    //        "6am",
-    //        "8am",
-    //        "10am",
-    //        "12:30pm",
-    //        "2:30pm",
-    //        "4:30pm"
-    //    };
-    //}
-    
-    //public static IEnumerable<string> GetDaysOfWeek()
-    //{
-    //    return new List<string>()
-    //    {
-    //        "Monday",
-    //        "Tuesday",
-    //        "Wednesday",
-    //        "Thursday",
-    //        "Friday"
-    //    };
-    //}
 
     public const string WhiteSpace = " ";
 }

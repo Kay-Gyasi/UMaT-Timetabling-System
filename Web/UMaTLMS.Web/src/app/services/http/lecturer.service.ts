@@ -38,4 +38,15 @@ export class LecturerService{
         })
       )
   }
+
+  delete(id:number):Observable<any>{
+    return this.http.deleteRequestAsync(`lecturers/delete/${id}`).pipe(
+      map(data => {
+        if (data.statusCode != 204){
+          return undefined;
+        }
+        return true;
+      })
+    )
+  }
 }

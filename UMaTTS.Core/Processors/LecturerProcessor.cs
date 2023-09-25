@@ -16,6 +16,25 @@ public class LecturerProcessor
         _preferenceRepository = preferenceRepository;
     }
 
+    public async Task<OneOf<int, Exception>> UpsertAsync(LecturerCommand command)
+    {
+        bool isNew = command.Id == 0;
+        Lecturer? lecturer;
+        
+        if (isNew)
+        {
+            lecturer = Lecturer.Create(command.UmatId, command.Name, command.TitledName);
+            await _lecturerRepository.AddAsync(lecturer);
+            return lecturer.Id;
+        }
+
+        lecturer = await _lecturerRepository.FindByIdAsync(command.Id);
+        if (lecturer is null) return new InvalidIdException();
+        lecturer.HasName(command.Name, command.TitledName);
+        await _lecturerRepository.UpdateAsync(lecturer);
+        return lecturer.Id;
+    }
+
     public async Task<PaginatedList<LecturerDto>> GetPageAsync(PaginatedCommand command)
     {
         var page = await _lecturerRepository.GetPageAsync(command);
@@ -61,6 +80,15 @@ public class LecturerProcessor
 
         return new PaginatedList<PreferenceDto>(dtoData, preferences.TotalCount, preferences.CurrentPage, preferences.PageSize);
     }
+
+    public async Task DeleteAsync(int id)
+    {
+        var room = await _lecturerRepository.FindByIdAsync(id);
+        if (room is null) return;
+
+        await _lecturerRepository.SoftDeleteAsync(room);
+    }
 }
 
 public record LecturerDto(int Id, int UmatId, string Name);
+public record LecturerCommand(int Id, int UmatId, string Name, string? TitledName);

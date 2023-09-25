@@ -29,4 +29,11 @@ public class Lecturer : Entity
         UmatId = umatId;
         return this;
     }
+
+    public Lecturer HasName(string name, string? titledName)
+    {
+        Name = name;
+        TitledName = titledName ?? name;
+        return this;
+    }
 }

@@ -24,6 +24,7 @@
     "@ngrx/store": "^15.0.0",
     "@ngrx/store-devtools": "^15.0.0",
     "ngx-toastr": "^16.2.0",
+    "oidc-client": "^1.11.5",
     "tslib": "^2.3.0",
     "url-polyfill": "^1.1.12",
     "zone.js": "~0.11.4"

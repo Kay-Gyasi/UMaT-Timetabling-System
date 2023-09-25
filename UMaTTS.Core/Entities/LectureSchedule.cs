@@ -21,10 +21,17 @@ public class LectureSchedule : Entity
     public static LectureSchedule Create(DayOfWeek? dayOfWeek, string timePeriod, int roomId)
         => new(dayOfWeek, timePeriod, roomId);
 
-    public LectureSchedule HasLecture(int? firstLectureId, int? secondLectureId)
+    public LectureSchedule HasFirstLecture(Lecture lecture)
     {
-        if (firstLectureId is not null) FirstLectureId = firstLectureId;
-        if (secondLectureId is not null) SecondLectureId = secondLectureId;
+        FirstLecture = lecture;
+        FirstLectureId = lecture.Id;
+        return this;
+    }
+    
+    public LectureSchedule HasSecondLecture(Lecture lecture)
+    {
+        SecondLecture = lecture;
+        SecondLectureId = lecture.Id;
         return this;
     }
 

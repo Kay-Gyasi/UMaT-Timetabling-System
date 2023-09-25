@@ -9,6 +9,7 @@ import {AppState} from "../../../state/store/reducers";
 import {LecturerService} from "../../../services/http/lecturer.service";
 import {GetLecturersPage} from "../../../state/store/actions/lecturers/get-lecturer-page.action";
 import {LecturerResponse} from "../../../models/responses/lecturer-response";
+import {RoomResponse} from "../../../models/responses/room-response";
 
 declare var KTMenu:any;
 @Component({
@@ -90,5 +91,25 @@ export class ViewLecturersComponent {
     this.isLoading = true;
     const newQuery = Object.assign({}, this.query);
     this.store.dispatch(GetLecturersPage({ query: newQuery }));
+  }
+
+  deleteLecturer(lecturer: LecturerResponse) {
+    let isConfirmed = window.confirm(`Are you sure you want to delete ${lecturer.name}?`);
+    if (!isConfirmed) return;
+    this.lecturerService.delete(lecturer.id).subscribe({
+      next: response => {
+        if (response == undefined){
+          this.toast.showError("Unable to delete lecturer", "Failed");
+          return;
+        }
+
+        this.toast.showSuccess("Lecturer deleted", "Succeeded");
+        const newQuery = Object.assign({}, this.query);
+        this.store.dispatch(GetLecturersPage({ query: newQuery }));
+      },
+      error: _ => {
+        this.toast.showError("Unable to delete lecturer", "Failed");
+      }
+    })
   }
 }

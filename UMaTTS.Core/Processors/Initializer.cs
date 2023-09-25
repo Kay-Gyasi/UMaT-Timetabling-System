@@ -97,7 +97,7 @@ public sealed class Initializer
         var maxLecturesPerDayConstraint = Constraint
                                             .Create(ConstraintType.GeneralMaxLecturesPerDay, 
                                                         Enums.TimetableType.Lectures)
-                                            .WithValue("4");
+                                            .WithValue("3");
         await _constraintRepository.AddAsync(maxLecturesPerDayConstraint, saveChanges: false);
     }
 

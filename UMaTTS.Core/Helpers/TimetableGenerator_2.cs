@@ -8,7 +8,8 @@ namespace UMaTLMS.Core.Helpers;
 
 public static partial class TimetableGenerator
 {
-    public static async Task GetAsync(IExcelReader excelReader, IEnumerable<LectureSchedule> lectureSchedules, IEnumerable<OnlineLectureSchedule> onlineLectureSchedules, List<ClassRoom> rooms, string file)
+    public static async Task GetAsync(IExcelReader excelReader, IEnumerable<LectureSchedule> lectureSchedules, 
+        IEnumerable<OnlineLectureSchedule> onlineLectureSchedules, List<ClassRoom> rooms, string file)
     {
         if (string.IsNullOrWhiteSpace(file)) return;
         using var excelPackage = excelReader.CreateNew(file);
@@ -32,7 +33,7 @@ public static partial class TimetableGenerator
     {
         var dayOfWeek = group.Key;
         var worksheet = package.Workbook.Worksheets.Add(dayOfWeek.ToString());
-        BuildWorksheetLayout(worksheet, dayOfWeek?.ToString() ?? "", rooms);
+        BuildWorksheetLayout(worksheet, dayOfWeek?.ToString() ?? string.Empty, rooms);
 
         var schedules = group.Where(x => x.FirstLecture != null || x.SecondLecture != null).ToList();
         var columns = GetColumns();
@@ -335,30 +336,30 @@ public static partial class TimetableGenerator
     private static List<string> GetTimeSlots()
     {
         return new List<string> { "6:00-7:00", "7:00-8:00", "8:00-9:00", "9:00-10:00", "10:00-11:00", "11:00-12:00", "12:30-1:30",
-            "1:30-2:30", "2:30-3:30", "3:30-4:30", "4:30-5:30", "5:30-6:30"};
+            "1:30-2:30", "2:30-3:30", "3:30-4:30", "4:30-5:30", "5:30-6:30" };
     }
 
     private static string GetTimeMapping(string key, int period)
     {
         var firstPeriodMapping = new Dictionary<string, string>
-            {
-                { "6am", "6:00-7:00" },
-                { "8am", "8:00-9:00" },
-                { "10am", "10:00-11:00" },
-                { "12:30pm", "12:30-1:30" },
-                { "2:30pm", "2:30-3:30" },
-                { "4:30pm", "4:30-5:30" },
-            };
+        {
+            { "6am", "6:00-7:00" },
+            { "8am", "8:00-9:00" },
+            { "10am", "10:00-11:00" },
+            { "12:30pm", "12:30-1:30" },
+            { "2:30pm", "2:30-3:30" },
+            { "4:30pm", "4:30-5:30" },
+        };
 
         var secondPeriodMapping = new Dictionary<string, string>
-            {
-                { "6am", "7:00-8:00" },
-                { "8am", "9:00-10:00" },
-                { "10am", "11:00-12:00" },
-                { "12:30pm", "1:30-2:30" },
-                { "2:30pm", "3:30-4:30" },
-                { "4:30pm", "5:30-6:30" },
-            };
+        {
+            { "6am", "7:00-8:00" },
+            { "8am", "9:00-10:00" },
+            { "10am", "11:00-12:00" },
+            { "12:30pm", "1:30-2:30" },
+            { "2:30pm", "3:30-4:30" },
+            { "4:30pm", "5:30-6:30" },
+        };
 
         if (period == 1) return firstPeriodMapping[key];
         return secondPeriodMapping[key];

@@ -1,7 +1,6 @@
 ﻿using LinqKit;
 using System.Text.Json;
 using UMaTLMS.Core.Processors;
-using UMaTLMS.SharedKernel.Helpers;
 
 namespace UMaTLMS.Core.Helpers
 {
@@ -9,22 +8,25 @@ namespace UMaTLMS.Core.Helpers
     {
         public static (List<LectureSchedule> GeneralSchedules, List<OnlineLectureSchedule> OnlineSchedules) 
             Generate(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, 
-            List<Preference> preferences, List<Constraint> constraints)
+            List<Preference> preferences, List<Constraint> constraints, List<string> daysOfWeekForLectures)
         {
             ResetSchedules(schedules, onlineSchedules);
-            schedules.Shuffle();
             lectures.Shuffle();
+            schedules.Shuffle(seed: 50);
+            var parsedDaysOfWeekForLectures = daysOfWeekForLectures.Select(x => Enum.Parse<DayOfWeek>(x)).ToList() ?? new List<DayOfWeek>();
 
-            AssignLecturesToSchedules(schedules, onlineSchedules, lectures, preferences, constraints);
+            AssignLecturesToSchedules(schedules, onlineSchedules, lectures, preferences, constraints, parsedDaysOfWeekForLectures);
             return (schedules, onlineSchedules);
         }
 
         private static void AssignLecturesToSchedules(List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, List<Preference> preferences, List<Constraint> constraints)
+            List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, List<Preference> preferences, 
+            List<Constraint> constraints, List<DayOfWeek> parsedDaysOfWeekForLectures)
         {
             AddPreferredRoomsFromPreferences(lectures, preferences);
             lectures = lectures
                         .OrderByDescending(x => x.PreferredRoom is not null)
+                        .ThenByDescending(x => x.Duration)
                         .ToList();
 
             foreach (var lecture in lectures)
@@ -33,7 +35,8 @@ namespace UMaTLMS.Core.Helpers
                 var onlineBuilder = PredicateBuilder.New<OnlineLectureSchedule>(x => true);
                 bool isScheduled = false;
 
-                BuildBasePredicateForSchedulingLecture(builder, onlineBuilder, schedules, onlineSchedules, lecture, preferences, constraints);
+                BuildBasePredicateForSchedulingLecture(builder, onlineBuilder, schedules, onlineSchedules, lecture,
+                    preferences, constraints, parsedDaysOfWeekForLectures);
 
                 isScheduled = ScheduleVleLecture(onlineSchedules, schedules, onlineBuilder, lecture);
                 if (isScheduled) continue;
@@ -41,6 +44,17 @@ namespace UMaTLMS.Core.Helpers
                 var eligibleSchedules = schedules.Where(builder)
                                             .OrderBy(x => x.Room.Capacity)
                                             .ToList();
+                if (!eligibleSchedules.Any())
+                {
+                    builder = PredicateBuilder.New<LectureSchedule>(x => true);
+                    onlineBuilder = PredicateBuilder.New<OnlineLectureSchedule>(x => true);
+                    builder.And(x => x.Room.IncludeInGeneralAssignment);
+                    builder.Or(x => x.Room.Name == lecture.PreferredRoom);
+
+                    eligibleSchedules = schedules.Where(builder)
+                                            .OrderBy(x => x.Room.Capacity)
+                                            .ToList();
+                }
 
                 isScheduled = ScheduleTwoPeriodLecture(eligibleSchedules, onlineSchedules, lecture);
                 if (isScheduled) continue;
@@ -84,7 +98,8 @@ namespace UMaTLMS.Core.Helpers
                 }
 
                 if (anySubHasVleLectureAtTime) continue;
-                schedule?.HasLecture(lecture.Id, lecture.Id);
+                schedule?.HasFirstLecture(lecture);
+                schedule?.HasSecondLecture(lecture);
                 return true;
             }
         }
@@ -123,11 +138,11 @@ namespace UMaTLMS.Core.Helpers
                 if (anySubHasVleLectureAtTime) continue;
                 if (schedule?.FirstLectureId is null)
                 {
-                    schedule?.HasLecture(lecture.Id, null);
+                    schedule?.HasFirstLecture(lecture);
                     return;
                 }
 
-                if (schedule.SecondLectureId is null) schedule.HasLecture(null, lecture.Id);
+                if (schedule.SecondLectureId is null) schedule.HasSecondLecture(lecture);
             }
         }
 
@@ -164,40 +179,60 @@ namespace UMaTLMS.Core.Helpers
 
         private static void BuildBasePredicateForSchedulingLecture(ExpressionStarter<LectureSchedule> builder, 
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Preference> preferences, List<Constraint> constraints)
+            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Preference> preferences, List<Constraint> constraints, 
+            List<DayOfWeek> parsedDaysOfWeekForLectures)
         {
             AddPreferencesToBuilder(builder, onlineBuilder, lecture, preferences);
-            AddConstraintsToBuilder(builder, onlineBuilder, schedules, onlineSchedules, lecture, constraints);
+            AddConstraintsToBuilder(builder, onlineBuilder, schedules, onlineSchedules, lecture, constraints, parsedDaysOfWeekForLectures);
         }
 
         private static void AddConstraintsToBuilder(ExpressionStarter<LectureSchedule> builder,
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules,
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints)
+            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints, 
+            List<DayOfWeek> parsedDaysOfWeekForLectures)
         {
             builder.And(x => x.Room.IncludeInGeneralAssignment);
             builder.Or(x => x.Room.Name == lecture.PreferredRoom);
 
-            for (var day = 0; day < 5; day++)
+            foreach (var day in parsedDaysOfWeekForLectures)
             {
-                CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, schedules, onlineSchedules, lecture, day);                
+                CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, schedules, onlineSchedules, lecture, day);
+                CheckNumOfLecturesForLecturerForDay(builder, onlineBuilder, schedules, onlineSchedules, lecture, constraints, day);
 
-                var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(schedules, onlineSchedules, lecture, day);
-                var maxNumberOfLecturesPerDayForLecturer = constraints.FirstOrDefault(x =>
-                                                                x.Type == ConstraintType.MaxLecturesPerDayForLecturer
-                                                                && x.LecturerId == lecture.LecturerId)?.Value;
-                maxNumberOfLecturesPerDayForLecturer ??= constraints.SingleOrDefault(x => 
-                                                            x.Type == ConstraintType.GeneralMaxLecturesPerDay)?.Value;
-                maxNumberOfLecturesPerDayForLecturer ??= "4";
-                if (numOfLecturesForLecturerToday > Convert.ToInt32(maxNumberOfLecturesPerDayForLecturer))
+                var numOfLecturesForClassToday = GetNumberOfLecturesForClassToday(schedules, onlineSchedules, lecture, day);
+                if (numOfLecturesForClassToday >= 4)
                 {
                     if (lecture.IsVLE)
                     {
-                        onlineBuilder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(day));
-                        continue;
+                        onlineBuilder.And(x => x.DayOfWeek!.Value != day);
+                        return;
                     }
 
-                    builder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(day));
+                    builder.And(x => x.DayOfWeek!.Value != day);
                 }
+            }
+        }
+
+        private static void CheckNumOfLecturesForLecturerForDay(ExpressionStarter<LectureSchedule> builder,
+            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules,
+            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints, DayOfWeek day)
+        {
+            var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(schedules, onlineSchedules, lecture, day);
+            var maxNumberOfLecturesPerDayForLecturer = constraints.FirstOrDefault(x =>
+                                                            x.Type == ConstraintType.MaxLecturesPerDayForLecturer
+                                                            && x.LecturerId == lecture.LecturerId)?.Value;
+            maxNumberOfLecturesPerDayForLecturer ??= constraints.SingleOrDefault(x =>
+                                                        x.Type == ConstraintType.GeneralMaxLecturesPerDay)?.Value;
+            maxNumberOfLecturesPerDayForLecturer ??= "4";
+            if (numOfLecturesForLecturerToday >= Convert.ToInt32(maxNumberOfLecturesPerDayForLecturer))
+            {
+                if (lecture.IsVLE)
+                {
+                    onlineBuilder.And(x => x.DayOfWeek != day);
+                    return;
+                }
+
+                builder.And(x => x.DayOfWeek != day);
             }
         }
 
@@ -207,6 +242,7 @@ namespace UMaTLMS.Core.Helpers
             var requiredPreferences = preferences.Where(x => x.LecturerId == lecture.LecturerId
                                                                 || (x.Course != null && x.Course.Name == lecture.Course!.Name)).ToList();
 
+            // TODO Refactor
             foreach (var preference in requiredPreferences)
             {
                 switch (preference.Type)
@@ -267,42 +303,63 @@ namespace UMaTLMS.Core.Helpers
         }
 
         private static int GetNumberOfLecturesForLecturerToday(List<LectureSchedule> schedules,
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, int day)
+            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, DayOfWeek day)
         {
-            var schedulesForLecturerPerDay = schedules.Count(x => x.DayOfWeek!.Value == AppHelper.GetDayOfWeek(day)
-                                                    && x.FirstLecture?.LecturerId == lecture.LecturerId
-                                                    || x.SecondLecture?.LecturerId == lecture.LecturerId);
+            var schedulesForLecturerToday = schedules.Count(x => x.DayOfWeek != null && x.DayOfWeek == day
+                                                    && (x.FirstLecture?.LecturerId == lecture.LecturerId
+                                                    || x.SecondLecture?.LecturerId == lecture.LecturerId));
 
-            var onlineSchedulesForLecturerPerDay = onlineSchedules.Count(x => x.DayOfWeek!.Value == AppHelper.GetDayOfWeek(day)
+            var onlineSchedulesForLecturerToday = onlineSchedules.Count(x => x.DayOfWeek != null && x.DayOfWeek == day
                                                     && x.Lectures.Any(a => a.LecturerId == lecture.LecturerId));
 
-            return schedulesForLecturerPerDay + onlineSchedulesForLecturerPerDay;
+            return schedulesForLecturerToday + onlineSchedulesForLecturerToday;
+        }
+
+        private static int GetNumberOfLecturesForClassToday(List<LectureSchedule> schedules,
+            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, DayOfWeek day)
+        {
+            int schedulesForClassToday = 0;
+            int onlineSchedulesForClassToday = 0;
+            foreach (var sub in lecture.SubClassGroups)
+            {
+                var schedulesForToday = schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var first = schedulesForToday.Count(x => x.FirstLecture != null && x.FirstLecture.SubClassGroups.Contains(sub));
+                var second = schedulesForToday.Count(x => x.SecondLecture != null && x.SecondLecture.SubClassGroups.Contains(sub));
+                schedulesForClassToday = first + second;
+
+                onlineSchedulesForClassToday = onlineSchedules.Count(x => x.DayOfWeek != null && x.DayOfWeek == day
+                                                    && x.Lectures.Any(a => a.SubClassGroups.Contains(sub)));
+                if (schedulesForClassToday + onlineSchedulesForClassToday >= 4) 
+                    break;
+            }
+
+            return schedulesForClassToday + onlineSchedulesForClassToday;
         }
 
         private static void CheckIfAnySubClassHasSameLectureToday(ExpressionStarter<LectureSchedule> builder,
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, int day)
+            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, DayOfWeek day)
         {
             foreach (var sub in lecture.SubClassGroups)
             {
-                var schedulesForDay = schedules.Where(x => x.DayOfWeek!.Value == AppHelper.GetDayOfWeek(day));
-                var subHasSameLectureOnDay = schedulesForDay.Any(x =>
-                                                (x.FirstLecture != null && x.FirstLecture.Course != null 
-                                                    && x.FirstLecture.Course.Name == lecture.Course!.Name 
-                                                    && x.FirstLecture.SubClassGroups.Contains(sub))
-                                                || (x.SecondLecture != null && x.SecondLecture.Course!= null 
-                                                    && x.SecondLecture.Course.Name == lecture.Course!.Name 
-                                                    && x.SecondLecture.SubClassGroups.Contains(sub)));
+                var schedulesForDay = schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var first = schedulesForDay.Any(x => x.FirstLecture?.Course != null
+                                                    && x.FirstLecture.Course.Name == lecture.Course!.Name
+                                                    && x.FirstLecture.SubClassGroups.Contains(sub));
+                var second = schedulesForDay.Any(x => x.SecondLecture?.Course != null
+                                                    && x.SecondLecture.Course.Name == lecture.Course!.Name
+                                                    && x.SecondLecture.SubClassGroups.Contains(sub));
+                var subHasSameLectureOnDay = first || second;
 
-                var onlineSchedulesForDay = onlineSchedules.Where(x => x.DayOfWeek!.Value == AppHelper.GetDayOfWeek(day));
+                var onlineSchedulesForDay = onlineSchedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
                 var subHasSameVleLectureOnDay = onlineSchedulesForDay.Any(x => x.Lectures.Any(x => x.Course != null 
                                                                             && x.Course.Name == lecture.Course!.Name
                                                                             && x.SubClassGroups.Contains(sub)));
 
                 if (subHasSameLectureOnDay || subHasSameVleLectureOnDay)
                 {
-                    builder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(day));
-                    onlineBuilder.And(x => x.DayOfWeek!.Value != AppHelper.GetDayOfWeek(day));
+                    builder.And(x => x.DayOfWeek != day);
+                    onlineBuilder.And(x => x.DayOfWeek != day);
                     break;
                 }
             }
