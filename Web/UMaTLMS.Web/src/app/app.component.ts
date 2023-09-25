@@ -8,7 +8,7 @@ import {AuthService} from "./services/auth.service";
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'UMaTLMS.Web';
+  title = 'UMaTTS';
   public userAuthenticated = false;
 
   constructor(private _authService: AuthService){
