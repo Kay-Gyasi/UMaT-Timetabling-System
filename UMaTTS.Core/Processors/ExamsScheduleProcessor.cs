@@ -47,8 +47,8 @@ public class ExamsScheduleProcessor
             await _classProcessor.AddSubClassGroups();
             groups = await _subClassGroupRepository.GetAllAsync();
         }
-        var courses = await _courseRepository.GetAllAsync(x => x.IsExaminable || x.HasPracticalExams);
 
+        var courses = await _courseRepository.GetAllAsync(x => x.IsExaminable || x.HasPracticalExams);
         if (!rooms.Any()) return new EmptyRoomsDataException();
         if (!lecturers.Any()) return new EmptyLecturersDataException();
         if (!groups.Any()) return new EmptyGroupsDataException();

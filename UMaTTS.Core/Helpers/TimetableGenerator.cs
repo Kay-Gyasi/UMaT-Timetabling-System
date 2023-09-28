@@ -6,42 +6,35 @@ namespace UMaTLMS.Core.Helpers
 {
     public static partial class TimetableGenerator
     {
-        public static (List<LectureSchedule> GeneralSchedules, List<OnlineLectureSchedule> OnlineSchedules) 
-            Generate(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, 
-            List<Preference> preferences, List<Constraint> constraints, List<string> daysOfWeekForLectures)
+        public static void Generate(TimetableGenerationCommand command)
         {
-            ResetSchedules(schedules, onlineSchedules);
-            lectures.Shuffle();
-            schedules.Shuffle(seed: 50);
-            var parsedDaysOfWeekForLectures = daysOfWeekForLectures.Select(x => Enum.Parse<DayOfWeek>(x)).ToList() ?? new List<DayOfWeek>();
+            ResetSchedules(command.Schedules, command.OnlineSchedules);
+            command.Lectures.Shuffle();
+            command.Schedules.Shuffle(seed: 50);            
 
-            AssignLecturesToSchedules(schedules, onlineSchedules, lectures, preferences, constraints, parsedDaysOfWeekForLectures);
-            return (schedules, onlineSchedules);
+            AssignLecturesToSchedules(command);
         }
 
-        private static void AssignLecturesToSchedules(List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, List<Lecture> lectures, List<Preference> preferences, 
-            List<Constraint> constraints, List<DayOfWeek> parsedDaysOfWeekForLectures)
+        private static void AssignLecturesToSchedules(TimetableGenerationCommand command)
         {
-            AddPreferredRoomsFromPreferences(lectures, preferences);
-            lectures = lectures
+            AddPreferredRoomsFromPreferences(command.Lectures, command.Preferences);
+            command.Lectures = command.Lectures
                         .OrderByDescending(x => x.PreferredRoom is not null)
                         .ThenByDescending(x => x.Duration)
                         .ToList();
 
-            foreach (var lecture in lectures)
+            foreach (var lecture in command.Lectures)
             {
                 var builder = PredicateBuilder.New<LectureSchedule>(x => true);
                 var onlineBuilder = PredicateBuilder.New<OnlineLectureSchedule>(x => true);
                 bool isScheduled = false;
 
-                BuildBasePredicateForSchedulingLecture(builder, onlineBuilder, schedules, onlineSchedules, lecture,
-                    preferences, constraints, parsedDaysOfWeekForLectures);
+                BuildBasePredicateForSchedulingLecture(builder, onlineBuilder, command, lecture);
 
-                isScheduled = ScheduleVleLecture(onlineSchedules, schedules, onlineBuilder, lecture);
+                isScheduled = ScheduleVleLecture(command.OnlineSchedules, command.Schedules, onlineBuilder, lecture);
                 if (isScheduled) continue;
 
-                var eligibleSchedules = schedules.Where(builder)
+                var eligibleSchedules = command.Schedules.Where(builder)
                                             .OrderBy(x => x.Room.Capacity)
                                             .ToList();
                 if (!eligibleSchedules.Any())
@@ -51,15 +44,15 @@ namespace UMaTLMS.Core.Helpers
                     builder.And(x => x.Room.IncludeInGeneralAssignment);
                     builder.Or(x => x.Room.Name == lecture.PreferredRoom);
 
-                    eligibleSchedules = schedules.Where(builder)
+                    eligibleSchedules = command.Schedules.Where(builder)
                                             .OrderBy(x => x.Room.Capacity)
                                             .ToList();
                 }
 
-                isScheduled = ScheduleTwoPeriodLecture(eligibleSchedules, onlineSchedules, lecture);
+                isScheduled = ScheduleTwoPeriodLecture(eligibleSchedules, command.OnlineSchedules, lecture);
                 if (isScheduled) continue;
 
-                ScheduleOnePeriodLecture(eligibleSchedules, onlineSchedules, lecture);
+                ScheduleOnePeriodLecture(eligibleSchedules, command.OnlineSchedules, lecture);
             }
         }
 
@@ -178,28 +171,24 @@ namespace UMaTLMS.Core.Helpers
         }
 
         private static void BuildBasePredicateForSchedulingLecture(ExpressionStarter<LectureSchedule> builder, 
-            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Preference> preferences, List<Constraint> constraints, 
-            List<DayOfWeek> parsedDaysOfWeekForLectures)
+            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, TimetableGenerationCommand command, Lecture lecture)
         {
-            AddPreferencesToBuilder(builder, onlineBuilder, lecture, preferences);
-            AddConstraintsToBuilder(builder, onlineBuilder, schedules, onlineSchedules, lecture, constraints, parsedDaysOfWeekForLectures);
+            AddPreferencesToBuilder(builder, onlineBuilder, lecture, command.Preferences);
+            AddConstraintsToBuilder(builder, onlineBuilder, command, lecture);
         }
 
         private static void AddConstraintsToBuilder(ExpressionStarter<LectureSchedule> builder,
-            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules,
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints, 
-            List<DayOfWeek> parsedDaysOfWeekForLectures)
+            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, TimetableGenerationCommand command, Lecture lecture)
         {
             builder.And(x => x.Room.IncludeInGeneralAssignment);
             builder.Or(x => x.Room.Name == lecture.PreferredRoom);
 
-            foreach (var day in parsedDaysOfWeekForLectures)
+            foreach (var day in command.DaysOfWeekForLectures)
             {
-                CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, schedules, onlineSchedules, lecture, day);
-                CheckNumOfLecturesForLecturerForDay(builder, onlineBuilder, schedules, onlineSchedules, lecture, constraints, day);
+                CheckIfAnySubClassHasSameLectureToday(builder, onlineBuilder, command, lecture, day);
+                CheckNumOfLecturesForLecturerForDay(builder, onlineBuilder, command, lecture, day);
 
-                var numOfLecturesForClassToday = GetNumberOfLecturesForClassToday(schedules, onlineSchedules, lecture, day);
+                var numOfLecturesForClassToday = GetNumberOfLecturesForClassToday(command, lecture, day);
                 if (numOfLecturesForClassToday >= 4)
                 {
                     if (lecture.IsVLE)
@@ -214,14 +203,13 @@ namespace UMaTLMS.Core.Helpers
         }
 
         private static void CheckNumOfLecturesForLecturerForDay(ExpressionStarter<LectureSchedule> builder,
-            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules,
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, List<Constraint> constraints, DayOfWeek day)
+            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, TimetableGenerationCommand command, Lecture lecture, DayOfWeek day)
         {
-            var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(schedules, onlineSchedules, lecture, day);
-            var maxNumberOfLecturesPerDayForLecturer = constraints.FirstOrDefault(x =>
+            var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(command.Schedules, command.OnlineSchedules, lecture, day);
+            var maxNumberOfLecturesPerDayForLecturer = command.Constraints.FirstOrDefault(x =>
                                                             x.Type == ConstraintType.MaxLecturesPerDayForLecturer
                                                             && x.LecturerId == lecture.LecturerId)?.Value;
-            maxNumberOfLecturesPerDayForLecturer ??= constraints.SingleOrDefault(x =>
+            maxNumberOfLecturesPerDayForLecturer ??= command.Constraints.SingleOrDefault(x =>
                                                         x.Type == ConstraintType.GeneralMaxLecturesPerDay)?.Value;
             maxNumberOfLecturesPerDayForLecturer ??= "4";
             if (numOfLecturesForLecturerToday >= Convert.ToInt32(maxNumberOfLecturesPerDayForLecturer))
@@ -315,19 +303,18 @@ namespace UMaTLMS.Core.Helpers
             return schedulesForLecturerToday + onlineSchedulesForLecturerToday;
         }
 
-        private static int GetNumberOfLecturesForClassToday(List<LectureSchedule> schedules,
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, DayOfWeek day)
+        private static int GetNumberOfLecturesForClassToday(TimetableGenerationCommand command, Lecture lecture, DayOfWeek day)
         {
             int schedulesForClassToday = 0;
             int onlineSchedulesForClassToday = 0;
             foreach (var sub in lecture.SubClassGroups)
             {
-                var schedulesForToday = schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var schedulesForToday = command.Schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
                 var first = schedulesForToday.Count(x => x.FirstLecture != null && x.FirstLecture.SubClassGroups.Contains(sub));
                 var second = schedulesForToday.Count(x => x.SecondLecture != null && x.SecondLecture.SubClassGroups.Contains(sub));
                 schedulesForClassToday = first + second;
 
-                onlineSchedulesForClassToday = onlineSchedules.Count(x => x.DayOfWeek != null && x.DayOfWeek == day
+                onlineSchedulesForClassToday = command.OnlineSchedules.Count(x => x.DayOfWeek != null && x.DayOfWeek == day
                                                     && x.Lectures.Any(a => a.SubClassGroups.Contains(sub)));
                 if (schedulesForClassToday + onlineSchedulesForClassToday >= 4) 
                     break;
@@ -337,12 +324,11 @@ namespace UMaTLMS.Core.Helpers
         }
 
         private static void CheckIfAnySubClassHasSameLectureToday(ExpressionStarter<LectureSchedule> builder,
-            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, List<LectureSchedule> schedules, 
-            List<OnlineLectureSchedule> onlineSchedules, Lecture lecture, DayOfWeek day)
+            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, TimetableGenerationCommand command, Lecture lecture, DayOfWeek day)
         {
             foreach (var sub in lecture.SubClassGroups)
             {
-                var schedulesForDay = schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var schedulesForDay = command.Schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
                 var first = schedulesForDay.Any(x => x.FirstLecture?.Course != null
                                                     && x.FirstLecture.Course.Name == lecture.Course!.Name
                                                     && x.FirstLecture.SubClassGroups.Contains(sub));
@@ -351,7 +337,7 @@ namespace UMaTLMS.Core.Helpers
                                                     && x.SecondLecture.SubClassGroups.Contains(sub));
                 var subHasSameLectureOnDay = first || second;
 
-                var onlineSchedulesForDay = onlineSchedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var onlineSchedulesForDay = command.OnlineSchedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
                 var subHasSameVleLectureOnDay = onlineSchedulesForDay.Any(x => x.Lectures.Any(x => x.Course != null 
                                                                             && x.Course.Name == lecture.Course!.Name
                                                                             && x.SubClassGroups.Contains(sub)));

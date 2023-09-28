@@ -66,20 +66,25 @@ public class TimetableProcessor
         var constraints = await _constraintRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
         var daysOfWeekSettings = await _adminSettingsRepository.GetAsync(x => x.Key == AdminConfigurationKeys.DaysOfWeek);
         var daysOfWeekForLectures = JsonSerializer.Deserialize<List<string>>(daysOfWeekSettings?.Value ?? "[]");
-
         var onlineSchedules = await _onlineLectureScheduleRepository.GetAllAsync();
         var rooms = await _roomRepository.GetAllAsync();
-
-        if (!lectures.Any() || !schedules.Any() || !onlineSchedules.Any() || !rooms.Any() || daysOfWeekForLectures is null)
-        {
-            return new LecturesNotGeneratedException();
-        }
+        bool isMissingRequiredData = !lectures.Any() || !schedules.Any() || !onlineSchedules.Any() || !rooms.Any() || daysOfWeekForLectures is null;
+        if (isMissingRequiredData) return new LecturesNotGeneratedException();
 
         try
         {
-          
-            _ = TimetableGenerator.Generate(schedules, onlineSchedules, lectures, preferences,
-                                                            constraints, daysOfWeekForLectures);
+            var parsedDaysOfWeekForLectures = daysOfWeekForLectures?.Select(x => Enum.Parse<DayOfWeek>(x)).ToList();
+            var command = new TimetableGenerationCommand
+            {
+                Schedules = schedules,
+                OnlineSchedules = onlineSchedules,
+                Lectures = lectures,
+                Preferences = preferences,
+                Constraints = constraints,
+                DaysOfWeekForLectures = parsedDaysOfWeekForLectures ?? new List<DayOfWeek>()
+            };
+            
+            await Task.Run(() => TimetableGenerator.Generate(command));
             _logger.LogInformation("Done generating lecture schedules");
 
             var numOfLecturesNotScheduled = GetNumberOfLecturesNotScheduled(lectures, schedules, onlineSchedules);
@@ -410,6 +415,16 @@ public class TimetableProcessor
 public record TimetableDto(int CourseId, int RoomId, int Day, int Time, ClassRoom? Room);
 
 public record Group(int Id, string Name, int Size);
+
+public class TimetableGenerationCommand
+{
+    public List<LectureSchedule> Schedules { get; set; }
+    public List<OnlineLectureSchedule> OnlineSchedules { get; set; }
+    public List<Lecture> Lectures { get; set; }
+    public List<Preference> Preferences { get; set; }
+    public List<Constraint> Constraints { get; set; }
+    public List<DayOfWeek> DaysOfWeekForLectures { get; set; }
+}
 
 public class GroupComparer : IEqualityComparer<Group>
 {
