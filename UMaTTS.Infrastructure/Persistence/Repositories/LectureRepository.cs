@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-
-namespace UMaTLMS.Infrastructure.Persistence.Repositories
+﻿namespace UMaTLMS.Infrastructure.Persistence.Repositories
 {
     public class LectureRepository : Repository<Lecture, int>, ILectureRepository
     {

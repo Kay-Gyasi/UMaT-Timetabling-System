@@ -12,3 +12,4 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\refint\
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.pdb
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.genruntimeconfig.cache
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\ref\UMaTTS.SharedKernel.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Debug\net7.0\UMaTTS.SharedKernel.sourcelink.json

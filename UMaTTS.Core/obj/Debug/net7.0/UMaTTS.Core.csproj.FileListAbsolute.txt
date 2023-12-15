@@ -13,3 +13,4 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\refint\UMaTTS.Core.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.pdb
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\ref\UMaTTS.Core.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Debug\net7.0\UMaTTS.Core.sourcelink.json

@@ -33,16 +33,18 @@ public class UMaTApiService : IUMaTApiService
             PageSize = 2000,
             PageNumber = 1
         });
-        var courses = (await request.Content.ReadFromJsonAsync<PaginatedList<CourseResponse>>())?.Data;
+
+        var str = await request.Content.ReadAsStringAsync();
+        var courses = (await request.Content.ReadFromJsonAsync<CoursePayload>())?.Data;
         var semester = await GetCurrentSemester();
-        var filteredCourses = courses?.Where(x => x.AcademicPeriod.UpperYear == DateTime.UtcNow.Year
+        var filteredCourses = courses?.Where(x => x.AcademicPeriod.UpperYear >= DateTime.UtcNow.Year
                                                     && x.AcademicPeriod.Semester == semester 
                                                     && x.Programme!.Department.Faculty.SchoolCentre.Campus.Id == 2
                                                     && !x.Programme!.Code!.Contains("Cert")).ToList();
-        await File.WriteAllTextAsync("_content/courses.json", JsonSerializer.Serialize(filteredCourses, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        }));
+        // await File.WriteAllTextAsync("_content/courses.json", JsonSerializer.Serialize(filteredCourses, new JsonSerializerOptions
+        // {
+        //     WriteIndented = true
+        // }));
         return filteredCourses;
     }
 
@@ -56,16 +58,16 @@ public class UMaTApiService : IUMaTApiService
         {
             var course = courses[i - 1];
             if (course.Programme!.Code!.Contains("Cert")) continue;
-            var groupName = $"{course.Programme?.Code?.Trim() ?? ""} {DateTime.Now.Year - course.YearGroup}";
+            var groupName = $"{course.Programme?.Code?.Trim() ?? ""} {(DateTime.Now.Year + 1) - course.YearGroup}";
             if (groups.Any(x => x.Name == groupName)) continue;
             var classSize = await GetClassSize(course.YearGroup ?? 0, course.Programme?.Id ?? 0);
             groups.Add(new Group(i, groupName, classSize));
         }
 
-        await File.WriteAllTextAsync("_content/classGroups.json", JsonSerializer.Serialize(groups, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        }));
+        // await File.WriteAllTextAsync("_content/classGroups.json", JsonSerializer.Serialize(groups, new JsonSerializerOptions
+        // {
+        //     WriteIndented = true
+        // }));
         return groups;
     }
 
@@ -116,7 +118,8 @@ public class UMaTApiService : IUMaTApiService
 
         try
         {
-            var request = await _client.PostAsync(_configuration["UMaTAuthTokenUrl"] ?? string.Empty, formContent, new CancellationToken());
+            var request = await _client.PostAsync(_configuration["UMaTAuthTokenUrl"] ?? string.Empty, formContent,
+                new CancellationToken());
             var response = await request.Content.ReadFromJsonAsync<UMaTIdentityLoginResponse>();
             return response?.AccessToken ?? string.Empty;
         }

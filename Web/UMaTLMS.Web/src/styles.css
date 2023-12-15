@@ -7,6 +7,10 @@
   margin-top: 20px;
 }
 
+body {
+  font-family: 'Times New Roman', serif;
+}
+
 .pagination-link {
   padding: 8px 12px;
   text-decoration: none;

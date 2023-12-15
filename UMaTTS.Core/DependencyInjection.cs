@@ -2,11 +2,9 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using UMaTLMS.Core.Processors;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using UMaTLMS.Core.Services;
 
 namespace UMaTLMS.Core;
 

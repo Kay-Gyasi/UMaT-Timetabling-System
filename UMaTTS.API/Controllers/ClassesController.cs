@@ -1,6 +1,4 @@
-﻿using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-
-namespace UMaTLMS.API.Controllers;
+﻿namespace UMaTLMS.API.Controllers;
 
 public class ClassesController : Controller
 {

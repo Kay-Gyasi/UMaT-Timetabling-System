@@ -1,5 +1,4 @@
-﻿using Humanizer;
-using OfficeOpenXml;
+﻿using OfficeOpenXml;
 using System.Text.Json;
 using UMaTLMS.Core.Repositories.Base;
 using UMaTLMS.Core.Services;

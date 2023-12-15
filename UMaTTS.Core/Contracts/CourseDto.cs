@@ -1,5 +1,10 @@
 ﻿namespace UMaTLMS.Core.Contracts;
 
+public class CoursePayload
+{
+    public List<CourseResponse> Data { get; set; }
+}
+
 public class CourseResponse
 {
     public int Id { get; set; }

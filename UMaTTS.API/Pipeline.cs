@@ -2,7 +2,7 @@
 
 namespace UMaTLMS.API;
 
-public static class Middleware
+public static class Pipeline
 {
     public static WebApplication BuildApp(this WebApplicationBuilder builder, Serilog.ILogger logger)
     {

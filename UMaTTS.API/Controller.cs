@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using UMaTLMS.Core.Exceptions;
+﻿using UMaTLMS.Core.Exceptions;
 
 namespace UMaTLMS.API;
 

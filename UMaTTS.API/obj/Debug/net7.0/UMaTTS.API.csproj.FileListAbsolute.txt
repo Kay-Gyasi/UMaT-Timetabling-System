@@ -1,8 +1,5 @@
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\appsettings.Development.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\appsettings.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\_content\classGroups.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\_content\courses.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\_content\lecturers.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\UMaTTS.API.exe
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\UMaTTS.API.deps.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Debug\net7.0\UMaTTS.API.runtimeconfig.json
@@ -118,3 +115,4 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Debug\net7.0\UMaTTS.API.xml
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Debug\net7.0\UMaTTS.API.pdb
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Debug\net7.0\UMaTTS.API.genruntimeconfig.cache
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Debug\net7.0\ref\UMaTTS.API.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Debug\net7.0\UMaTTS.API.sourcelink.json

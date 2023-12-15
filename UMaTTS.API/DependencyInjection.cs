@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
-using UMaTLMS.API.Attributes;
+using UMaTLMS.API.Filters;
 
 namespace UMaTLMS.API
 {

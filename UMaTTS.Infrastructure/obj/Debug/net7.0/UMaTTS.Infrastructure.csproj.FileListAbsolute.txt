@@ -15,3 +15,4 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Debug\net7.0\UMaTT
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Debug\net7.0\refint\UMaTTS.Infrastructure.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Debug\net7.0\UMaTTS.Infrastructure.pdb
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Debug\net7.0\ref\UMaTTS.Infrastructure.dll
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Debug\net7.0\UMaTTS.Infrastructure.sourcelink.json
