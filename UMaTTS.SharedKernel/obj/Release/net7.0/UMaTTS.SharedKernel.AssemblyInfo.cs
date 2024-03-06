@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UMaTTS.SharedKernel")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+115e2ee83a3db37cae283f2f49be4099c7cd9460")]
 [assembly: System.Reflection.AssemblyProductAttribute("UMaTTS.SharedKernel")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UMaTTS.SharedKernel")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

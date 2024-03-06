@@ -71,6 +71,8 @@ public class CourseProcessor
         List<PreferenceDto> dtoData = new();
         foreach (var data in preferences.Data)
         {
+            if (data.Value is null) continue;
+
             var value = string.Empty;
             switch (data.Type)
             {

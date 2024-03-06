@@ -1,6 +1,7 @@
 ﻿using OfficeOpenXml.Style;
 using OfficeOpenXml;
 using System.Drawing;
+using System.Net;
 using System.Text;
 using UMaTLMS.Core.Services;
 
@@ -93,7 +94,8 @@ public static partial class TimetableGenerator
 
         try
         {
-            SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, first, second);
+            SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, first, second,
+                isColored: lectureSchedule.Room.Capacity < lectureSchedule.FirstLecture!.SubClassGroups.Select(x => x.Size).Sum());
         }
         catch (Exception ex)
         {
@@ -114,7 +116,8 @@ public static partial class TimetableGenerator
             cellName = GetCellName(worksheet, ("", ""), lectureSchedule, columns, rooms.Count, 1);
             try
             {
-                SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, cellName);
+                SetCellValue(lectureSchedule.FirstLecture!, builder, worksheet, cellName, 
+                    isColored: lectureSchedule.Room.Capacity < lectureSchedule.FirstLecture.SubClassGroups.Select(x => x.Size).Sum());
             }
             catch (Exception ex)
             {
@@ -129,7 +132,8 @@ public static partial class TimetableGenerator
             cellName = GetCellName(worksheet, ("", ""), lectureSchedule, columns, rooms.Count, 2);
             try
             {
-                SetCellValue(lectureSchedule.SecondLecture!, builder, worksheet, cellName);
+                SetCellValue(lectureSchedule.SecondLecture!, builder, worksheet, cellName,
+                    isColored: lectureSchedule.Room.Capacity < lectureSchedule.SecondLecture.SubClassGroups.Select(x => x.Size).Sum());
             }
             catch (Exception ex)
             {
@@ -286,7 +290,8 @@ public static partial class TimetableGenerator
         return $"{cellName.Column}{cellName.Row}";
     }
 
-    private static void ApplyStyling(this ExcelRange range, int fontSize = 10, bool isBold = false, bool isMerge = false)
+    private static void ApplyStyling(this ExcelRange range, int fontSize = 10, bool isBold = false, bool isMerge = false,
+        bool isColored = false)
     {
         range.Style.WrapText = true;
         range.Style.Font.Name = "Arial";
@@ -295,10 +300,17 @@ public static partial class TimetableGenerator
         range.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
         range.Style.Font.Bold = isBold;
         range.Merge = isMerge;
+
+
+        if (isColored)
+        {
+            range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            range.Style.Fill.BackgroundColor.SetColor(Color.Tomato);
+        }
     }
 
     private static void SetCellValue(Lecture lecture, StringBuilder builder, ExcelWorksheet worksheet,
-        string first, string? second = null)
+        string first, string? second = null, bool isColored = false)
     {
         var names = lecture.SubClassGroups.Select(x => x.Name).ToList();
         var modifiedNames = new List<string>();
@@ -320,12 +332,17 @@ public static partial class TimetableGenerator
         builder.Append(Environment.NewLine);
         builder.Append(lecture.Lecturer?.Name?.Split(",").First());
 
+        if (string.IsNullOrEmpty(first))
+        {
+            return;
+        }
+
         ExcelRange cell;
         var cellValue = builder.ToString();
         if (second is not null) cell = worksheet.Cells[$"{first}:{second}"];
         else cell = worksheet.Cells[$"{first}"];
         cell.Value = cellValue;
-        cell.ApplyStyling(isMerge: true);
+        cell.ApplyStyling(isMerge: true, isColored: isColored);
     }
 
     private static List<string> GetColumns()

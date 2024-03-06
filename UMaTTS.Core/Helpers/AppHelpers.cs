@@ -1,4 +1,8 @@
-﻿namespace UMaTLMS.Core.Helpers;
+﻿using System;
+using System.Collections.Generic;
+using UMaTLMS.Core.Entities;
+
+namespace UMaTLMS.Core.Helpers;
 
 public static class AppHelpers
 {
@@ -61,6 +65,53 @@ public static class AppHelpers
         {
             var j = random.Next(i + 1);
             (list[i], list[j]) = (list[j], list[i]);
+        }
+    }
+    
+    public static void Shuffle(this List<Lecture> lectures, int seed = 82)
+    {
+        var random = new Random(seed);
+
+        for (var i = lectures.Count - 1; i > 0; i--)
+        {
+            var j = random.Next(i + 1);
+            (lectures[i], lectures[j]) = (lectures[j], lectures[i]);
+        }
+
+        var practicalLectures = lectures.Where(lecture => lecture.IsPractical &&
+            lecture.SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("A")) ||
+            lecture.SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("B")))
+            .OrderBy(x => x.Lecturer?.Name)
+            .ThenBy(x => x.SubClassGroups.FirstOrDefault()?.Name)
+            .ToList();
+
+        var otherLectures = lectures.Where(lecture => !(lecture.IsPractical &&
+            lecture.SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("A")) ||
+            lecture.SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("B")))).ToList();
+
+        // Shuffle non-practical lectures
+        otherLectures = otherLectures.OrderBy(x => random.Next()).ToList();
+
+        // Merge the two lists back, keeping practical lectures in place
+        int practicalIndex = 0;
+        int otherIndex = 0;
+
+        for (int i = 0; i < lectures.Count; i++)
+        {
+            var isPracticalAndDivided = lectures[i].IsPractical &&
+                lectures[i].SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("A")) ||
+                lectures[i].SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("B"));
+
+            if (isPracticalAndDivided)
+            {
+                lectures[i] = practicalLectures[practicalIndex];
+                practicalIndex++;
+            }
+            else
+            {
+                lectures[i] = otherLectures[otherIndex];
+                otherIndex++;
+            }
         }
     }
 

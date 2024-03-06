@@ -12,14 +12,17 @@ public class UMaTApiService : IUMaTApiService
 {
     private readonly ILogger<UMaTApiService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IExcelReader _reader;
     private readonly LoginFormOptions _loginFormOptions;
     private readonly HttpClient _client;
 
     public UMaTApiService(IHttpClientFactory factory, ILogger<UMaTApiService> logger,
-        IOptions<LoginFormOptions> loginFormOptions, IConfiguration configuration)
+        IOptions<LoginFormOptions> loginFormOptions, IConfiguration configuration,
+        IExcelReader reader)
     {
         _logger = logger;
         _configuration = configuration;
+        _reader = reader;
         _loginFormOptions = loginFormOptions.Value;
         _client = factory.CreateClient("UMaT");
         var authToken = GetAuthTokenAsync().GetAwaiter().GetResult();
@@ -58,7 +61,7 @@ public class UMaTApiService : IUMaTApiService
         {
             var course = courses[i - 1];
             if (course.Programme!.Code!.Contains("Cert")) continue;
-            var groupName = $"{course.Programme?.Code?.Trim() ?? ""} {(DateTime.Now.Year + 1) - course.YearGroup}";
+            var groupName = $"{course.Programme?.Code?.Trim() ?? ""} {(DateTime.Now.Year) - course.YearGroup}";
             if (groups.Any(x => x.Name == groupName)) continue;
             var classSize = await GetClassSize(course.YearGroup ?? 0, course.Programme?.Id ?? 0);
             groups.Add(new Group(i, groupName, classSize));
@@ -90,6 +93,34 @@ public class UMaTApiService : IUMaTApiService
 
         return result.ToList();
     }
+
+    //private async Task<List<CoursePayload>> GetCoursesFromCourseDistribution()
+    //{
+    //    var courses = new HashSet<CoursePayload>();
+
+    //    var filePaths = new List<string>() { };
+
+    //    foreach (var item in filePaths)
+    //    {
+    //        var worksheet = _reader.GetWorkSheet(item, 0);
+    //        if (worksheet is null) break;
+
+    //        var row = 1;
+    //        while (true)
+    //        {
+    //            var courseNo = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+    //            if (string.IsNullOrEmpty(courseNo)) break;
+                
+    //            var title = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+    //            var teachingHours = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+    //            var practicalHours = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+    //            var creditHours = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+    //            var classSize = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+    //            var firstExaminer = worksheet.Cells[row, 10].Value?.ToString()?.Trim();
+    //            var secondExaminer = worksheet.Cells[row, 10].Value?.ToString()?.Trim();
+    //        }
+    //    }
+    //}
 
     private async Task<int> GetClassSize(int yearGroup, int programmeId)
     {

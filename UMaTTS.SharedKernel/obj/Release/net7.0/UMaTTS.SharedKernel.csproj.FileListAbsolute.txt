@@ -7,6 +7,7 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTT
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTTS.SharedKernel.AssemblyInfoInputs.cache
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTTS.SharedKernel.AssemblyInfo.cs
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTTS.SharedKernel.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTTS.SharedKernel.sourcelink.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTTS.SharedKernel.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\refint\UMaTTS.SharedKernel.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.SharedKernel\obj\Release\net7.0\UMaTTS.SharedKernel.pdb

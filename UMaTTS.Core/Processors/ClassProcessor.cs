@@ -31,7 +31,7 @@ public class ClassProcessor
 			{
 				if (group.Size is null) group.HasSize(0);
 				var newNumberOfSubClasses = ((group.Size / limit) + 1) ?? 0;
-				if (newNumberOfSubClasses == group.NumOfSubClasses) continue;
+				//if (newNumberOfSubClasses == group.NumOfSubClasses) continue;
 
 				group.HasNoOfSubClasses(newNumberOfSubClasses);
 				await _classGroupRepository.UpdateAsync(group, saveChanges: false);

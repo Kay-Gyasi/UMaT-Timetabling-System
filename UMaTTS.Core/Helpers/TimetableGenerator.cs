@@ -1,37 +1,52 @@
-﻿using LinqKit;
+﻿using Humanizer;
+using LinqKit;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using UMaTLMS.Core.Entities;
 using UMaTLMS.Core.Processors;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace UMaTLMS.Core.Helpers
 {
     public static partial class TimetableGenerator
     {
-        public static void Generate(TimetableGenerationCommand command)
+        public static void Generate(TimetableGenerationCommand command, ILogger<TimetableProcessor> logger)
         {
             ResetSchedules(command.Schedules, command.OnlineSchedules);
-            command.Lectures.Shuffle();
-            command.Schedules.Shuffle(seed: 50);            
+            command.Lectures.Shuffle();        
 
-            AssignLecturesToSchedules(command);
+            AssignLecturesToSchedules(command, logger);
         }
 
-        private static void AssignLecturesToSchedules(TimetableGenerationCommand command)
+        private static void AssignLecturesToSchedules(TimetableGenerationCommand command, ILogger<TimetableProcessor> logger)
         {
             AddPreferredRoomsFromPreferences(command.Lectures, command.Preferences);
             command.Lectures = command.Lectures
                         .OrderByDescending(x => x.PreferredRoom is not null)
+                        .ThenByDescending(x => x.IsPractical &&
+                                x.SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("A")) ||
+                                x.SubClassGroups.Any(x => x.Name.Split(" ")[1].Contains("B")))
                         .ThenByDescending(x => x.Duration)
                         .ToList();
 
+            var countScheduled = 0;
+
             foreach (var lecture in command.Lectures)
             {
+                countScheduled += 1;
+                logger.LogInformation($"Scheduling {lecture.Course?.Name}: {lecture.Lecturer?.Name}. Count: {countScheduled}/{command.Lectures.Count}");
+
+                if (lecture.SubClassGroups.Count == 0) continue;
+
                 var builder = PredicateBuilder.New<LectureSchedule>(x => true);
                 var onlineBuilder = PredicateBuilder.New<OnlineLectureSchedule>(x => true);
                 bool isScheduled = false;
 
                 BuildBasePredicateForSchedulingLecture(builder, onlineBuilder, command, lecture);
 
-                isScheduled = ScheduleVleLecture(command.OnlineSchedules, command.Schedules, onlineBuilder, lecture);
+                isScheduled = ScheduleVleLecture(command.OnlineSchedules, command.Schedules, onlineBuilder, lecture, logger);
                 if (isScheduled) continue;
 
                 var eligibleSchedules = command.Schedules.Where(builder)
@@ -53,6 +68,48 @@ namespace UMaTLMS.Core.Helpers
                 if (isScheduled) continue;
 
                 ScheduleOnePeriodLecture(eligibleSchedules, command.OnlineSchedules, lecture);
+
+                if (!eligibleSchedules.Exists(x => x.FirstLectureId == lecture.Id || x.SecondLectureId == lecture.Id))
+                {
+                    logger.LogError("Failed to schedule lecture");
+                    LectureSchedule schedule;
+
+                    var publicClasses = command.Schedules
+                        .Where(x => x.Room.IncludeInGeneralAssignment)
+                        .OrderByDescending(x => x.Room.Capacity)
+                        .ToList();
+                    
+                    if (!publicClasses.Any())
+                    {
+                        publicClasses = command.Schedules;
+                    }
+
+                    if (lecture.Duration == 2)
+                    {
+                        schedule = publicClasses
+                            .First(x => 
+                                x.FirstLectureId is null && 
+                                x.SecondLectureId is null);
+
+                        schedule?.HasFirstLecture(lecture)
+                            .HasSecondLecture(lecture);
+
+                        continue;
+                    }
+
+                    schedule = publicClasses
+                        .First(x => 
+                            (x.FirstLectureId is null || 
+                            x.SecondLectureId is null));
+
+                    if (schedule?.FirstLectureId is null)
+                    {
+                        schedule?.HasFirstLecture(lecture);
+                        continue;
+                    }
+
+                    schedule.HasSecondLecture(lecture);
+                }
             }
         }
 
@@ -65,11 +122,11 @@ namespace UMaTLMS.Core.Helpers
             while (true)
             {
                 eligibleSchedules = eligibleSchedules.Where(x => invalidScheduleIds.Contains(x.Id) == false).ToList();
-                var schedule = eligibleSchedules.FirstOrDefault(x => x.FirstLectureId == null
+                var schedule = eligibleSchedules.Find(x => x.FirstLectureId == null
                                 && x.SecondLectureId == null
                                 && x.Room.Name == lecture.PreferredRoom);
 
-                schedule ??= eligibleSchedules.FirstOrDefault(x => x.FirstLectureId == null
+                schedule ??= eligibleSchedules.Find(x => x.FirstLectureId == null
                                 && x.SecondLectureId == null
                                 && x.Room.Capacity >= lecture.SubClassGroups.Sum(s => s.Size));
 
@@ -80,7 +137,7 @@ namespace UMaTLMS.Core.Helpers
                 foreach (var sub in lecture.SubClassGroups)
                 {
                     if (schedule is null) break;
-                    anySubHasVleLectureAtTime = onlineSchedules.Any((x => x.TimePeriod == schedule.TimePeriod
+                    anySubHasVleLectureAtTime = onlineSchedules.Exists((x => x.TimePeriod == schedule.TimePeriod
                                                     && x.DayOfWeek!.Value == schedule.DayOfWeek!.Value
                                                     && (x.Lectures.Any(a => a.SubClassGroups.Contains(sub)))));
                     if (anySubHasVleLectureAtTime)
@@ -140,7 +197,7 @@ namespace UMaTLMS.Core.Helpers
         }
 
         private static bool ScheduleVleLecture(List<OnlineLectureSchedule> onlineSchedules, List<LectureSchedule> schedules,
-            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, Lecture lecture)
+            ExpressionStarter<OnlineLectureSchedule> onlineBuilder, Lecture lecture, ILogger<TimetableProcessor> logger)
         {
             if (!lecture.IsVLE) return false;
 
@@ -157,14 +214,18 @@ namespace UMaTLMS.Core.Helpers
                 {
                     var practicalSchedulesAtSameTime = schedules.Where(x => x.TimePeriod == onlineSchedule.TimePeriod 
                                                 && x.DayOfWeek!.Value == onlineSchedule.DayOfWeek!.Value).ToList();
-                    anySubHasLectureAtTime = practicalSchedulesAtSameTime.Any(x => 
+                    anySubHasLectureAtTime = practicalSchedulesAtSameTime.Exists(x => 
                                                     (x.FirstLecture != null && x.FirstLecture.SubClassGroups.Contains(sub))
                                                     || (x.SecondLecture != null && x.SecondLecture.SubClassGroups.Contains(sub)));
                     if (anySubHasLectureAtTime) 
                         break;
                 }
 
-                if (anySubHasLectureAtTime) continue;
+                if (anySubHasLectureAtTime)
+                {
+                    logger.LogDebug($"Conflict VLE: {lecture.Course?.Name}");
+                }
+
                 onlineSchedule?.AddLecture(lecture);
                 return true;
             }
@@ -206,7 +267,7 @@ namespace UMaTLMS.Core.Helpers
             ExpressionStarter<OnlineLectureSchedule> onlineBuilder, TimetableGenerationCommand command, Lecture lecture, DayOfWeek day)
         {
             var numOfLecturesForLecturerToday = GetNumberOfLecturesForLecturerToday(command.Schedules, command.OnlineSchedules, lecture, day);
-            var maxNumberOfLecturesPerDayForLecturer = command.Constraints.FirstOrDefault(x =>
+            var maxNumberOfLecturesPerDayForLecturer = command.Constraints.Find(x =>
                                                             x.Type == ConstraintType.MaxLecturesPerDayForLecturer
                                                             && x.LecturerId == lecture.LecturerId)?.Value;
             maxNumberOfLecturesPerDayForLecturer ??= command.Constraints.SingleOrDefault(x =>
@@ -309,7 +370,7 @@ namespace UMaTLMS.Core.Helpers
             int onlineSchedulesForClassToday = 0;
             foreach (var sub in lecture.SubClassGroups)
             {
-                var schedulesForToday = command.Schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var schedulesForToday = command.Schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day).ToList();
                 var first = schedulesForToday.Count(x => x.FirstLecture != null && x.FirstLecture.SubClassGroups.Contains(sub));
                 var second = schedulesForToday.Count(x => x.SecondLecture != null && x.SecondLecture.SubClassGroups.Contains(sub));
                 schedulesForClassToday = first + second;
@@ -328,7 +389,7 @@ namespace UMaTLMS.Core.Helpers
         {
             foreach (var sub in lecture.SubClassGroups)
             {
-                var schedulesForDay = command.Schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day);
+                var schedulesForDay = command.Schedules.Where(x => x.DayOfWeek != null && x.DayOfWeek == day).ToList();
                 var first = schedulesForDay.Any(x => x.FirstLecture?.Course != null
                                                     && x.FirstLecture.Course.Name == lecture.Course!.Name
                                                     && x.FirstLecture.SubClassGroups.Contains(sub));
@@ -350,16 +411,15 @@ namespace UMaTLMS.Core.Helpers
                 }
             }
         }
-
-
-        private static void ResetSchedules(List<LectureSchedule> schedules, List<OnlineLectureSchedule> onlineSchedules)
+        
+        private static void ResetSchedules(IEnumerable<LectureSchedule> schedules, IEnumerable<OnlineLectureSchedule> onlineSchedules)
         {
-            foreach (var s in schedules.Where(x => x.FirstLecture is not null || x.SecondLecture is not null))
+            foreach (var s in schedules)
             {
                 s.Reset();
             }
 
-            foreach (var o in onlineSchedules.Where(x => x.Lectures.Any()))
+            foreach (var o in onlineSchedules)
             {
                 o.Reset();
             }

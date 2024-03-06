@@ -8,6 +8,7 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.G
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.AssemblyInfoInputs.cache
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.AssemblyInfo.cs
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.sourcelink.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.csproj.CopyComplete
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\UMaTTS.Core.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Core\obj\Release\net7.0\refint\UMaTTS.Core.dll

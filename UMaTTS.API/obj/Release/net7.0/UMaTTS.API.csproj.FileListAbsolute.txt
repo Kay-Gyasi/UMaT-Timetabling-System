@@ -1,8 +1,5 @@
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\appsettings.Development.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\appsettings.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\_content\classGroups.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\_content\courses.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\_content\lecturers.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\UMaTTS.API.exe
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\UMaTTS.API.deps.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\bin\Release\net7.0\UMaTTS.API.runtimeconfig.json
@@ -103,13 +100,14 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.Ass
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.csproj.CoreCompileInputs.cache
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.sourcelink.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets.build.json
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets.development.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets\msbuild.UMaTTS.API.Microsoft.AspNetCore.StaticWebAssets.props
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets\msbuild.build.UMaTTS.API.props
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets\msbuild.buildMultiTargeting.UMaTTS.API.props
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets\msbuild.buildTransitive.UMaTTS.API.props
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets.pack.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets.build.json
-C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\staticwebassets.development.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\scopedcss\bundle\UMaTTS.API.styles.css
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.csproj.CopyComplete
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.API\obj\Release\net7.0\UMaTTS.API.dll

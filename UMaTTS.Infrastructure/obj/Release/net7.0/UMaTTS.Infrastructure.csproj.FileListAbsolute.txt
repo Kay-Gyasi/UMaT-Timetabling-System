@@ -10,6 +10,7 @@ C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMa
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMaTTS.Infrastructure.AssemblyInfoInputs.cache
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMaTTS.Infrastructure.AssemblyInfo.cs
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMaTTS.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMaTTS.Infrastructure.sourcelink.json
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMaTTS.Infrastructure.csproj.CopyComplete
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\UMaTTS.Infrastructure.dll
 C:\Users\admin\source\repos\UMaTLMS\UMaTTS.Infrastructure\obj\Release\net7.0\refint\UMaTTS.Infrastructure.dll

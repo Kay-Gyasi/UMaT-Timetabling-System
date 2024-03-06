@@ -81,7 +81,8 @@ public class Repository<T, TKey> : IRepository<T, TKey>
         {
             _cache.Remove<T>();
             await Task.Run(() => Entities.Update(entity));
-            if (saveChanges) await Context.SaveChangesAsync();
+            if (saveChanges) 
+                await Context.SaveChangesAsync();
         }
         catch (Exception e)
         {

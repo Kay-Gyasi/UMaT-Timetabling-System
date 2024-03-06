@@ -4,6 +4,8 @@ using System.Text.Json;
 using UMaTLMS.Core.Contracts;
 using UMaTLMS.Core.Helpers;
 using UMaTLMS.Core.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Linq;
 
 namespace UMaTLMS.Core.Processors;
 
@@ -58,7 +60,9 @@ public class TimetableProcessor
         var fileName = _configuration[_timetableFile] ?? string.Empty;
         if (File.Exists(fileName)) return new TimetableGeneratedException();
 
-        var lectures = await _lectureRepository.GetAllAsync();
+        var lectures = (await _lectureRepository.GetAllAsync())
+            .Where(x => x.SubClassGroups.Any()).ToList();
+        
         var schedules = await _lectureScheduleRepository.GetAllAsync();
         var preferences = await _preferenceRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
         var constraints = await _constraintRepository.GetAllAsync(x => x.TimetableType == Enums.TimetableType.Lectures);
@@ -71,7 +75,7 @@ public class TimetableProcessor
 
         try
         {
-            var parsedDaysOfWeekForLectures = daysOfWeekForLectures?.Select(Enum.Parse<DayOfWeek>).ToList();
+            var parsedDaysOfWeekForLectures = daysOfWeekForLectures!.Select(Enum.Parse<DayOfWeek>).ToList();
             var command = new TimetableGenerationCommand
             {
                 Schedules = schedules,
@@ -79,16 +83,17 @@ public class TimetableProcessor
                 Lectures = lectures,
                 Preferences = preferences,
                 Constraints = constraints,
-                DaysOfWeekForLectures = parsedDaysOfWeekForLectures ?? new List<DayOfWeek>()
+                DaysOfWeekForLectures = parsedDaysOfWeekForLectures
             };
             
-            await Task.Run(() => TimetableGenerator.Generate(command));
+            await Task.Run(() => TimetableGenerator.Generate(command, _logger));
             _logger.LogInformation("Done generating lecture schedules");
 
             var numOfLecturesNotScheduled = GetNumberOfLecturesNotScheduled(lectures, schedules, onlineSchedules);
             if (numOfLecturesNotScheduled > 0) return new LecturesNotScheduledException();
 
             await SaveSchedulesToDatabase(schedules, onlineSchedules);
+            
             await TimetableGenerator.GetAsync(_excelReader, schedules, onlineSchedules, rooms, fileName);
             _logger.LogInformation("Done building timetable!");
             return true;
@@ -216,7 +221,7 @@ public class TimetableProcessor
         {
             foreach (var group in groups)
             {
-                var groupExists = groupsInDb.FirstOrDefault(x => x.Name == group.Name);
+                var groupExists = groupsInDb.Find(x => x.Name == group.Name);
                 if (groupExists is not null)
                 {
                     groupExists.HasSize(group.Size)
@@ -241,7 +246,7 @@ public class TimetableProcessor
 
         foreach (var course in courses)
         {
-            if (coursesInDb.Any(x => x.YearGroup == course.YearGroup && x.UmatId == course.Id)) 
+            if (coursesInDb.Exists(x => x.YearGroup == course.YearGroup && x.UmatId == course.Id)) 
                 continue;
 
             if (course.FirstExaminerStaff?.Id != null && !addedLecturerIds.Contains(course.FirstExaminerStaff.Id))
@@ -321,14 +326,12 @@ public class TimetableProcessor
     {
         foreach (var schedule in schedules)
         {
-            await _lectureScheduleRepository.UpdateAsync(schedule, false)
-                .ConfigureAwait(false);
+            await _lectureScheduleRepository.UpdateAsync(schedule, saveChanges: false);
         }
 
         foreach (var schedule in onlineSchedules)
         {
-            await _onlineLectureScheduleRepository.UpdateAsync(schedule, false)
-                .ConfigureAwait(false);
+            await _onlineLectureScheduleRepository.UpdateAsync(schedule, saveChanges: false);
         }
 
         await _lectureScheduleRepository.SaveChanges();
@@ -341,26 +344,44 @@ public class TimetableProcessor
     {
         if (course.Code!.StartsWith("EM 411") || course.Code!.StartsWith("EM 413")) return;
         if (course.FirstExaminerStaffId is null) return;
+
         var courseCode = course.Code?.Trim().Split(AppHelpers.WhiteSpace)[1];
-        var lecturer = lecturers.FirstOrDefault(x => x.UmatId == course.FirstExaminerStaffId);
+        var lecturer = lecturers.Find(x => x.UmatId == course.FirstExaminerStaffId);
         if (lecturer is null) return;
 
         var isCreated = AddGroupToLectureIfAlreadyCreated(lectures, classGroups, lecturer.Id, course, courseCode);
         if (isCreated) return;
 
-        var subs = classGroups.FirstOrDefault(x => x.Name.StartsWith(course.ProgrammeCode!) 
+        var subs = classGroups.Find(x => x.Name.StartsWith(course.ProgrammeCode!) 
                                                     && x.Year == course.Year)?
-                                                    .SubClassGroups;
+        .SubClassGroups;
+
+        var practicalHours = course.PracticalHours;
+
+        int arraySize = (practicalHours / 2) + (practicalHours % 2);
+
+        // Create the array
+        int[] resultArray = new int[arraySize];
+
+        // Populate the array
+        for (int i = 0; i < arraySize; i++)
+        {
+            resultArray[i] = (practicalHours >= 2) ? 2 : 1;
+            practicalHours -= 2;
+        }
 
         var teaching = Lecture.Create(lecturer.Id, course.Id, course.TeachingHours)
                                 .ForCourse(course)
                                 .AddGroups(subs);
 
-        var practical = Lecture.Create(lecturer.Id, course.Id, course.PracticalHours, true)
-                                .ForCourse(course)
-                                .AddGroups(subs);
+        lectures.Add(teaching);
 
-        lectures.AddRange(new List<Lecture> { teaching, practical });
+        foreach (var item in resultArray)
+        {
+            lectures.Add(Lecture.Create(lecturer.Id, course.Id, item, true)
+                                .ForCourse(course)
+                                .AddGroups(subs));
+        }
     }
 
     private static bool AddGroupToLectureIfAlreadyCreated(List<Lecture> lectures, List<ClassGroup> classGroups, int lecturerId,
@@ -374,7 +395,7 @@ public class TimetableProcessor
 
         foreach (var lecture in insertedLectures)
         {
-            var subs2 = classGroups.FirstOrDefault(x =>
+            var subs2 = classGroups.Find(x =>
                 x.Name.StartsWith(course.ProgrammeCode!)
                     && x.Year == course.Year)?
                         .SubClassGroups;
@@ -387,24 +408,21 @@ public class TimetableProcessor
         List<OnlineLectureSchedule> onlineLectureSchedules)
     {
         int result = 0;
-        //List<Lecture> lecturesNotScheduled = new();
 
         foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && !x.IsVLE))
         {
-            var lectureIsScheduled = lectureSchedules.Any(x => x.FirstLectureId == lecture.Id || x.SecondLectureId == lecture.Id);
+            var lectureIsScheduled = lectureSchedules.Exists(x => x.FirstLectureId == lecture.Id || x.SecondLectureId == lecture.Id);
             if (!lectureIsScheduled)
             {
-                //lecturesNotScheduled.Add(lecture);
                 result++;
             }
         }
-        
+;
         foreach (var lecture in lecturesInDb.Where(x => x.Course!.IsToHaveWeeklyLectureSchedule && x.IsVLE))
         {
-            var onlineLectureIsScheduled = onlineLectureSchedules.Any(x => x.Lectures.Contains(lecture));
+            var onlineLectureIsScheduled = onlineLectureSchedules.Exists(x => x.Lectures.Contains(lecture));
             if (!onlineLectureIsScheduled)
             {
-                //lecturesNotScheduled.Add(lecture);
                 result++;
             }
         }
